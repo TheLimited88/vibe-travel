@@ -190,8 +190,8 @@ export default function AdminPlacesPage() {
                     {/* Thumbnail */}
                     <div
                       style={{
-                        width: '64px',
-                        height: '64px',
+                        width: '72px',
+                        height: '72px',
                         borderRadius: '10px',
                         background: '#E8D5F2',
                         flexShrink: 0,
