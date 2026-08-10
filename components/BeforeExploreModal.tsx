@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 'use client';
 
 import { useState, useEffect, ReactNode } from 'react';
