@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 
 interface PermissionItem {
   id: string;
   title: string;
   description: string;
-  icon: JSX.Element;
+  icon: ReactNode;
 }
 
 export default function BeforeExploreModal() {
