@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+:root {
+  /* Vibe Travel design tokens (inherited from Nearby Vibes) */
+  --color-bg: oklch(98% 0.003 90);
+  --color-surface: #FFFFFF;
+  --color-text-primary: #0A0A0A;
+  --color-text-secondary: rgba(10,10,10,0.6);
+  --color-text-tertiary: rgba(10,10,10,0.5);
+  --color-accent: #7F53F3;
+  --color-accent-deep: #95048B;
+  --color-cta-gradient: linear-gradient(135deg, #95048B, #7F53F3);
+  --color-success: #25EFB8;
+  --color-success-text: #0A9B71;
+  --color-distance-bg: #d5ede8;
+  --color-distance-text: #3ca480;
+  --color-border: rgba(10,10,10,0.08);
+  --color-border-soft: rgba(10,10,10,0.06);
+  --shadow-card: 0 1px 4px rgba(0,0,0,0.1);
+  --shadow-modal: 0 20px 50px rgba(0,0,0,0.15);
+  --radius-pill: 999px;
+  --radius-button: 14px;
+  --radius-card: 18px;
+  --radius-sheet: 22px;
+  --radius-chip: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide Next.js error overlay and dev indicators */
+#__next-error-boundary,
+[class*="nextjs-container-errors"],
+[class*="error-overlay"],
+[class*="dev-overlay"],
+[class*="build-error"],
+#__build_error,
+#__next-build-watcher {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Ensure nav buttons display text properly */
+nav button {
+  min-width: 60px;
+  white-space: normal;
+  word-break: break-word;
+  text-overflow: clip;
+  overflow: visible;
+}
