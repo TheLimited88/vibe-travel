@@ -178,17 +178,17 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
       });
 
       // Add click handler for clusters to zoom in
-      map.current!.on('click', 'clusters', (e) => {
+      map.current!.on('click', 'clusters', (e: any) => {
         const features = map.current!.querySourceFeatures('places', {
           filter: ['has', 'point_count'],
         });
         const clusteredSource = map.current!.getSource('places') as mapboxgl.GeoJSONSource;
-        const clusterProperties = (e.features?.[0]?.properties as any);
+        const clusterProperties = e.features?.[0]?.properties;
         if (clusterProperties?.cluster_id !== undefined) {
           (clusteredSource as any).getClusterExpansionZoom(clusterProperties.cluster_id, (err: any, zoom: number) => {
             if (err) return;
             map.current!.easeTo({
-              center: (e.features![0].geometry as any).coordinates,
+              center: e.features![0].geometry.coordinates,
               zoom: zoom,
             });
           });

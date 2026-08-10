@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
     pagesBufferLength: 5,
   },
   devIndicators: {
-    buildActivity: false,
+    buildActivityPosition: 'bottom-right',
   },
 };
 

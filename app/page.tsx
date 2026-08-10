@@ -16,6 +16,11 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<Category>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const handleSelectCategory = (categoryId: string) => {
+    const category = categoryId === 'all' ? 'All' : (categoryId as Category);
+    setSelectedCategory(category);
+  };
+
   const filteredLocations = mockLocations.filter((location) => {
     const matchesCategory = selectedCategory === 'All' || location.category === selectedCategory;
     const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase());
@@ -66,7 +71,7 @@ export default function Home() {
               <SearchBar value={searchQuery} onChange={setSearchQuery} />
             </div>
 
-            <CategoryChips selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
+            <CategoryChips selectedCategory={selectedCategory === 'All' ? 'all' : selectedCategory} onSelectCategory={handleSelectCategory} />
 
             {/* Near you */}
             <div style={{ marginTop: '16px', marginBottom: '24px' }}>

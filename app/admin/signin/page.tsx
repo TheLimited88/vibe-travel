@@ -57,39 +57,35 @@ export default function AdminSignInPage() {
       return;
     }
 
-    // Simple verification - in production, this would check against a backend
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'admin@vibetravel.com';
-    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'AdminPassword123';
+    try {
+      // Send credentials and token to backend for verification
+      const response = await fetch('/api/admin/verify-turnstile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: turnstileRef.current,
+          email,
+          password,
+        }),
+      });
 
-    if (email === adminEmail && password === adminPassword) {
-      try {
-        // Verify Cloudflare Turnstile token
-        const response = await fetch('/api/admin/verify-turnstile', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ token: turnstileRef.current }),
-        });
+      const data = await response.json();
 
-        const data = await response.json();
-
-        if (data.success) {
-          // Store authentication token
-          localStorage.setItem('adminToken', 'authenticated');
-          router.push('/admin/places');
-        } else {
-          alert('CAPTCHA verification failed. Please try again.');
-          // Reset Turnstile
-          if (window.turnstile) {
-            window.turnstile.reset();
-          }
-          turnstileRef.current = null;
+      if (data.success) {
+        // Store authentication token
+        localStorage.setItem('adminToken', 'authenticated');
+        router.push('/admin/places');
+      } else {
+        alert(data.error || 'Authentication failed. Please try again.');
+        // Reset Turnstile
+        if (window.turnstile) {
+          window.turnstile.reset();
         }
-      } catch (error) {
-        alert('Error verifying CAPTCHA. Please try again.');
+        turnstileRef.current = null;
         setIsSubmitting(false);
       }
-    } else {
-      alert('Invalid email or password');
+    } catch (error) {
+      alert('Error authenticating. Please try again.');
       setIsSubmitting(false);
     }
   };

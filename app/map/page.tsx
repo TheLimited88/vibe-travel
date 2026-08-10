@@ -27,7 +27,7 @@ export default function MapPage() {
         }}
       >
         <div style={{ position: 'relative', zIndex: 10, background: '#F2F2F7' }}>
-          <div style={{ paddingTop: '32px', paddingX: '16px' }}>
+          <div style={{ paddingTop: '32px', paddingLeft: '16px', paddingRight: '16px' }}>
             <Header />
           </div>
           <div style={{ padding: '12px 16px 16px' }}>

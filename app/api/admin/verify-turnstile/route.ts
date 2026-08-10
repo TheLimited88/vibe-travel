@@ -1,6 +1,6 @@
 export async function POST(request: Request) {
   try {
-    const { token } = await request.json();
+    const { token, email, password } = await request.json();
 
     if (!token) {
       return Response.json({ success: false, error: 'No token provided' }, { status: 400 });
@@ -26,13 +26,21 @@ export async function POST(request: Request) {
 
     const data = await response.json();
 
-    if (data.success) {
-      return Response.json({ success: true });
-    } else {
+    if (!data.success) {
       return Response.json({ success: false, error: 'Token verification failed' }, { status: 400 });
     }
+
+    // Verify admin credentials (server-side)
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@vibetravel.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPassword123';
+
+    if (email !== adminEmail || password !== adminPassword) {
+      return Response.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
+    }
+
+    return Response.json({ success: true });
   } catch (error) {
-    console.error('Turnstile verification error:', error);
+    console.error('Admin authentication error:', error);
     return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
