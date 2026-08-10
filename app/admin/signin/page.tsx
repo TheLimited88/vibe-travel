@@ -72,9 +72,9 @@ export default function AdminSignInPage() {
       const data = await response.json();
 
       if (data.success) {
-        // Store authentication token
+        // Store authentication token and redirect to 2FA
         localStorage.setItem('adminToken', 'authenticated');
-        router.push('/admin/places');
+        router.push('/admin/verify-2fa');
       } else {
         alert(data.error || 'Authentication failed. Please try again.');
         // Reset Turnstile
