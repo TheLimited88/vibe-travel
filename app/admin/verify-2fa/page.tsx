@@ -7,12 +7,14 @@ export default function Admin2FAPage() {
   const router = useRouter();
   const [code, setCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const isValid = code.length === 6 && /^\d{6}$/.test(code);
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, '').slice(0, 6);
     setCode(value);
+    setError('');
   };
 
   const handleVerify = async (e: React.FormEvent) => {
@@ -37,7 +39,7 @@ export default function Admin2FAPage() {
         localStorage.setItem('admin2FAVerified', 'true');
         router.push('/admin/places');
       } else {
-        alert(data.error || '2FA verification failed. Please try again.');
+        setError('Incorrect code. Please try again.');
         setCode('');
         setIsSubmitting(false);
       }
@@ -91,7 +93,7 @@ export default function Admin2FAPage() {
             onChange={handleCodeChange}
             placeholder="123456"
             style={{
-              border: '1px solid rgba(10,10,10,0.12)',
+              border: error ? '1px solid #C23B3B' : '1px solid rgba(10,10,10,0.12)',
               borderRadius: '12px',
               padding: '14px',
               fontSize: '20px',
@@ -102,6 +104,13 @@ export default function Admin2FAPage() {
               boxSizing: 'border-box',
             }}
           />
+
+          {/* Error Message */}
+          {error && (
+            <div style={{ fontSize: '12.5px', color: '#C23B3B', textAlign: 'center' }}>
+              {error}
+            </div>
+          )}
 
           {/* Verify Button */}
           <button
