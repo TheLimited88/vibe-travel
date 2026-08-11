@@ -62,7 +62,7 @@ export default function ContentPage() {
               Preview
             </button>
           ) : (
-            <button onClick={() => setIsEditing(true)} style={{ background: 'none', border: 'none', fontSize: '14px', color: '#0A0A0A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+            <button onClick={() => setIsEditing(true)} style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l11-11-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M14 6l4 4" stroke="currentColor" strokeWidth="1.8"/></svg>
               Edit
             </button>
