@@ -207,7 +207,7 @@ export default function AdminPlacesPage() {
                         {place.subtitle}
                       </span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: 'rgba(10,10,10,0.5)' }}>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                           <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#2E7FE8" strokeWidth="2" />
                           <circle cx="12" cy="9.5" r="2.3" stroke="#2E7FE8" strokeWidth="2" />
                         </svg>
@@ -289,13 +289,14 @@ export default function AdminPlacesPage() {
         {/* Bottom Navigation */}
         <div
           style={{
-            height: '60px',
-            background: '#fff',
-            borderTop: '1px solid rgba(0,0,0,0.08)',
+            background: 'rgba(255,255,255,0.92)',
+            backdropFilter: 'blur(10px)',
+            borderTop: '1px solid rgba(10,10,10,0.07)',
             display: 'flex',
+            padding: '8px 6px 24px',
             justifyContent: 'space-around',
-            alignItems: 'center',
-            width: '100%',
+            flexShrink: 0,
+            gap: 0,
           }}
         >
           <button
@@ -310,9 +311,13 @@ export default function AdminPlacesPage() {
               fontWeight: '600',
               color: '#7F53F3',
               cursor: 'pointer',
+              flex: 1,
             }}
           >
-            <div style={{ fontSize: '23px', lineHeight: '1' }}>▤</div>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+              <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="currentColor" strokeWidth="1.8"/>
+              <circle cx="12" cy="9.5" r="2.6" stroke="currentColor" strokeWidth="1.8"/>
+            </svg>
             <span>Places</span>
           </button>
           <button
@@ -327,10 +332,58 @@ export default function AdminPlacesPage() {
               fontWeight: '600',
               color: 'rgba(10,10,10,0.6)',
               cursor: 'pointer',
+              flex: 1,
             }}
           >
-            <div style={{ fontSize: '23px', lineHeight: '1' }}>▧</div>
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+              <path d="M4 20h4l11-11-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+              <path d="M14 6l4 4" stroke="currentColor" strokeWidth="1.8"/>
+            </svg>
             <span>Content</span>
+          </button>
+          <button
+            style={{
+              background: 'none',
+              border: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+              fontSize: '9px',
+              fontWeight: '600',
+              color: 'rgba(10,10,10,0.6)',
+              cursor: 'pointer',
+              flex: 1,
+            }}
+          >
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+              <circle cx="9" cy="8" r="3.3" stroke="currentColor" strokeWidth="1.8"/>
+              <path d="M2.5 20c1.2-3.6 3.8-5.4 6.5-5.4s5.3 1.8 6.5 5.4" stroke="currentColor" strokeWidth="1.8"/>
+              <circle cx="17.5" cy="8.5" r="2.6" stroke="currentColor" strokeWidth="1.6"/>
+              <path d="M15.5 14.6c2.2.3 4 1.8 5 4.9" stroke="currentColor" strokeWidth="1.6"/>
+            </svg>
+            <span>Users</span>
+          </button>
+          <button
+            style={{
+              background: 'none',
+              border: 'none',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
+              fontSize: '9px',
+              fontWeight: '600',
+              color: 'rgba(10,10,10,0.6)',
+              cursor: 'pointer',
+              flex: 1,
+            }}
+          >
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/>
+              <path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke="currentColor" strokeWidth="1.8"/>
+            </svg>
+            <span>Account</span>
           </button>
         </div>
       </div>
