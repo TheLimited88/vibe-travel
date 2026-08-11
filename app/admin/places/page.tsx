@@ -18,6 +18,10 @@ const PLACES: Place[] = [
   { slug: 'the-ravine-cascades', title: 'The Ravine Cascades', subtitle: "Central Park's waterfall, hidden in plain sight", address: 'The Loch, Central Park, New York, NY', category: 'Waterfall', status: 'published' },
   { slug: 'bushwick-collective', title: 'The Bushwick Collective', subtitle: 'Open-air murals across a dozen industrial blocks', address: 'Troutman St & St Nicholas Ave, Brooklyn, NY', category: 'Street Art', status: 'published' },
   { slug: 'shore-road-promenade', title: 'Shore Road Promenade', subtitle: 'A Bay Ridge waterfront walk with zero tourists', address: 'Shore Rd, Bay Ridge, Brooklyn, NY', category: 'Walking Trail', status: 'draft' },
+  { slug: 'moore-street-market', title: 'Moore Street Market', subtitle: "Bushwick's oldest Latin market, since 1941", address: '110 Moore St, Brooklyn, NY', category: 'Local Market', status: 'published' },
+  { slug: 'gantry-plaza-state-park', title: 'Gantry Plaza State Park', subtitle: 'The best skyline photo you can take without a lens permit', address: '4-09 47th Rd, Long Island City, NY', category: 'Photography Spot', status: 'published' },
+  { slug: 'twa-hotel', title: 'TWA Flight Center', subtitle: "Eero Saarinen's 1962 terminal, reborn as a hotel lobby", address: 'JFK Airport, Jamaica, NY', category: 'Architecture', status: 'published' },
+  { slug: 'elevated-acre', title: 'The Elevated Acre', subtitle: "FiDi's rooftop park that almost nobody knows exists", address: '55 Water St, New York, NY', category: 'Quiet Escape', status: 'archived' },
 ];
 
 export default function AdminPlacesPage() {
@@ -287,16 +291,35 @@ export default function AdminPlacesPage() {
                 {/* Category Pins */}
                 {filteredPlaces.map((place, idx) => {
                   const categoryColors: Record<string, string> = {
-                    'Hidden Beach': '#2E9FD8',
-                    'Scenic Lookout': '#FF6B35',
-                    'Historic Building': '#8B5A3C',
-                    'Waterfall': '#6B9BD1',
-                    'Street Art': '#E84C89',
-                    'Walking Trail': '#52B788',
+                    'Hidden Beach': '#2AA8C4',
+                    'Scenic Lookout': '#E0813C',
+                    'Historic Building': '#9C6B3F',
+                    'Waterfall': '#1E8FBF',
+                    'Street Art': '#D6459A',
+                    'Walking Trail': '#4C9A4C',
+                    'Local Market': '#D9A62B',
+                    'Photography Spot': '#6D6FE0',
+                    'Architecture': '#5C6470',
+                    'Quiet Escape': '#7F53F3',
                   };
+
+                  const categoryIcons: Record<string, React.ReactNode> = {
+                    'Hidden Beach': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 13c2 0 2-3 4-3s2 3 4 3 2-3 4-3 2 3 4 3 2-3 4-3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/><path d="M3 15c2 0 2-3 4-3s2 3 4 3 2-3 4-3 2 3 4 3 2-3 4-3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+                    'Scenic Lookout': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 19l6-10 4 6 3-4 5 8H3z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"/></svg>,
+                    'Historic Building': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 5H3l9-5z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8M3 20h18" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/></svg>,
+                    'Waterfall': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 3c0 4-3 4-3 8s3 4 3 8M16 3c0 4-3 4-3 8s3 4 3 8" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/></svg>,
+                    'Street Art': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="7" cy="8" r="2.2" fill="#fff"/><circle cx="15" cy="6" r="1.6" fill="#fff"/><circle cx="16" cy="14" r="2.8" fill="#fff"/></svg>,
+                    'Walking Trail': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 19c3-1 3-5 6-6s3 4 6 3 3-6 6-7" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeDasharray="1 4"/></svg>,
+                    'Local Market': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 9l2-5h12l2 5" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/><path d="M4 9v10h16V9" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/></svg>,
+                    'Photography Spot': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="13" rx="1" stroke="#fff" strokeWidth="1.8"/><path d="M4 16l4-5 3 3 5-6 4 5" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"/></svg>,
+                    'Architecture': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 10l9-6 9 6M4 20h16M4 10v10M20 10v10" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>,
+                    'Quiet Escape': <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 20s-7-4.5-9.5-9C1 7.5 3 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21 4 23 7.5 21.5 11 19 15.5 12 20 12 20z" stroke="#fff" strokeWidth="1.4" strokeLinejoin="round"/></svg>,
+                  };
+
                   const randomX = (idx * 15 + 20) % 80;
                   const randomY = (idx * 13 + 30) % 70;
                   const color = categoryColors[place.category] || '#7F53F3';
+                  const icon = categoryIcons[place.category];
 
                   return (
                     <button
@@ -319,11 +342,7 @@ export default function AdminPlacesPage() {
                         transform: 'translate(-50%, -50%)',
                       }}
                     >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                        <circle cx="7" cy="8" r="2.2" fill="#fff"/>
-                        <circle cx="15" cy="6" r="1.6" fill="#fff"/>
-                        <circle cx="16" cy="14" r="2.8" fill="#fff"/>
-                      </svg>
+                      {icon}
                     </button>
                   );
                 })}
@@ -349,8 +368,7 @@ export default function AdminPlacesPage() {
                   aria-label="Layers"
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 3L3 8.5l9 5.5 9-5.5L12 3z" stroke="#0A0A0A" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"/>
-                    <path d="M3 14l9 5.5 9-5.5" stroke="#0A0A0A" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"/>
+                    <path d="M5 12l7-4 7 4M5 16l7-4 7 4M5 8l7-4 7 4" stroke="#0A0A0A" strokeWidth="1.6" strokeLinejoin="round" strokeLinecap="round"/>
                   </svg>
                 </button>
 
@@ -374,8 +392,8 @@ export default function AdminPlacesPage() {
                   aria-label="Recenter"
                 >
                   <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="3" stroke="#4285F4" strokeWidth="1.9"/>
-                    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#4285F4" strokeWidth="1.9" strokeLinecap="round"/>
+                    <circle cx="12" cy="12" r="2.5" stroke="#0A0A0A" strokeWidth="1.6"/>
+                    <path d="M12 1v4M12 19v4M23 12h-4M5 12H1" stroke="#0A0A0A" strokeWidth="1.6" strokeLinecap="round"/>
                   </svg>
                 </button>
               </div>
