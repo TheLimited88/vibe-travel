@@ -90,24 +90,44 @@ export default function ContentPage() {
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
           {isEditing ? (
             // Edit Mode
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', padding: '20px 16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '20px 16px' }}>
               {sections.map((section, index) => (
-                <div key={section.id} style={{ background: '#f9f8f6', border: '1px solid rgba(10,10,10,0.08)', borderRadius: '12px', padding: '12px', display: 'flex', gap: '8px' }}>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(10,10,10,0.45)', textTransform: 'uppercase' }}>{section.type.toUpperCase()}</label>
+                <div key={section.id} style={{ border: '1px solid rgba(10,10,10,0.1)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', background: '#fff' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(10,10,10,0.45)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{section.type.toUpperCase()}</span>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                      <button onClick={() => moveSection(section.id, 'up')} disabled={index === 0} style={{ background: index === 0 ? 'rgba(10,10,10,0.06)' : 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '10px', width: '44px', height: '44px', fontSize: '13px', color: '#0A0A0A', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: index === 0 ? 'not-allowed' : 'pointer', opacity: index === 0 ? 0.5 : 1 }}>↑</button>
+                      <button onClick={() => moveSection(section.id, 'down')} disabled={index === sections.length - 1} style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '10px', width: '44px', height: '44px', fontSize: '13px', color: '#0A0A0A', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: index === sections.length - 1 ? 'not-allowed' : 'pointer', opacity: index === sections.length - 1 ? 0.5 : 1 }}>↓</button>
+                      <button onClick={() => removeSection(section.id)} style={{ background: 'rgba(220,50,50,0.08)', border: 'none', borderRadius: '10px', width: '44px', height: '44px', fontSize: '13px', color: '#c33', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>✕</button>
+                    </div>
+                  </div>
+                  {section.type === 'header' && (
                     <input
                       type="text"
                       value={section.content}
                       onChange={(e) => updateSection(section.id, e.target.value)}
-                      style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '8px', padding: '8px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }}
-                      placeholder={section.type === 'header' ? 'Section title' : 'Enter content'}
+                      style={{ border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', padding: '10px 12px', fontSize: '15px', fontWeight: '700', fontFamily: 'inherit', color: '#0A0A0A' }}
+                      placeholder="Section header"
                     />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <button onClick={() => moveSection(section.id, 'up')} disabled={index === 0} style={{ width: '32px', height: '32px', borderRadius: '6px', background: index === 0 ? 'rgba(10,10,10,0.07)' : '#fff', border: '1px solid rgba(10,10,10,0.12)', cursor: index === 0 ? 'not-allowed' : 'pointer', fontSize: '12px', color: 'rgba(10,10,10,0.5)' }}>↑</button>
-                    <button onClick={() => moveSection(section.id, 'down')} disabled={index === sections.length - 1} style={{ width: '32px', height: '32px', borderRadius: '6px', background: index === sections.length - 1 ? 'rgba(10,10,10,0.07)' : '#fff', border: '1px solid rgba(10,10,10,0.12)', cursor: index === sections.length - 1 ? 'not-allowed' : 'pointer', fontSize: '12px', color: 'rgba(10,10,10,0.5)' }}>↓</button>
-                    <button onClick={() => removeSection(section.id)} style={{ width: '32px', height: '32px', borderRadius: '6px', background: '#fff', border: '1px solid rgba(10,10,10,0.12)', cursor: 'pointer', fontSize: '12px', color: '#C53855' }}>✕</button>
-                  </div>
+                  )}
+                  {section.type === 'text' && (
+                    <textarea
+                      value={section.content}
+                      onChange={(e) => updateSection(section.id, e.target.value)}
+                      rows={5}
+                      style={{ border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', resize: 'none' }}
+                      placeholder="Section text"
+                    />
+                  )}
+                  {section.type === 'youtube' && (
+                    <input
+                      type="text"
+                      value={section.content}
+                      onChange={(e) => updateSection(section.id, e.target.value)}
+                      style={{ border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A' }}
+                      placeholder="https://youtube.com/watch?v=…"
+                    />
+                  )}
                 </div>
               ))}
 
