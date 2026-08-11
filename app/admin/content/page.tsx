@@ -56,7 +56,10 @@ export default function ContentPage() {
         {/* Header */}
         <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.05)', zIndex: 10 }}>
           <div style={{ fontSize: '22px', fontWeight: '800', color: '#0A0A0A' }}>Content Pages</div>
-          <button style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer' }}>Preview</button>
+          <button style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.8"/></svg>
+            Preview
+          </button>
         </div>
 
         {/* Tabs */}
@@ -148,7 +151,6 @@ export default function ContentPage() {
               )}
             </div>
           ) : (
-            // View Mode
             <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {sections.map((section) => (
                 <div key={section.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -163,17 +165,17 @@ export default function ContentPage() {
                   )}
                 </div>
               ))}
-
-              {/* Version Info */}
               {showVersionHistory && (
                 <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(10,10,10,0.1)' }}>
                   v1.0 · Published 3 Jan 2026<br/>
                   <span style={{ color: '#7F53F3' }}>Current version</span>
                 </div>
               )}
-              <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#D97706', background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '6px', cursor: 'pointer', marginTop: '8px', padding: '6px 12px', display: 'inline-block', fontWeight: '500' }}>
-                {showVersionHistory ? 'Hide' : 'View'} version history
-              </button>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
+                <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#7F53F3', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600', textDecoration: 'underline' }}>
+                  {showVersionHistory ? 'Hide' : 'View'} version history
+                </button>
+              </div>
             </div>
           )}
         </div>
