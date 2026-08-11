@@ -134,8 +134,6 @@ export default function ContentPage() {
           ) : (
             // View Mode
             <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0A0A0A', margin: 0 }}>{currentPage?.title}</h1>
-
               {sections.map((section) => (
                 <div key={section.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {section.type === 'header' && (
