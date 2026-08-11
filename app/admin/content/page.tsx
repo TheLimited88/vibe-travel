@@ -56,11 +56,7 @@ export default function ContentPage() {
         {/* Header */}
         <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.05)', zIndex: 10 }}>
           <div style={{ fontSize: '22px', fontWeight: '800', color: '#0A0A0A' }}>Content Pages</div>
-          {!isEditing && (
-            <button onClick={() => setIsEditing(true)} style={{ background: 'none', border: 'none', fontSize: '14px', color: '#0A0A0A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              ✏️ Edit
-            </button>
-          )}
+          <button style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer' }}>Preview</button>
         </div>
 
         {/* Tabs */}
