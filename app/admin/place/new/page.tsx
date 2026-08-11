@@ -289,8 +289,17 @@ export default function NewPlacePage() {
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-            <button style={{ flex: 1, background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '12px', padding: '12px', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}>Save Draft</button>
-            <button style={{ flex: 1, background: '#7F53F3', color: '#fff', border: 'none', borderRadius: '12px', padding: '12px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer' }}>Publish</button>
+            <button style={{ flex: 1, background: 'transparent', color: '#7F53F3', border: '2px solid #7F53F3', borderRadius: '14px', padding: '12px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer' }}>Save Draft</button>
+            <button style={{ flex: 1, background: 'none', color: '#0A0A0A', border: 'none', padding: '12px', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}>Publish</button>
+          </div>
+
+          <button style={{ width: '100%', background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '13px', fontSize: '14.5px', fontWeight: '700', cursor: 'pointer', marginTop: '12px' }}>Save Changes</button>
+
+          {/* Danger Zone */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(10,10,10,0.08)' }}>
+            <div style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(10,10,10,0.45)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Danger Zone</div>
+            <button style={{ background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '12px', padding: '12px', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}>Delete Place (soft)</button>
+            <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)' }}>Permanently delete...</div>
           </div>
 
           <div style={{ height: '20px' }}></div>
