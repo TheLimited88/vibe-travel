@@ -223,7 +223,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
     layersBtn.style.alignItems = 'center';
     layersBtn.style.justifyContent = 'center';
     layersBtn.title = 'Toggle map layers';
-    layersBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1.5" y="3" width="15" height="5" stroke="#0A0A0A" stroke-width="1.275" rx="0.5"/><rect x="1.5" y="8.5" width="15" height="5" stroke="#0A0A0A" stroke-width="1.275" rx="0.5" fill="#0A0A0A" fill-opacity="0.08"/></svg>';
+    layersBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L15.5 5.5L9 9L2.5 5.5L9 2Z" stroke="#0A0A0A" stroke-width="1.275" stroke-linejoin="round"/><path d="M9 7L15.5 10.5L9 14L2.5 10.5L9 7Z" stroke="#0A0A0A" stroke-width="1.275" stroke-linejoin="round" fill="#0A0A0A" fill-opacity="0.08"/><path d="M2.5 10.5L9 14L15.5 10.5L9 7L2.5 10.5Z" stroke="#0A0A0A" stroke-width="1.275" stroke-linejoin="round" fill="#0A0A0A" fill-opacity="0.04"/></svg>';
     layersBtn.addEventListener('click', () => {
       const currentStyle = map.current?.getStyle().name;
       const newStyle = currentStyle === 'Streets' ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/streets-v12';
