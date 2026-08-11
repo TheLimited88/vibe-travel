@@ -132,10 +132,10 @@ export default function ContentPage() {
               ))}
 
               {/* Add Section Buttons */}
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={() => addSection('header')} style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', background: '#fff', borderRadius: '8px', padding: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: '#0A0A0A' }}>+ Header</button>
-                <button onClick={() => addSection('text')} style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', background: '#fff', borderRadius: '8px', padding: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: '#0A0A0A' }}>+ Text</button>
-                <button onClick={() => addSection('youtube')} style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', background: '#fff', borderRadius: '8px', padding: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', color: '#0A0A0A' }}>+ YouTube Video</button>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <button onClick={() => addSection('header')} style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', color: '#0A0A0A' }}>+ Header</button>
+                <button onClick={() => addSection('text')} style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', color: '#0A0A0A' }}>+ Text</button>
+                <button onClick={() => addSection('youtube')} style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '10px', padding: '9px 14px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', color: '#0A0A0A' }}>+ YouTube Video</button>
               </div>
 
               {/* Version History */}
