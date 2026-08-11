@@ -14,7 +14,7 @@ const contentPages = [
 export default function ContentPage() {
   const [selectedTab, setSelectedTab] = useState('about');
   const [isEditing, setIsEditing] = useState(false);
-  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(true);
   const [sections, setSections] = useState([
     { id: 1, type: 'header', content: 'About Vibe Travel' },
     { id: 2, type: 'text', content: 'Vibe Travel is a curated atlas of the city\'s overlooked corners, written and photographed by a single guide rather than crowdsourced from everyone. We believe the best travel recommendations come from someone who\'s actually been there twice.' },
@@ -155,7 +155,7 @@ export default function ContentPage() {
                   <span style={{ color: '#7F53F3' }}>Current version</span>
                 </div>
               )}
-              <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#7F53F3', background: 'none', border: 'none', cursor: 'pointer', marginTop: '8px', textDecoration: 'underline' }}>
+              <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#D97706', background: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '6px', cursor: 'pointer', marginTop: '8px', padding: '6px 12px', display: 'inline-block', fontWeight: '500' }}>
                 {showVersionHistory ? 'Hide' : 'View'} version history
               </button>
             </div>
