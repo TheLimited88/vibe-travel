@@ -3,14 +3,8 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-const CATEGORIES = [
-  'Hidden Beach',
-  'Scenic Lookout',
-  'Historic Building',
-  'Waterfall',
-  'Street Art',
-  'Walking Trail',
-];
+const POPULAR_CATEGORIES = ['Hidden Beach', 'Scenic Lookout', 'Historic Building'];
+const ALL_CATEGORIES = ['Waterfall', 'Street Art', 'Walking Trail', 'Market', 'Photo Spot', 'Quiet Place'];
 
 export default function EditPlacePage() {
   const router = useRouter();
@@ -18,14 +12,18 @@ export default function EditPlacePage() {
   const [title, setTitle] = useState('Dead Horse Bay');
   const [subtitle, setSubtitle] = useState('A sea-glass shoreline built on a century of buried trash');
   const [category, setCategory] = useState('Hidden Beach');
+  const [locationMode, setLocationMode] = useState<'address' | 'coords'>('address');
   const [address, setAddress] = useState('Flatbush Ave & Aviation Rd, Brooklyn, NY');
   const [about, setAbout] = useState(
     'Most of the beaches in this city get crowded by 10am in July. This one never does — because it\'s technically a landfill cap that\'s been slowly crumbling into Jamaica Bay since the 1950s, and the tideline is a permanent glitter of sea glass, old bottles, and the occasional shoe sole.'
   );
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [heroInfoOpen, setHeroInfoOpen] = useState(false);
+  const [galleryInfoOpen, setGalleryInfoOpen] = useState(false);
 
   const seoUrl = `vibetravel.app/places/${title.toLowerCase().replace(/\s+/g, '-')}`;
+  const aboutLength = about.length;
 
   const addressSuggestions = [
     'Flatbush Ave & Aviation Rd, Brooklyn, NY',
@@ -131,7 +129,7 @@ export default function EditPlacePage() {
 
             {/* Category */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Category</label>
+              <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Category</label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -143,25 +141,36 @@ export default function EditPlacePage() {
                   fontFamily: 'inherit',
                   color: '#0A0A0A',
                   cursor: 'pointer',
+                  background: '#fff',
                 }}
               >
-                {CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
+                <optgroup label="Popular">
+                  {POPULAR_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </optgroup>
+                <optgroup label="All categories">
+                  {ALL_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </optgroup>
               </select>
             </div>
 
             {/* Location */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Location</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Location</label>
+              <div style={{ display: 'flex', gap: '6px' }}>
                 <button
+                  onClick={() => setLocationMode('address')}
                   style={{
-                    background: '#7F53F3',
-                    color: '#fff',
-                    border: 'none',
+                    background: locationMode === 'address' ? '#7F53F3' : '#fff',
+                    color: locationMode === 'address' ? '#fff' : '#0A0A0A',
+                    border: locationMode === 'address' ? 'none' : '1px solid rgba(10,10,10,0.12)',
                     borderRadius: '999px',
                     padding: '8px 14px',
                     fontSize: '12px',
@@ -169,13 +178,14 @@ export default function EditPlacePage() {
                     cursor: 'pointer',
                   }}
                 >
-                  📍 Address
+                  Address
                 </button>
                 <button
+                  onClick={() => setLocationMode('coords')}
                   style={{
-                    background: '#fff',
-                    color: '#0A0A0A',
-                    border: '1px solid rgba(10,10,10,0.12)',
+                    background: locationMode === 'coords' ? '#7F53F3' : '#fff',
+                    color: locationMode === 'coords' ? '#fff' : '#0A0A0A',
+                    border: locationMode === 'coords' ? 'none' : '1px solid rgba(10,10,10,0.12)',
                     borderRadius: '999px',
                     padding: '8px 14px',
                     fontSize: '12px',
@@ -183,75 +193,103 @@ export default function EditPlacePage() {
                     cursor: 'pointer',
                   }}
                 >
-                  🧭 GPS Coordinates
+                  GPS Coordinates
                 </button>
               </div>
 
-              {/* Address Input */}
-              <input
-                value={address}
-                onChange={(e) => {
-                  setAddress(e.target.value);
-                  setShowAddressSuggestions(true);
-                }}
-                onFocus={() => setShowAddressSuggestions(true)}
-                style={{
-                  border: '1px solid rgba(10,10,10,0.12)',
-                  borderRadius: '10px',
-                  padding: '10px 12px',
-                  fontSize: '14px',
-                  fontFamily: 'inherit',
-                  color: '#0A0A0A',
-                }}
-                placeholder="Search for an address..."
-              />
+              {locationMode === 'address' && (
+                <>
+                  <input
+                    value={address}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      setShowAddressSuggestions(true);
+                    }}
+                    onFocus={() => setShowAddressSuggestions(true)}
+                    style={{
+                      border: '1px solid rgba(10,10,10,0.12)',
+                      borderRadius: '10px',
+                      padding: '10px 12px',
+                      paddingLeft: '34px',
+                      fontSize: '14px',
+                      fontFamily: 'inherit',
+                      color: '#0A0A0A',
+                      position: 'relative',
+                    }}
+                    placeholder="Search Google Maps address…"
+                  />
 
-              {/* Address Suggestions */}
-              {showAddressSuggestions && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {addressSuggestions.map((suggestion, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setAddress(suggestion);
-                        setShowAddressSuggestions(false);
-                      }}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        background: '#fff',
-                        border: '1px solid rgba(10,10,10,0.08)',
-                        borderRadius: '10px',
-                        padding: '10px 12px',
-                        fontSize: '13px',
-                        color: '#0A0A0A',
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                      }}
-                    >
-                      <span style={{ fontSize: '16px' }}>📍</span>
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
+                  {showAddressSuggestions && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+                      {addressSuggestions.map((suggestion, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            setAddress(suggestion);
+                            setShowAddressSuggestions(false);
+                          }}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            background: '#fff',
+                            border: '1px solid rgba(10,10,10,0.1)',
+                            borderTop: idx === 0 ? 'none' : '1px solid rgba(10,10,10,0.06)',
+                            borderRadius: idx === 0 ? '10px 10px 0 0' : idx === addressSuggestions.length - 1 ? '0 0 10px 10px' : '0',
+                            padding: '10px 12px',
+                            fontSize: '13px',
+                            color: '#0A0A0A',
+                            cursor: 'pointer',
+                            textAlign: 'left',
+                            width: '100%',
+                          }}
+                        >
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                            <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="rgba(10,10,10,0.4)" strokeWidth="1.6" />
+                          </svg>
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
+
+              {locationMode === 'coords' && (
+                <>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input placeholder="Lat 40.6892" style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }} />
+                    <input placeholder="Lng -74.0445" style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }} />
+                  </div>
+                  <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)' }}>Use for places without a street address — parks, trailheads, remote lookouts.</div>
+                </>
+              )}
+
+              {/* Map Preview */}
+              <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #eef0ea' }}>
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#7F53F3', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
+                <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)' }}>Google Maps · tap map to drop pin, drag to adjust</span>
+              </div>
             </div>
 
             {/* About */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>About</label>
+            <div style={{ border: '1px solid rgba(10,10,10,0.1)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px', background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(10,10,10,0.45)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>About</span>
+                <span style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)' }}>{aboutLength}/500</span>
+              </div>
               <textarea
                 value={about}
                 onChange={(e) => setAbout(e.target.value)}
+                maxLength={500}
+                rows={4}
                 style={{
-                  border: '1px solid rgba(10,10,10,0.12)',
+                  border: '1px solid rgba(10,10,10,0.1)',
                   borderRadius: '10px',
                   padding: '10px 12px',
                   fontSize: '14px',
                   fontFamily: 'inherit',
                   color: '#0A0A0A',
-                  minHeight: '100px',
                   resize: 'none',
                 }}
               />
@@ -275,65 +313,95 @@ export default function EditPlacePage() {
             </div>
 
             {/* Hero Image */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', textTransform: 'uppercase' }}>
-                Hero (square tile format, 1:1, 1080 x 1080 px) ℹ️
-              </label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', position: 'relative' }}>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Hero (square tile format, 1:1, 1080 x 1080 px)</span>
+                <button
+                  onClick={() => setHeroInfoOpen(!heroInfoOpen)}
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '999px',
+                    background: 'rgba(10,10,10,0.1)',
+                    border: 'none',
+                    color: 'rgba(10,10,10,0.6)',
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0',
+                    cursor: 'pointer',
+                  }}
+                >
+                  i
+                </button>
+                {heroInfoOpen && (
+                  <div style={{ position: 'absolute', top: '20px', left: '0', zIndex: 10, background: '#0A0A0A', color: '#fff', fontSize: '11px', lineHeight: '1.4', padding: '10px 12px', borderRadius: '10px', width: '220px', boxShadow: '0 6px 16px rgba(0,0,0,0.25)' }}>
+                    Images are compressed automatically on upload. Accepts iOS and Android photo library formats (HEIC, JPEG, PNG, WebP). Portrait or square photos only — landscape uploads are rejected.
+                  </div>
+                )}
+              </div>
               <div
                 style={{
-                  border: '2px dashed rgba(10,10,10,0.2)',
-                  borderRadius: '10px',
-                  padding: '30px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '8px',
-                  textAlign: 'center',
-                  background: 'rgba(10,10,10,0.02)',
-                  cursor: 'pointer',
+                  width: '150px',
+                  height: '150px',
+                  borderRadius: '12px',
+                  background: '#E8D5F2',
+                  border: '1px solid rgba(10,10,10,0.08)',
                 }}
-              >
-                <div style={{ fontSize: '28px' }}>🖼️</div>
-                <div style={{ fontSize: '12px', fontWeight: '600', color: '#0A0A0A' }}>Hero photo</div>
-                <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)' }}>
-                  or{' '}
-                  <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>browse files</span>
-                </div>
-              </div>
+              />
             </div>
 
             {/* Gallery */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', textTransform: 'uppercase' }}>
-                Gallery — photo or video, up to 6. Drag 🔶 to reorder ℹ️
-              </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', position: 'relative' }}>
+                <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Gallery — photo or video, up to 6. Drag ⠿ to reorder</span>
+                <button
+                  onClick={() => setGalleryInfoOpen(!galleryInfoOpen)}
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    borderRadius: '999px',
+                    background: 'rgba(10,10,10,0.1)',
+                    border: 'none',
+                    color: 'rgba(10,10,10,0.6)',
+                    fontSize: '10px',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '0',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                >
+                  i
+                </button>
+                {galleryInfoOpen && (
+                  <div style={{ position: 'absolute', top: '20px', left: '0', zIndex: 10, background: '#0A0A0A', color: '#fff', fontSize: '11px', lineHeight: '1.4', padding: '10px 12px', borderRadius: '10px', width: '200px', boxShadow: '0 6px 16px rgba(0,0,0,0.25)' }}>
+                    Portrait format, 1080 x 1920 px.
+                  </div>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
+                    draggable
                     style={{
-                      border: '2px dashed rgba(10,10,10,0.2)',
+                      position: 'relative',
+                      flexShrink: 0,
+                      width: '88px',
+                      height: '156px',
                       borderRadius: '10px',
-                      padding: '16px',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '6px',
-                      textAlign: 'center',
-                      background: 'rgba(10,10,10,0.02)',
-                      cursor: 'pointer',
+                      background: '#E8D5F2',
+                      border: '1px solid rgba(10,10,10,0.08)',
+                      cursor: 'grab',
                     }}
-                  >
-                    <div style={{ fontSize: '20px' }}>🔶</div>
-                    <div style={{ fontSize: '11px', fontWeight: '600', color: '#0A0A0A' }}>Drop photo or video</div>
-                    <div style={{ fontSize: '10px', color: 'rgba(10,10,10,0.6)' }}>
-                      or{' '}
-                      <span style={{ textDecoration: 'underline', cursor: 'pointer' }}>browse files</span>
-                    </div>
-                  </div>
+                  />
                 ))}
               </div>
-              <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', textAlign: 'right' }}>+ 3 more</div>
             </div>
 
             {/* YouTube URL */}
