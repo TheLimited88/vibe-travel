@@ -283,7 +283,7 @@ export default function NewPlacePage() {
 
           {/* Video Links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', textTransform: 'uppercase' }}>Video links (Reels/TikToks/clips of this place on other platforms)</label>
+            <label style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Video links (Reels/TikToks/clips of this place on other platforms)</label>
             <button style={{ border: '2px dashed #7F53F3', background: 'transparent', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: '600', color: '#7F53F3', cursor: 'pointer' }}>+ Add video link</button>
           </div>
 
