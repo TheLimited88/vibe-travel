@@ -56,14 +56,21 @@ export default function ContentPage() {
         {/* Header */}
         <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.05)', zIndex: 10 }}>
           <div style={{ fontSize: '22px', fontWeight: '800', color: '#0A0A0A' }}>Content Pages</div>
-          <button style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.8"/></svg>
-            Preview
-          </button>
+          {isEditing ? (
+            <button style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.8"/></svg>
+              Preview
+            </button>
+          ) : (
+            <button onClick={() => setIsEditing(true)} style={{ background: 'none', border: 'none', fontSize: '14px', color: '#0A0A0A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l11-11-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M14 6l4 4" stroke="currentColor" strokeWidth="1.8"/></svg>
+              Edit
+            </button>
+          )}
         </div>
 
         {/* Tabs */}
-        <div style={{ display: 'flex', gap: '8px', overflow: 'x', padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.07)', background: '#fff', flexShrink: 0 }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', padding: '12px 16px', borderBottom: '1px solid rgba(0,0,0,0.07)', background: '#fff', flexShrink: 0 }}>
           {contentPages.map((page) => (
             <button
               key={page.key}
@@ -77,7 +84,6 @@ export default function ContentPage() {
                 fontSize: '12px',
                 fontWeight: '600',
                 cursor: 'pointer',
-                flexShrink: 0,
               }}
             >
               {page.label}
