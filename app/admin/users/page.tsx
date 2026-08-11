@@ -188,7 +188,7 @@ export default function UsersPage() {
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexShrink: 0 }}>
+                <div style={{ display: 'flex', gap: '8px', flexShrink: 0 }}>
                   <button
                     onClick={() => handleEditClick(user)}
                     style={{
@@ -201,6 +201,7 @@ export default function UsersPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      flexShrink: 0,
                     }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -220,6 +221,7 @@ export default function UsersPage() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      flexShrink: 0,
                     }}
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
