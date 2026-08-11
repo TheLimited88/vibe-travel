@@ -289,7 +289,7 @@ export default function NewPlacePage() {
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-            <button style={{ flex: 1, background: 'transparent', color: '#7F53F3', border: '2px solid #7F53F3', borderRadius: '14px', padding: '12px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer' }}>Save Draft</button>
+            <button style={{ flex: 1, background: 'rgba(127,83,243,0.1)', color: '#7F53F3', border: '1px solid rgba(127,83,243,0.3)', borderRadius: '14px', padding: '12px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer' }}>Save Draft</button>
             <button style={{ flex: 1, background: 'none', color: '#0A0A0A', border: 'none', padding: '12px', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}>Publish</button>
           </div>
 
