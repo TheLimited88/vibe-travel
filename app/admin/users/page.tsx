@@ -192,9 +192,9 @@ export default function UsersPage() {
                   <button
                     onClick={() => handleEditClick(user)}
                     style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '8px',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '6px',
                       background: 'rgba(10,10,10,0.06)',
                       border: 'none',
                       cursor: 'pointer',
@@ -204,7 +204,7 @@ export default function UsersPage() {
                       flexShrink: 0,
                     }}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                       <path d="M4 20h4l11-11-4-4L4 16v4z" stroke="#0A0A0A" strokeWidth="1.8" strokeLinejoin="round" />
                       <path d="M14 6l4 4" stroke="#0A0A0A" strokeWidth="1.8" />
                     </svg>
@@ -212,9 +212,9 @@ export default function UsersPage() {
                   <button
                     onClick={() => setShowDeleteConfirm(user.id)}
                     style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '8px',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '6px',
                       background: 'rgba(220,50,50,0.1)',
                       border: 'none',
                       cursor: 'pointer',
@@ -224,7 +224,7 @@ export default function UsersPage() {
                       flexShrink: 0,
                     }}
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                       <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" stroke="#C53855" strokeWidth="1.8" strokeLinecap="round" />
                     </svg>
                   </button>
