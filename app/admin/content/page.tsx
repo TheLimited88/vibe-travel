@@ -139,7 +139,7 @@ export default function ContentPage() {
               </div>
 
               {/* Version History */}
-              <div style={{ marginTop: '8px' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
                 <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#7F53F3', background: 'none', border: 'none', cursor: 'pointer' }}>
                   {showVersionHistory ? 'Hide' : 'View'} version history
                 </button>
@@ -184,9 +184,9 @@ export default function ContentPage() {
 
         {/* Action Buttons */}
         {isEditing && (
-          <div style={{ display: 'flex', gap: '12px', padding: '16px', borderTop: '1px solid rgba(10,10,10,0.08)', background: '#fff' }}>
-            <button onClick={() => setIsEditing(false)} style={{ flex: 1, background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '12px', padding: '12px', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}>Cancel</button>
-            <button onClick={() => setIsEditing(false)} style={{ flex: 1, background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '12px', padding: '12px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer' }}>Save</button>
+          <div style={{ display: 'flex', gap: '8px', padding: '16px', borderTop: '1px solid rgba(10,10,10,0.08)', background: '#fff', justifyContent: 'center' }}>
+            <button onClick={() => setIsEditing(false)} style={{ background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '14px', padding: '13px 26px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Cancel</button>
+            <button onClick={() => setIsEditing(false)} style={{ background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '13px 32px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Save</button>
           </div>
         )}
 
