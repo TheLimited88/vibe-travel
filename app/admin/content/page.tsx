@@ -168,7 +168,7 @@ export default function ContentPage() {
               {showVersionHistory && (
                 <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(10,10,10,0.1)' }}>
                   v1.0 · Published 3 Jan 2026<br/>
-                  <span style={{ color: '#7F53F3' }}>Current version</span>
+                  <span style={{ color: '#0A9B71' }}>Current version</span>
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
