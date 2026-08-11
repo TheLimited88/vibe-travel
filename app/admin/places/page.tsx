@@ -60,8 +60,14 @@ export default function AdminPlacesPage() {
 
         {/* Map View */}
         {viewMode === 'map' && (
-          <div style={{ flex: 1, position: 'relative', overflow: 'hidden', paddingBottom: '72px' }}>
-            <MapView onMarkerClick={(slug) => console.log('Clicked:', slug)} />
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div style={{ height: '380px', position: 'relative', overflow: 'hidden' }}>
+              <MapView onMarkerClick={(slug) => console.log('Clicked:', slug)} />
+            </div>
+            <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', fontSize: '11px', color: 'rgba(10,10,10,0.6)', padding: '16px', background: '#fff' }}>
+              <span>● Published</span>
+              <span>◌ Draft</span>
+            </div>
           </div>
         )}
 
