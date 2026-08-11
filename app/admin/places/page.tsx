@@ -274,15 +274,127 @@ export default function AdminPlacesPage() {
 
           {/* Map View */}
           {viewMode === 'map' && (
-            <div
-              style={{
-                position: 'relative',
-                height: '420px',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 34px),repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 34px), #eef0ea',
-              }}
-            />
+            <div>
+              <div
+                style={{
+                  position: 'relative',
+                  height: '420px',
+                  borderRadius: '16px',
+                  overflow: 'hidden',
+                  background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 34px),repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 34px), #eef0ea',
+                }}
+              >
+                {/* Category Pins */}
+                {filteredPlaces.map((place, idx) => {
+                  const categoryColors: Record<string, string> = {
+                    'Hidden Beach': '#2E9FD8',
+                    'Scenic Lookout': '#FF6B35',
+                    'Historic Building': '#8B5A3C',
+                    'Waterfall': '#6B9BD1',
+                    'Street Art': '#E84C89',
+                    'Walking Trail': '#52B788',
+                  };
+                  const randomX = (idx * 15 + 20) % 80;
+                  const randomY = (idx * 13 + 30) % 70;
+                  const color = categoryColors[place.category] || '#7F53F3';
+
+                  return (
+                    <button
+                      key={place.slug}
+                      onClick={() => {}}
+                      style={{
+                        position: 'absolute',
+                        left: `${randomX}%`,
+                        top: `${randomY}%`,
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '50%',
+                        background: color,
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                        transform: 'translate(-50%, -50%)',
+                      }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                        <circle cx="7" cy="8" r="2.2" fill="#fff"/>
+                        <circle cx="15" cy="6" r="1.6" fill="#fff"/>
+                        <circle cx="16" cy="14" r="2.8" fill="#fff"/>
+                      </svg>
+                    </button>
+                  );
+                })}
+
+                {/* Map Controls */}
+                <button
+                  onClick={() => {}}
+                  style={{
+                    position: 'absolute',
+                    bottom: '70px',
+                    right: '16px',
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '999px',
+                    background: '#fff',
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
+                  aria-label="Layers"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M12 3L3 8.5l9 5.5 9-5.5L12 3z" stroke="#0A0A0A" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"/>
+                    <path d="M3 14l9 5.5 9-5.5" stroke="#0A0A0A" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round"/>
+                  </svg>
+                </button>
+
+                <button
+                  onClick={() => {}}
+                  style={{
+                    position: 'absolute',
+                    bottom: '16px',
+                    right: '16px',
+                    width: '44px',
+                    height: '44px',
+                    borderRadius: '999px',
+                    background: '#fff',
+                    border: 'none',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
+                  aria-label="Recenter"
+                >
+                  <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="3" stroke="#4285F4" strokeWidth="1.9"/>
+                    <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#4285F4" strokeWidth="1.9" strokeLinecap="round"/>
+                  </svg>
+                </button>
+              </div>
+
+              {/* Status Legend */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '14px',
+                  justifyContent: 'center',
+                  fontSize: '11px',
+                  color: 'rgba(10,10,10,0.6)',
+                  marginTop: '12px',
+                }}
+              >
+                <span>● Published</span>
+                <span>◌ Draft</span>
+              </div>
+            </div>
           )}
         </div>
 
