@@ -62,7 +62,7 @@ export default function NewPlacePage() {
             </button>
 
             {/* Distance Badge */}
-            <div style={{ position: 'absolute', top: '50%', left: '14px', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(135deg,#95048B,#7F53F3)', borderRadius: '999px', padding: '6px 12px', boxShadow: '0 3px 10px rgba(127,83,243,0.4)', zIndex: 3 }}>
+            <div style={{ position: 'absolute', top: '118px', left: '14px', display: 'flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(135deg,#95048B,#7F53F3)', borderRadius: '999px', padding: '6px 12px', boxShadow: '0 3px 10px rgba(127,83,243,0.4)', zIndex: 3 }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#fff" strokeWidth="1.8"/><circle cx="12" cy="9.5" r="2.3" stroke="#fff" strokeWidth="1.8"/></svg>
               <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>8.2 mi</span>
             </div>
