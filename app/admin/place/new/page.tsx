@@ -32,34 +32,43 @@ export default function NewPlacePage() {
 
     return (
       <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#000' }}>
-        <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh', background: '#000', position: 'relative' }}>
+        <div style={{ width: '100%', maxWidth: '375px', height: '100vh', background: '#000', position: 'relative', display: 'flex', flexDirection: 'column' }}>
           {/* Status Bar */}
           <div style={{ height: '44px', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', fontSize: '12px', fontWeight: '600', color: '#fff', flexShrink: 0 }}>
             <span>9:41</span>
             <span>●●●●●●●●●</span>
           </div>
 
-          {/* Hero Image Area */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: '#1a1a1a' }}>
-            {/* Image Placeholder */}
-            <div style={{ flex: 1, background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.4)', fontSize: '12px', position: 'relative' }}>
-              Hero Image
-              {/* Top Gradient */}
-              <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '130px', background: 'linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0))', pointerEvents: 'none' }}></div>
+          {/* Full-Screen Image Area */}
+          <div style={{ flex: 1, position: 'relative', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.4)', fontSize: '12px', overflow: 'hidden' }}>
+            Hero Image
 
-              {/* Controls */}
-              <button onClick={() => setPreview(false)} style={{ position: 'absolute', top: '74px', left: '14px', width: '44px', height: '44px', borderRadius: '999px', background: 'rgba(0,0,0,0.35)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M7.5 1.5l-6 6 6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
-              </button>
+            {/* Top Gradient */}
+            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '130px', background: 'linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0))', pointerEvents: 'none', zIndex: 2 }}></div>
 
-              <div style={{ position: 'absolute', top: '118px', left: '14px', display: 'flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(135deg,#95048B,#7F53F3)', borderRadius: '999px', padding: '6px 12px', boxShadow: '0 3px 10px rgba(127,83,243,0.4)' }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#fff" strokeWidth="1.8"/><circle cx="12" cy="9.5" r="2.3" stroke="#fff" strokeWidth="1.8"/></svg>
-                <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>8.2 mi</span>
-              </div>
+            {/* Progress Segment Bars */}
+            <div style={{ position: 'absolute', top: '60px', left: '14px', right: '14px', display: 'flex', gap: '5px', zIndex: 3 }}>
+              {[1].map((i) => (
+                <div key={i} style={{ flex: 1, height: '2px', background: '#fff', borderRadius: '1px', opacity: 1 }}></div>
+              ))}
+              {[2, 3, 4, 5, 6].map((i) => (
+                <div key={i} style={{ flex: 1, height: '2px', background: '#fff', borderRadius: '1px', opacity: 0.5 }}></div>
+              ))}
             </div>
 
-            {/* Bottom Sheet */}
-            <div style={{ background: '#fff', borderRadius: '24px 24px 0 0', maxHeight: '56%', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -4px 20px rgba(0,0,0,0.15)' }}>
+            {/* Back Button */}
+            <button onClick={() => setPreview(false)} style={{ position: 'absolute', top: '74px', left: '14px', width: '44px', height: '44px', borderRadius: '999px', background: 'rgba(0,0,0,0.35)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 3 }}>
+              <svg width="9" height="15" viewBox="0 0 9 15" fill="none"><path d="M7.5 1.5l-6 6 6 6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            </button>
+
+            {/* Distance Badge */}
+            <div style={{ position: 'absolute', top: '50%', left: '14px', transform: 'translateY(-50%)', display: 'flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(135deg,#95048B,#7F53F3)', borderRadius: '999px', padding: '6px 12px', boxShadow: '0 3px 10px rgba(127,83,243,0.4)', zIndex: 3 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#fff" strokeWidth="1.8"/><circle cx="12" cy="9.5" r="2.3" stroke="#fff" strokeWidth="1.8"/></svg>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>8.2 mi</span>
+            </div>
+
+            {/* Bottom Sheet - Absolutely Positioned */}
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: '#fff', borderRadius: '24px 24px 0 0', height: '52%', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -4px 20px rgba(0,0,0,0.15)', zIndex: 4 }}>
               {/* Sheet Handle & Chevron */}
               <button onClick={() => setSheetExpanded(!sheetExpanded)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', padding: '10px 0 4px', flexShrink: 0, width: '100%', background: 'none', border: 'none', cursor: 'pointer' }}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ transform: sheetExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}><path d="M6 9l6 6 6-6" stroke="rgba(10,10,10,0.45)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
