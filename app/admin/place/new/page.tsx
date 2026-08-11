@@ -28,38 +28,67 @@ export default function NewPlacePage() {
             <div></div>
           </div>
 
-          {/* Preview Content */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* Post Preview Content */}
+          <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 0 }}>
             {/* Hero Image */}
-            <div style={{ width: '100%', height: '220px', borderRadius: '12px', background: '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.6)', fontSize: '12px' }}>Hero Image</div>
+            <div style={{ width: '100%', height: '220px', background: '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.6)', fontSize: '12px', flexShrink: 0 }}>Hero Image</div>
 
-            {/* Title & Subtitle */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0A0A0A', margin: 0 }}>{title || 'Untitled place'}</h1>
-              <p style={{ fontSize: '15px', color: 'rgba(10,10,10,0.7)', margin: 0 }}>{subtitle || 'No description provided'}</p>
-            </div>
-
-            {/* Category & Location */}
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <span style={{ fontSize: '11px', fontWeight: '600', padding: '6px 12px', borderRadius: '16px', background: '#7F53F3', color: '#fff' }}>{category.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
-              <span style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)' }}>📍 {address || 'No location'}</span>
-            </div>
-
-            {/* About Section */}
-            {about && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: '700', color: '#0A0A0A', margin: 0 }}>About</h3>
-                <p style={{ fontSize: '13px', color: 'rgba(10,10,10,0.7)', margin: 0, lineHeight: '1.5' }}>{about}</p>
+            {/* Content Scroll Area */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* Title & Subtitle */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <h1 style={{ fontSize: '28px', fontWeight: '800', color: '#0A0A0A', margin: 0, lineHeight: '1.2' }}>{title || 'Untitled place'}</h1>
+                <p style={{ fontSize: '16px', color: 'rgba(10,10,10,0.6)', margin: 0, lineHeight: '1.4' }}>{subtitle || 'No description provided'}</p>
               </div>
-            )}
 
-            {/* YouTube */}
-            {youtubeUrl && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px' }}>
-                <h3 style={{ fontSize: '13px', fontWeight: '700', color: '#0A0A0A', margin: 0 }}>Video</h3>
-                <div style={{ width: '100%', height: '200px', borderRadius: '12px', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.6)' }}>🎥 Video Preview</div>
+              {/* Category Badge & Location */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <span style={{ fontSize: '12px', fontWeight: '600', padding: '6px 12px', borderRadius: '16px', background: '#7F53F3', color: '#fff', width: 'fit-content' }}>{category.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: 'rgba(10,10,10,0.7)' }}>
+                  <span>📍</span>
+                  <span>{address || 'No location'}</span>
+                </div>
               </div>
-            )}
+
+              {/* Stats Section */}
+              <div style={{ display: 'flex', justifyContent: 'space-around', padding: '14px 0', borderTop: '1px solid rgba(10,10,10,0.08)', borderBottom: '1px solid rgba(10,10,10,0.08)' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: '700', color: '#0A0A0A' }}>0</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)' }}>Likes</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: '700', color: '#0A0A0A' }}>0</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)' }}>Saves</div>
+                </div>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '16px', fontWeight: '700', color: '#0A0A0A' }}>0</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)' }}>Visits</div>
+                </div>
+              </div>
+
+              {/* About Section */}
+              {about && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#0A0A0A', margin: 0 }}>About this place</h3>
+                  <p style={{ fontSize: '14px', color: 'rgba(10,10,10,0.7)', margin: 0, lineHeight: '1.6' }}>{about}</p>
+                </div>
+              )}
+
+              {/* Gallery */}
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '8px' }}>
+                {[1, 2, 3].map((i) => (
+                  <div key={i} style={{ flexShrink: 0, width: '80px', height: '140px', borderRadius: '10px', background: '#f0f0f0', border: '1px solid rgba(10,10,10,0.1)' }}></div>
+                ))}
+              </div>
+
+              {/* YouTube Video */}
+              {youtubeUrl && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <h3 style={{ fontSize: '14px', fontWeight: '700', color: '#0A0A0A', margin: 0 }}>Featured Video</h3>
+                  <div style={{ width: '100%', height: '200px', borderRadius: '12px', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.4)', fontSize: '13px' }}>▶ Video Preview</div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
