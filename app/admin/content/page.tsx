@@ -172,9 +172,13 @@ export default function ContentPage() {
                 </div>
               ))}
               {showVersionHistory && (
-                <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid rgba(10,10,10,0.1)' }}>
-                  v1.0 · Published 3 Jan 2026<br/>
-                  <span style={{ color: '#0A9B71' }}>Current version</span>
+                <div style={{ background: '#fff', border: '1px solid rgba(10,10,10,0.08)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', fontWeight: '600' }}>
+                    v1.0 · Published 3 Jan 2026
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#0A9B71', fontWeight: '600' }}>
+                    Current version
+                  </div>
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
