@@ -5,7 +5,8 @@ export interface Place {
   category: string;
   address: string;
   about: string;
-  status: 'published' | 'draft';
+  status: 'published' | 'draft' | 'archived';
+  tags?: string[];
   distanceMi: number;
   likes: number;
   saves: number;
@@ -14,6 +15,7 @@ export interface Place {
   rating: number;
   reviewCount: number;
   coordinates: { lat: number; lng: number };
+  createdBy?: { name: string; photo?: string };
 }
 
 export const places: Place[] = [
@@ -21,10 +23,11 @@ export const places: Place[] = [
     slug: 'dead-horse-bay',
     title: 'Dead Horse Bay',
     subtitle: 'A sea-glass shoreline built on a century of buried trash',
-    category: 'hidden_beach',
+    category: 'beach',
     address: 'Flatbush Ave & Aviation Rd, Brooklyn, NY',
     about: "Most of the beaches in this city get crowded by 10am in July. This one never does — because it's technically a landfill cap that's been slowly crumbling into Jamaica Bay since the 1950s.",
     status: 'published',
+    tags: ['Hidden Gem', 'Quirky'],
     distanceMi: 8.2,
     likes: 412,
     saves: 301,
@@ -33,15 +36,17 @@ export const places: Place[] = [
     rating: 4.6,
     reviewCount: 3,
     coordinates: { lat: 40.5833, lng: -73.8333 },
+    createdBy: { name: 'Brett Williams' },
   },
   {
     slug: 'brooklyn-heights-promenade',
     title: 'Brooklyn Heights Promenade',
     subtitle: 'The skyline view New Yorkers actually go to',
-    category: 'scenic_lookout',
+    category: 'landmark',
     address: 'Brooklyn Heights Promenade, Brooklyn, NY',
     about: 'A quarter-mile cantilevered walkway hanging directly over the BQE, with the entire Lower Manhattan skyline.',
     status: 'published',
+    tags: ['Great Views', 'Sunset'],
     distanceMi: 3.1,
     likes: 897,
     saves: 640,
@@ -55,10 +60,11 @@ export const places: Place[] = [
     slug: 'merchants-house-museum',
     title: "Merchant's House Museum",
     subtitle: "A merchant family's home, untouched since 1835",
-    category: 'historic_building',
+    category: 'historic_site',
     address: '29 E 4th St, New York, NY',
     about: "The Tredwell family lived in this Greek Revival rowhouse for nearly a century.",
     status: 'published',
+    tags: ['Historic', 'Educational'],
     distanceMi: 5.4,
     likes: 233,
     saves: 190,

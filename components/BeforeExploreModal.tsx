@@ -51,9 +51,17 @@ export default function BeforeExploreModal() {
   ];
 
   useEffect(() => {
-    const hasSeenModal = localStorage.getItem('beforeExploreModalSeen');
-    if (!hasSeenModal) {
-      setIsOpen(true);
+    // Check if user is logged in
+    const userToken = localStorage.getItem('user_token');
+    const userSession = localStorage.getItem('user_session');
+    const isLoggedIn = !!userToken || !!userSession;
+
+    // Only show for non-authenticated users (new users)
+    if (!isLoggedIn) {
+      const hasSeenModal = localStorage.getItem('beforeExploreModalSeen');
+      if (!hasSeenModal) {
+        setIsOpen(true);
+      }
     }
   }, []);
 

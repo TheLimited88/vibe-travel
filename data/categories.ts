@@ -1,6 +1,6 @@
-// Canonical category taxonomy from Claude Design
+// Canonical category taxonomy from design 32
 // Each entry has exact color and SVG icon (24x24 viewBox, white stroke/fill)
-// 5 categories wired into home screen filter chips: must_see, foodie_favorite, historic_site, museum, scenic_viewpoint
+// 5 categories wired into home screen filter chips: park, architecture, shopping, nightlife, restaurant
 
 export interface Category {
   key: string;
@@ -10,7 +10,6 @@ export interface Category {
 }
 
 export const categories: Category[] = [
-  { key: 'attraction', label: 'Attraction', color: '#7F53F3', icon: '<path d="M12 3l2.5 5.5L20 9l-4.5 4 1 6L12 16l-4.5 3 1-6L4 9l5.5-.5L12 3z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>' },
   { key: 'landmark', label: 'Landmark', color: '#2AA8C4', icon: '<path d="M12 3L8 12M12 3l4 9M8 12L5 21M16 12l3 9M8 12h8M6.5 16.5h11" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 21h16" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>' },
   { key: 'historic_site', label: 'Historic Site', color: '#E0813C', icon: '<path d="M3 10l9-6 9 6M4 20h16M4 10v10M20 10v10" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' },
   { key: 'museum', label: 'Museum', color: '#9C6B3F', icon: '<path d="M3 10l9-6 9 6M5 10v9M9 10v9M15 10v9M19 10v9M4 20h16" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' },
@@ -18,7 +17,6 @@ export const categories: Category[] = [
   { key: 'religious_site', label: 'Religious Site', color: '#D6459A', icon: '<path d="M12 2v20M7 7h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>' },
   { key: 'monument', label: 'Monument', color: '#4C9A4C', icon: '<path d="M10 21V9l2-6 2 6v12M9 21h6" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' },
   { key: 'architecture', label: 'Architecture', color: '#D9A62B', icon: '<circle cx="12" cy="6.5" r="1.6" stroke="#fff" stroke-width="1.4"/><path d="M12 8l-5 13M12 8l5 13" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.7 16h2.3M13 16h2.3" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>' },
-  { key: 'scenic_viewpoint', label: 'Scenic Viewpoint', color: '#6D6FE0', icon: '<path d="M3 19l6-10 4 6 3-4 5 8H3z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><circle cx="18" cy="6" r="1.8" stroke="#fff" stroke-width="1.4"/>' },
   { key: 'park', label: 'Park', color: '#3E9B57', icon: '<path d="M12 3l4 6H8l4-6zM12 8l4 6H8l4-6zM12 14v7" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' },
   { key: 'garden', label: 'Garden', color: '#E0526B', icon: '<path d="M5 19C4 10 10 4 19 5c1 9-5 15-14 14z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>' },
   { key: 'nature_reserve', label: 'Nature Reserve', color: '#3FA688', icon: '<path d="M2 17l5-9 4 5 3-4 8 8H2z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>' },
@@ -39,28 +37,12 @@ export const categories: Category[] = [
   { key: 'entertainment', label: 'Entertainment', color: '#5FA6D6', icon: '<circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.6"/><path d="M10 8.5l6 3.5-6 3.5v-7z" fill="#fff"/>' },
   { key: 'theatre', label: 'Theatre', color: '#B0473F', icon: '<circle cx="8.5" cy="12" r="5" stroke="#fff" stroke-width="1.4"/><circle cx="16" cy="12" r="5" stroke="#fff" stroke-width="1.4"/><circle cx="7" cy="10.2" r="0.7" fill="#fff"/><circle cx="10.5" cy="10.2" r="0.7" fill="#fff"/><path d="M6.3 14q2.2 2 4.4 0" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><circle cx="14.3" cy="10.2" r="0.7" fill="#fff"/><circle cx="17.8" cy="10.2" r="0.7" fill="#fff"/><path d="M13.6 14.8q2.2 -2 4.4 0" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>' },
   { key: 'sports_venue', label: 'Sports Venue', color: '#3F9E7A', icon: '<path d="M7 3h10v4a5 5 0 01-10 0V3z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 5H4.5a2 2 0 000 4H6M17 5h2.5a2 2 0 010 4H18" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/><path d="M12 12v5M9 20h6M9.5 17h5v3h-5z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' },
-  { key: 'neighbourhood', label: 'Neighbourhood', color: '#9B7BE0', icon: '<path d="M3 20V10l4-3 4 3v10M13 20V13l4-3 4 3v7" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>' },
-  { key: 'bucket_list', label: 'Bucket List', color: '#C9375B', icon: '<path d="M4 6h16M4 12h16M4 18h10" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M17 15l2 2 3-4" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>' },
-  { key: 'tourist_favourite', label: 'Tourist Favourite', color: '#E0A72E', icon: '<circle cx="12" cy="9" r="5" stroke="#fff" stroke-width="1.6"/><path d="M9 13l-2 7 5-3 5 3-2-7" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>' },
-  { key: 'local_favourite', label: 'Local Favourite', color: '#4E8B3A', icon: '<path d="M12 20s-7-4.5-9.5-9C1 7.5 3 4 6.5 4 9 4 11 6 12 7.5 13 6 15 4 17.5 4 21 4 23 7.5 21.5 11 19 15.5 12 20 12 20z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>' },
-  { key: 'hidden_gem', label: 'Hidden Gem', color: '#6B4FA0', icon: '<path d="M6 3h12l4 6-10 12L2 9l4-6z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M2 9h20M9 3l-3 6 6 12 6-12-3-6" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>' },
-  { key: 'must_see', label: 'Must See', color: '#D6432E', icon: '<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="#fff" stroke-width="1.5"/>' },
-  { key: 'iconic', label: 'Iconic', color: '#2E5FA3', icon: '<path d="M5 21V4M5 4h13l-3 4 3 4H5" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>' },
-  { key: 'off_the_beaten_path', label: 'Off the Beaten Path', color: '#8B9B4C', icon: '<path d="M8 3c-2 0-2 3-1 4s1 3-.5 4S4 15 5 17s3 1 4 0 1-3 0-4-1.5-2-1-3.5S9 3 8 3z" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M16 8c2 0 2 3 1 4s-1 3 .5 4 2.5 4 1.5 6-3 1-4 0-1-3 0-4 1.5-2 1-3.5S15 8 16 8z" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/>' },
-  { key: 'scenic', label: 'Scenic', color: '#3FA9DC', icon: '<circle cx="12" cy="7" r="2.2" stroke="#fff" stroke-width="1.4"/><path d="M12 2v1.5M12 10.5V12M6 7H4.5M19.5 7H18M7.8 3l-.8 1.3M16.2 3l.8 1.3M7.8 11l-.8-1.3M16.2 11l.8-1.3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M3 20l4-6 3 3 4-5 7 8H3z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>' },
-  { key: 'photo_worthy', label: 'Photo Worthy', color: '#C46FC9', icon: '<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 011 1v9a1 1 0 01-1 1H4a1 1 0 01-1-1V9a1 1 0 011-1z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.2" stroke="#fff" stroke-width="1.5"/>' },
-  { key: 'historic', label: 'Historic', color: '#7A5230', icon: '<path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>' },
-  { key: 'military_history', label: 'Military History', color: '#4F6B5C', icon: '<path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6l7-3z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 8l1.2 2.4 2.6.4-1.9 1.8.5 2.6L12 14l-2.4 1.2.5-2.6-1.9-1.8 2.6-.4L12 8z" stroke="#fff" stroke-width="1" fill="#fff" fill-opacity="0.6"/>' },
   { key: 'ancient_ruins', label: 'Ancient Ruins', color: '#A68A5B', icon: '<path d="M7 21V9M17 21V9M6 9h12M6 6h12l-1-3H7L6 6z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 13h2M13 15h2M9 17h2" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/>' },
   { key: 'unesco_world_heritage', label: 'UNESCO World Heritage', color: '#2C6E8F', icon: '<circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.5"/><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18" stroke="#fff" stroke-width="1.3"/>' },
   { key: 'art_and_culture', label: 'Art & Culture', color: '#A6459E', icon: '<path d="M12 3a9 8 0 100 16c1.5 0 1.5-1.5 0-2s-1-2 .5-2H16a4 4 0 004-4c0-4.5-4-8-8-8z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><circle cx="8" cy="10" r="1" fill="#fff"/><circle cx="12" cy="8" r="1" fill="#fff"/><circle cx="16" cy="10" r="1" fill="#fff"/>' },
   { key: 'street_art', label: 'Street Art', color: '#E0428F', icon: '<circle cx="7" cy="8" r="2.2" fill="#fff"/><circle cx="14" cy="6" r="1.6" fill="#fff"/><circle cx="17" cy="12" r="1.8" fill="#fff"/><path d="M4 20c3-4 6-6 9-6s6 3 7 6" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>' },
   { key: 'film_location', label: 'Film Location', color: '#4A4E69', icon: '<path d="M3 9h18v10a1 1 0 01-1 1H4a1 1 0 01-1-1V9z" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/><path d="M3 9l2-5h3l-2 5M9 9l2-5h3l-2 5M15 9l2-5h3l-2 5" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/>' },
-  { key: 'music_history', label: 'Music History', color: '#9A3F6B', icon: '<path d="M9 18a2.5 2.5 0 100-5 2.5 2.5 0 000 5zM17 16a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" stroke="#fff" stroke-width="1.4"/><path d="M11.5 18V6l8-2v11" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/>' },
-  { key: 'foodie_favorite', label: 'Foodie Favorite', color: '#E0663C', icon: '<path d="M4 12h16a8 6 0 01-16 0z" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 8c-1-1-1-2 0-3M13 8c-1-1-1-2 0-3" stroke="#fff" stroke-width="1.3" stroke-linecap="round"/>' },
   { key: 'nightlife', label: 'Nightlife', color: '#3E3B6B', icon: '<path d="M16 3a8 8 0 100 18 9 9 0 01-9-9c0-4 3-8 9-9z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round" fill="#fff" fill-opacity="0.12"/><path d="M20 8l.6 1.4L22 10l-1.4.6L20 12l-.6-1.4L18 10l1.4-.6L20 8z" fill="#fff"/>' },
-  { key: 'educational', label: 'Educational', color: '#3E7CB1', icon: '<path d="M12 5c-2-1.5-5-2-9-1v14c4-1 7-.5 9 1 2-1.5 5-2 9-1V4c-4-1-7-.5-9 1z" stroke="#fff" stroke-width="1.4" stroke-linejoin="round"/><path d="M12 5v14" stroke="#fff" stroke-width="1.3"/>' },
-  { key: 'urban_explorer', label: 'Urban Explorer', color: '#6E7A4F', icon: '<path d="M4 20V10l3-2 3 2v10M12 20V6l3-2 3 2v14M4 20h16" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>' },
 ];
 
-export const homeScreenChips = ['must_see', 'foodie_favorite', 'historic_site', 'museum', 'scenic_viewpoint'];
+export const homeScreenChips = ['landmark', 'historic_site', 'ancient_ruins', 'museum', 'architecture'];

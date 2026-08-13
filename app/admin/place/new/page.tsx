@@ -3,18 +3,11 @@
 import { useState } from 'react';
 import { categories } from '@/data/categories';
 
-const categoryColorMap: Record<string, string> = {
-  hidden_beach: '#E88BA8',
-  scenic_lookout: '#7ADCE0',
-  historic_building: '#C8A882',
-  waterfall: '#7DD3FC',
-  street_art: '#FCD34D',
-  walking_trail: '#86EFAC',
-  local_market: '#D8A8E8',
-  photography_location: '#FFA07A',
-  architecture: '#BFDBFE',
-  quiet_escape: '#C7E9C0',
-};
+// Build color map from canonical categories
+const categoryColorMap = categories.reduce((map, cat) => {
+  map[cat.key] = cat.color;
+  return map;
+}, {} as Record<string, string>);
 
 export default function NewPlacePage() {
   const [title, setTitle] = useState('');
@@ -28,7 +21,7 @@ export default function NewPlacePage() {
 
   if (preview) {
     const catLabel = categories.find(c => c.key === category)?.label || 'Hidden Beach';
-    const catColor = categoryColorMap[category] || '#7F53F3';
+    const catColor = categoryColorMap[category] || '#6B3FD1';
 
     return (
       <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#000' }}>
@@ -62,7 +55,7 @@ export default function NewPlacePage() {
             </button>
 
             {/* Distance Badge */}
-            <div style={{ position: 'absolute', top: '118px', left: '14px', display: 'flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(135deg,#95048B,#7F53F3)', borderRadius: '999px', padding: '6px 12px', boxShadow: '0 3px 10px rgba(127,83,243,0.4)', zIndex: 3 }}>
+            <div style={{ position: 'absolute', top: '118px', left: '14px', display: 'flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(135deg,#95048B,#6B3FD1)', borderRadius: '999px', padding: '6px 12px', boxShadow: '0 3px 10px rgba(127,83,243,0.4)', zIndex: 3 }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#fff" strokeWidth="1.8"/><circle cx="12" cy="9.5" r="2.3" stroke="#fff" strokeWidth="1.8"/></svg>
               <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>8.2 mi</span>
             </div>
@@ -78,7 +71,7 @@ export default function NewPlacePage() {
               <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 {/* Title Section */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                  <span style={{ alignSelf: 'flex-start', fontSize: '11px', fontWeight: '700', color: '#7F53F3', background: 'rgba(127,83,243,0.1)', borderRadius: '999px', padding: '3px 10px' }}>{catLabel}</span>
+                  <span style={{ alignSelf: 'flex-start', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', background: 'rgba(127,83,243,0.1)', borderRadius: '999px', padding: '3px 10px' }}>{catLabel}</span>
                   <span style={{ fontSize: '20px', fontWeight: '800', color: '#0A0A0A' }}>{title || 'Untitled place'}</span>
                   <span style={{ fontSize: '13.5px', color: 'rgba(10,10,10,0.6)' }}>{subtitle || 'No description provided'}</span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12.5px', color: 'rgba(10,10,10,0.5)' }}>
@@ -127,8 +120,8 @@ export default function NewPlacePage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                       <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A' }}>Location</div>
                       <div style={{ position: 'relative', height: '130px', borderRadius: '14px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 26px),repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 26px), #eef0ea' }}>
-                        <div style={{ position: 'absolute', left: '50%', top: '50%', width: '26px', height: '26px', borderRadius: '999px 999px 999px 0', background: '#7F53F3', transform: 'translate(-50%,-100%) rotate(-45deg)', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }}></div>
-                        <button style={{ position: 'absolute', bottom: '8px', right: '8px', background: '#fff', border: 'none', borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: '700', color: '#7F53F3', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', cursor: 'pointer' }}>Open in Maps</button>
+                        <div style={{ position: 'absolute', left: '50%', top: '50%', width: '26px', height: '26px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', transform: 'translate(-50%,-100%) rotate(-45deg)', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }}></div>
+                        <button style={{ position: 'absolute', bottom: '8px', right: '8px', background: '#fff', border: 'none', borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', cursor: 'pointer' }}>Open in Maps</button>
                       </div>
                     </div>
 
@@ -175,7 +168,7 @@ export default function NewPlacePage() {
         <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: '1px solid rgba(0,0,0,0.07)', zIndex: 10 }}>
           <button style={{ width: '44px', height: '44px', borderRadius: '999px', background: '#fff', border: '1px solid rgba(10,10,10,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', fontSize: '20px', flexShrink: 0 }}>‹</button>
           <div style={{ fontSize: '18px', fontWeight: '800', color: '#0A0A0A', flex: 1 }}>New Place</div>
-          <button onClick={() => setPreview(!preview)} style={{ background: preview ? '#7F53F3' : 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: preview ? '#fff' : '#0A0A0A', cursor: 'pointer' }}>◎ Preview</button>
+          <button onClick={() => setPreview(!preview)} style={{ background: preview ? '#6B3FD1' : 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: preview ? '#fff' : '#0A0A0A', cursor: 'pointer' }}>◎ Preview</button>
         </div>
 
         {/* Content */}
@@ -189,8 +182,8 @@ export default function NewPlacePage() {
 
           {/* SEO URL */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '11px', fontWeight: '600', color: '#7F53F3', textTransform: 'uppercase' }}>SEO URL (generated from title)</label>
-            <div style={{ fontSize: '12px', color: '#7F53F3', wordBreak: 'break-all' }}>vibetravel.app/places/{title.toLowerCase().replace(/\s+/g, '-') || 'untitled-place'}</div>
+            <label style={{ fontSize: '11px', fontWeight: '600', color: '#6B3FD1', textTransform: 'uppercase' }}>SEO URL (generated from title)</label>
+            <div style={{ fontSize: '12px', color: '#6B3FD1', wordBreak: 'break-all' }}>vibetravel.app/places/{title.toLowerCase().replace(/\s+/g, '-') || 'untitled-place'}</div>
           </div>
 
           {/* Subtitle */}
@@ -224,12 +217,12 @@ export default function NewPlacePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Location</label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button style={{ border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: '#7F53F3', color: '#fff' }}>Address</button>
+              <button style={{ border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: '#6B3FD1', color: '#fff' }}>Address</button>
               <button style={{ background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>GPS Coordinates</button>
             </div>
             <input type="text" placeholder="Search Google Maps address…" value={address} onChange={(e) => setAddress(e.target.value)} style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A' }} />
             <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #eef0ea', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#7F53F3', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }}></div>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }}></div>
               <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)' }}>Google Maps · tap map to drop pin, drag to adjust</span>
             </div>
           </div>
@@ -248,7 +241,7 @@ export default function NewPlacePage() {
             <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Creator Profile</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#E8D5F2', flexShrink: 0 }}></div>
-              <div style={{ fontSize: '13px', fontWeight: '600', color: '#7F53F3' }}>Brett Williams</div>
+              <div style={{ fontSize: '13px', fontWeight: '600', color: '#6B3FD1' }}>Brett Williams</div>
             </div>
           </div>
 
@@ -284,12 +277,12 @@ export default function NewPlacePage() {
           {/* Video Links */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Video links (Reels/TikToks/clips of this place on other platforms)</label>
-            <button style={{ border: '2px dashed #7F53F3', background: 'transparent', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: '600', color: '#7F53F3', cursor: 'pointer' }}>+ Add video link</button>
+            <button style={{ border: '2px dashed #6B3FD1', background: 'transparent', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer' }}>+ Add video link</button>
           </div>
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-            <button style={{ flex: 1, background: 'rgba(127,83,243,0.1)', color: '#7F53F3', border: '1px solid rgba(127,83,243,0.3)', borderRadius: '14px', padding: '12px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer' }}>Save Draft</button>
+            <button style={{ flex: 1, background: 'rgba(127,83,243,0.1)', color: '#6B3FD1', border: '1px solid rgba(127,83,243,0.3)', borderRadius: '14px', padding: '12px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer' }}>Save Draft</button>
             <button style={{ flex: 1, background: 'none', color: '#0A0A0A', border: 'none', padding: '12px', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}>Publish</button>
           </div>
 

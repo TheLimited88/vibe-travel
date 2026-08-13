@@ -57,7 +57,7 @@ export default function VisitedPage() {
   const getCategoryColor = (icon: string) => {
     const colors: { [key: string]: string } = {
       beach: '#FF6B6B',
-      lookout: '#7F53F3',
+      lookout: '#6B3FD1',
       photo: '#FFB84D',
       historic: '#4ECDC4',
       waterfall: '#45B7D1',
@@ -67,7 +67,7 @@ export default function VisitedPage() {
       quiet: '#B8860B',
       street: '#FF8C42',
     };
-    return colors[icon] || '#7F53F3';
+    return colors[icon] || '#6B3FD1';
   };
 
   return (
@@ -115,7 +115,7 @@ export default function VisitedPage() {
                 <button
                   onClick={() => router.push('/auth/signup')}
                   style={{
-                    background: 'linear-gradient(135deg,#95048B,#7F53F3)',
+                    background: 'linear-gradient(135deg,#95048B,#6B3FD1)',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '999px',
@@ -169,7 +169,7 @@ export default function VisitedPage() {
                   <button
                     onClick={() => setViewMode('list')}
                     style={{
-                      background: viewMode === 'list' ? '#7F53F3' : '#fff',
+                      background: viewMode === 'list' ? '#6B3FD1' : '#fff',
                       color: viewMode === 'list' ? '#fff' : '#0A0A0A',
                       border: viewMode === 'list' ? 'none' : '1px solid rgba(10,10,10,0.08)',
                       borderRadius: '999px',
@@ -184,7 +184,7 @@ export default function VisitedPage() {
                   <button
                     onClick={() => setViewMode('map')}
                     style={{
-                      background: viewMode === 'map' ? '#7F53F3' : '#fff',
+                      background: viewMode === 'map' ? '#6B3FD1' : '#fff',
                       color: viewMode === 'map' ? '#fff' : '#0A0A0A',
                       border: viewMode === 'map' ? 'none' : '1px solid rgba(10,10,10,0.08)',
                       borderRadius: '999px',
@@ -256,7 +256,7 @@ export default function VisitedPage() {
                         </svg>
                         {place.address}
                       </div>
-                      <span style={{ fontSize: '11px', color: '#7F53F3' }}>{place.category}</span>
+                      <span style={{ fontSize: '11px', color: '#6B3FD1' }}>{place.category}</span>
                       <span style={{ fontSize: '11.5px', color: 'rgba(10,10,10,0.6)' }}>First visited {place.firstVisited}</span>
                       {place.archived && (
                         <span style={{ fontSize: '10.5px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', background: 'rgba(10,10,10,0.06)', padding: '2px 8px', borderRadius: '8px', alignSelf: 'flex-start' }}>
@@ -429,7 +429,7 @@ export default function VisitedPage() {
             <span>Saved</span>
           </Link>
 
-          <Link href="/visited" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#7F53F3', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
+          <Link href="/visited" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
             <div style={{ fontSize: '23px', lineHeight: '1' }}>✓</div>
             <span>Visited</span>
           </Link>

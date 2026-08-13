@@ -76,7 +76,7 @@ export default function ContentPage() {
               key={page.key}
               onClick={() => setSelectedTab(page.key)}
               style={{
-                background: selectedTab === page.key ? '#7F53F3' : '#fff',
+                background: selectedTab === page.key ? '#6B3FD1' : '#fff',
                 color: selectedTab === page.key ? '#fff' : '#0A0A0A',
                 border: selectedTab === page.key ? 'none' : '1px solid rgba(10,10,10,0.12)',
                 borderRadius: '999px',
@@ -145,7 +145,7 @@ export default function ContentPage() {
 
               {/* Version History */}
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '8px' }}>
-                <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#7F53F3', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#6B3FD1', background: 'none', border: 'none', cursor: 'pointer' }}>
                   {showVersionHistory ? 'Hide' : 'View'} version history
                 </button>
               </div>
@@ -182,7 +182,7 @@ export default function ContentPage() {
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
-                <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#7F53F3', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600', textDecoration: 'underline' }}>
+                <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#6B3FD1', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600', textDecoration: 'underline' }}>
                   {showVersionHistory ? 'Hide' : 'View'} version history
                 </button>
               </div>
@@ -204,7 +204,7 @@ export default function ContentPage() {
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="currentColor" strokeWidth="1.8"/><circle cx="12" cy="9.5" r="2.6" stroke="currentColor" strokeWidth="1.8"/></svg>
             <span>Places</span>
           </button>
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#7F53F3', background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#6B3FD1', background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l11-11-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M14 6l4 4" stroke="currentColor" strokeWidth="1.8"/></svg>
             <span>Content</span>
           </button>

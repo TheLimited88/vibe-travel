@@ -139,7 +139,7 @@ export default function AccountPage() {
                   <button
                     onClick={() => setNewPlacesNearby(!newPlacesNearby)}
                     style={{
-                      background: newPlacesNearby ? '#7F53F3' : 'rgba(10,10,10,0.2)',
+                      background: newPlacesNearby ? '#6B3FD1' : 'rgba(10,10,10,0.2)',
                       border: 'none',
                       borderRadius: '999px',
                       width: '44px',
@@ -165,7 +165,7 @@ export default function AccountPage() {
                   <button
                     onClick={() => setGeofencePrompts(!geofencePrompts)}
                     style={{
-                      background: geofencePrompts ? '#7F53F3' : 'rgba(10,10,10,0.2)',
+                      background: geofencePrompts ? '#6B3FD1' : 'rgba(10,10,10,0.2)',
                       border: 'none',
                       borderRadius: '999px',
                       width: '44px',
@@ -298,7 +298,7 @@ export default function AccountPage() {
             <span>Visited</span>
           </Link>
 
-          <Link href="/account" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#7F53F3', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
+          <Link href="/account" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" style={{ lineHeight: '1' }}>
               <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/>
               <path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>

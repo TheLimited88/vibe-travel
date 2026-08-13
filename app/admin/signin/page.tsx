@@ -130,9 +130,9 @@ export default function AdminSignInPage() {
               border: 'none',
               fontSize: '13.5px',
               fontWeight: authTab === 'signin' ? '700' : '400',
-              color: authTab === 'signin' ? '#7F53F3' : 'rgba(10,10,10,0.4)',
+              color: authTab === 'signin' ? '#6B3FD1' : 'rgba(10,10,10,0.4)',
               cursor: 'pointer',
-              borderBottom: authTab === 'signin' ? '2px solid #7F53F3' : 'none',
+              borderBottom: authTab === 'signin' ? '2px solid #6B3FD1' : 'none',
               paddingBottom: '12px',
               marginBottom: '-12px',
             }}
@@ -146,9 +146,9 @@ export default function AdminSignInPage() {
               border: 'none',
               fontSize: '13.5px',
               fontWeight: authTab === 'create' ? '700' : '400',
-              color: authTab === 'create' ? '#7F53F3' : 'rgba(10,10,10,0.4)',
+              color: authTab === 'create' ? '#6B3FD1' : 'rgba(10,10,10,0.4)',
               cursor: 'pointer',
-              borderBottom: authTab === 'create' ? '2px solid #7F53F3' : 'none',
+              borderBottom: authTab === 'create' ? '2px solid #6B3FD1' : 'none',
               paddingBottom: '12px',
               marginBottom: '-12px',
             }}
@@ -280,7 +280,7 @@ export default function AdminSignInPage() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#7F53F3',
+                  color: '#6B3FD1',
                   fontSize: '12.5px',
                   fontWeight: '600',
                   cursor: 'pointer',
@@ -321,8 +321,8 @@ export default function AdminSignInPage() {
             {/* Terms */}
             <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)', textAlign: 'center' }}>
               By signing in you agree to Vibe Travel's{' '}
-              <span style={{ color: '#7F53F3' }}>Terms of Service</span> and{' '}
-              <span style={{ color: '#7F53F3' }}>Privacy Policy</span>
+              <span style={{ color: '#6B3FD1' }}>Terms of Service</span> and{' '}
+              <span style={{ color: '#6B3FD1' }}>Privacy Policy</span>
             </div>
           </form>
         )}

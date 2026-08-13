@@ -62,10 +62,10 @@ const mockUsers: User[] = [
 ];
 
 const avatarColors: { [key: string]: string } = {
-  JL: '#7F53F3',
-  PA: '#7F53F3',
-  MW: '#7F53F3',
-  SR: '#7F53F3',
+  JL: '#6B3FD1',
+  PA: '#6B3FD1',
+  MW: '#6B3FD1',
+  SR: '#6B3FD1',
 };
 
 export default function UsersPage() {
@@ -131,6 +131,7 @@ export default function UsersPage() {
               <input
                 type="text"
                 placeholder="Search users"
+                aria-label="Search users"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{ flex: 1, border: 'none', outline: 'none', fontSize: '14px', fontFamily: 'inherit', background: 'transparent', color: '#0A0A0A' }}
@@ -148,7 +149,7 @@ export default function UsersPage() {
                     width: '44px',
                     height: '44px',
                     borderRadius: '999px',
-                    background: avatarColors[user.avatar] || '#7F53F3',
+                    background: avatarColors[user.avatar] || '#6B3FD1',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -244,7 +245,7 @@ export default function UsersPage() {
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l11-11-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M14 6l4 4" stroke="currentColor" strokeWidth="1.8"/></svg>
             <span>Content</span>
           </button>
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#7F53F3', background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#6B3FD1', background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.3" stroke="currentColor" strokeWidth="1.8"/><path d="M2.5 20c1.2-3.6 3.8-5.4 6.5-5.4s5.3 1.8 6.5 5.4" stroke="currentColor" strokeWidth="1.8"/><circle cx="17.5" cy="8.5" r="2.6" stroke="currentColor" strokeWidth="1.6"/><path d="M15.5 14.6c2.2.3 4 1.8 5 4.9" stroke="currentColor" strokeWidth="1.6"/></svg>
             <span>Users</span>
           </button>
@@ -258,8 +259,23 @@ export default function UsersPage() {
       {/* Edit User Modal */}
       {editingUser && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,10,10,0.45)', display: 'flex', alignItems: 'flex-end', zIndex: 50 }}>
-          <div style={{ background: '#fff', borderRadius: '24px 24px 0 0', width: '100%', maxWidth: '375px', padding: '24px 16px 32px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ background: '#fff', borderRadius: '24px 24px 0 0', width: '100%', maxWidth: '375px', padding: '24px 16px 32px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ fontSize: '18px', fontWeight: '700', color: '#0A0A0A' }}>Edit user</div>
+
+            {/* Profile Photo Upload */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+              <div style={{ width: '80px', height: '80px', borderRadius: '999px', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'rgba(10,10,10,0.02)' }}>
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Profile</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)' }}>photo</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(10,10,10,0.4)', marginTop: '2px' }}>or browse</div>
+                  <div style={{ fontSize: '10px', color: 'rgba(10,10,10,0.4)' }}>files</div>
+                </div>
+              </div>
+              <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)', textAlign: 'center', lineHeight: '1.4' }}>
+                Square photo, 1050x1050 px — shown as a circle everywhere, incl. Place created by
+              </div>
+            </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Name</label>
@@ -274,7 +290,7 @@ export default function UsersPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', display: 'flex', justifyContent: 'space-between' }}>
                 <span>Email</span>
-                <span style={{ color: 'rgba(10,10,10,0.4)' }}>22/100</span>
+                <span style={{ color: 'rgba(10,10,10,0.4)' }}>{editForm.email.length}/100</span>
               </label>
               <input
                 type="email"
@@ -284,19 +300,24 @@ export default function UsersPage() {
               />
             </div>
 
+            {/* Terms & Privacy Acceptance */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '12px', background: 'rgba(10,10,10,0.02)', borderRadius: '12px' }}>
+              <div style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.7)' }}>Terms & Privacy acceptance (admin only)</div>
+              <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.5)' }}>No policy acceptance recorded yet.</div>
+            </div>
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Status</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
                   onClick={() => setEditForm({ ...editForm, status: 'active' })}
                   style={{
-                    flex: 1,
-                    background: editForm.status === 'active' ? '#7F53F3' : '#fff',
+                    background: editForm.status === 'active' ? '#6B3FD1' : '#fff',
                     color: editForm.status === 'active' ? '#fff' : '#0A0A0A',
                     border: editForm.status === 'active' ? 'none' : '1px solid rgba(10,10,10,0.12)',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    fontSize: '14px',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '13px',
                     fontWeight: '600',
                     cursor: 'pointer',
                   }}
@@ -306,13 +327,12 @@ export default function UsersPage() {
                 <button
                   onClick={() => setEditForm({ ...editForm, status: 'suspended' })}
                   style={{
-                    flex: 1,
                     background: editForm.status === 'suspended' ? '#0A0A0A' : '#fff',
                     color: editForm.status === 'suspended' ? '#fff' : '#0A0A0A',
                     border: editForm.status === 'suspended' ? 'none' : '1px solid rgba(10,10,10,0.12)',
-                    borderRadius: '12px',
-                    padding: '12px',
-                    fontSize: '14px',
+                    borderRadius: '8px',
+                    padding: '8px 16px',
+                    fontSize: '13px',
                     fontWeight: '600',
                     cursor: 'pointer',
                   }}

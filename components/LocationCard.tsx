@@ -2,11 +2,96 @@ import { Location } from '@/types';
 
 interface LocationCardProps {
   location: Location;
-  layout: 'list' | 'grid';
+  layout: 'list' | 'grid' | 'scroll';
   showDistance?: boolean;
+  flexGrow?: boolean;
 }
 
-export default function LocationCard({ location, layout, showDistance = false }: LocationCardProps) {
+export default function LocationCard({ location, layout, showDistance = false, flexGrow = true }: LocationCardProps) {
+  if (layout === 'scroll') {
+    return (
+      <button
+        style={{
+          width: '140px',
+          flexShrink: 0,
+          flexGrow: flexGrow ? 1 : 0,
+          borderRadius: '16px',
+          overflow: 'hidden',
+          padding: 0,
+          margin: 0,
+          cursor: 'pointer',
+          display: 'block',
+          fontFamily: 'inherit',
+          textAlign: 'inherit',
+          background: 'none',
+          border: 'none',
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            height: '100px',
+            background: 'rgba(127, 127, 127, 0.12)',
+            overflow: 'hidden',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '1px dashed rgba(10, 10, 10, 0.2)',
+            flexDirection: 'column',
+            gap: '2px',
+            padding: '8px',
+          }}
+        >
+          <p
+            style={{
+              fontSize: '10px',
+              fontWeight: 500,
+              color: 'rgba(10, 10, 10, 0.5)',
+              textAlign: 'center',
+              margin: 0,
+              lineHeight: '1.2',
+            }}
+          >
+            {location.name}
+          </p>
+          <p
+            style={{
+              fontSize: '10px',
+              fontWeight: 500,
+              color: 'rgba(10, 10, 10, 0.4)',
+              textAlign: 'center',
+              margin: 0,
+            }}
+          >
+            photo
+          </p>
+          <a
+            href="#"
+            onClick={(e) => e.preventDefault()}
+            style={{
+              fontSize: '9px',
+              fontWeight: 400,
+              color: 'rgba(10, 10, 10, 0.3)',
+              textDecoration: 'underline',
+              cursor: 'pointer',
+            }}
+          >
+            or browse files
+          </a>
+        </div>
+
+        <div style={{ padding: '8px 9px 10px', display: 'flex', flexDirection: 'column', gap: '3px', textAlign: 'left' }}>
+          <div style={{ fontSize: '13px', fontWeight: 700, color: '#0A0A0A', lineHeight: '1.25' }}>
+            {location.name}
+          </div>
+          <div style={{ fontSize: '10.5px', color: showDistance ? '#7F53F3' : 'rgba(10, 10, 10, 0.6)', fontWeight: showDistance ? 600 : 400 }}>
+            {showDistance ? `${location.distance} mi away` : `${location.visits} visits`}
+          </div>
+        </div>
+      </button>
+    );
+  }
+
   if (layout === 'list') {
     return (
       <div

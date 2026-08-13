@@ -130,7 +130,7 @@ export default function SearchPage() {
                 style={{
                   fontSize: '13px',
                   fontWeight: '600',
-                  color: '#7F53F3',
+                  color: '#6B3FD1',
                   background: 'none',
                   border: 'none',
                   font: 'inherit',
@@ -219,7 +219,7 @@ export default function SearchPage() {
                             </svg>
                             {place.address}
                           </div>
-                          <span style={{ fontSize: '11px', color: '#7F53F3' }}>{place.category}</span>
+                          <span style={{ fontSize: '11px', color: '#6B3FD1' }}>{place.category}</span>
                         </div>
                       </button>
                     ))}
@@ -274,7 +274,7 @@ export default function SearchPage() {
             <span>Home</span>
           </Link>
 
-          <Link href="/search" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#7F53F3', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
+          <Link href="/search" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
             <div style={{ fontSize: '23px', lineHeight: '1' }}>⌕</div>
             <span>Search</span>
           </Link>

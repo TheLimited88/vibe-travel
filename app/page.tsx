@@ -7,6 +7,8 @@ import CategoryChips from '@/components/CategoryChips';
 import LocationCard from '@/components/LocationCard';
 import BottomNav from '@/components/BottomNav';
 import BeforeExploreModal from '@/components/BeforeExploreModal';
+import TermsPoliciesModal from '@/components/TermsPoliciesModal';
+import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { mockLocations } from '@/data/mockLocations';
 import type { LocationCategory } from '@/types';
 
@@ -37,6 +39,8 @@ export default function Home() {
   return (
     <div style={{ background: '#F9F8F6', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <BeforeExploreModal />
+      <TermsPoliciesModal />
+      <PWAInstallPrompt />
       <div
         style={{
           position: 'fixed',
@@ -74,49 +78,47 @@ export default function Home() {
             <CategoryChips selectedCategory={selectedCategory === 'All' ? 'all' : selectedCategory} onSelectCategory={handleSelectCategory} />
 
             {/* Near you */}
-            <div style={{ marginTop: '16px', marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <h2 style={{ margin: 0, fontSize: '15.3px', fontWeight: 700, color: '#0A0A0A', fontFamily: "'SF Pro', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '6px 0 4px', marginBottom: '0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 16px' }}>
+                <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0A0A0A' }}>
                   Near you
                 </h2>
-                <span style={{ fontSize: '9.7px', fontWeight: 700, color: '#7F53F3', fontFamily: "'SF Pro', -apple-system, BlinkMacSystemFont, sans-serif", background: 'rgba(127, 83, 243, 0.1)', padding: '4px 8px', borderRadius: '8px', display: 'inline-block' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#6B3FD1', background: 'rgba(127, 83, 243, 0.1)', padding: '3px 8px', borderRadius: '8px', display: 'inline-block' }}>
                   {'< 0.75 mi'}
                 </span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px', maxWidth: '180px' }}>
+              <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 16px', justifyContent: 'flex-start' }}>
                 {nearYou.map((location) => (
-                  <LocationCard key={location.id} location={location} layout="grid" showDistance={true} />
+                  <LocationCard key={location.id} location={location} layout="scroll" showDistance={true} flexGrow={false} />
                 ))}
               </div>
             </div>
 
             {/* Popular */}
-            <div style={{ marginBottom: '24px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <h2 style={{ margin: 0, fontSize: '15.3px', fontWeight: 700, color: '#0A0A0A', fontFamily: "'SF Pro', -apple-system, BlinkMacSystemFont, sans-serif" }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '6px 0 4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0 16px' }}>
+                <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0A0A0A' }}>
                   Popular
                 </h2>
-                <span style={{ fontSize: '9.8px', fontWeight: 700, color: 'var(--color-distance-text)', fontFamily: "'SF Pro', -apple-system, BlinkMacSystemFont, sans-serif", background: 'var(--color-distance-bg)', padding: '4px 8px', borderRadius: '8px', display: 'inline-block' }}>
+                <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#0A9B71', background: 'rgba(10, 155, 113, 0.1)', padding: '3px 8px', borderRadius: '8px', display: 'inline-block' }}>
                   {'< 2 mi'}
                 </span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 16px', justifyContent: 'flex-start' }}>
                 {popular.map((location) => (
-                  <LocationCard key={location.id} location={location} layout="grid" showDistance={true} />
+                  <LocationCard key={location.id} location={location} layout="scroll" showDistance={true} />
                 ))}
               </div>
             </div>
 
             {/* Trending */}
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                <h2 style={{ margin: 0, fontSize: '15.1px', fontWeight: 700, color: '#0A0A0A', fontFamily: "'SF Pro', -apple-system, BlinkMacSystemFont, sans-serif" }}>
-                  Trending in New York City
-                </h2>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '6px 0 4px', marginBottom: '32px' }}>
+              <div style={{ fontSize: '16px', fontWeight: 800, color: '#0A0A0A', padding: '0 16px' }}>
+                Trending in New York City
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '32px' }}>
+              <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 16px' }}>
                 {trending.map((location) => (
-                  <LocationCard key={location.id} location={location} layout="grid" />
+                  <LocationCard key={location.id} location={location} layout="scroll" />
                 ))}
               </div>
             </div>

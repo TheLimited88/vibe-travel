@@ -1,6 +1,10 @@
 'use client';
 
+import { useState } from 'react';
+
 export default function AdminAccountPage() {
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
   return (
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
       <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -11,11 +15,21 @@ export default function AdminAccountPage() {
         </div>
 
         {/* Content Area */}
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: '58px 16px 24px', gap: '16px' }}>
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', padding: '24px 16px', gap: '20px' }}>
           {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <button style={{ width: '44px', height: '44px', borderRadius: '999px', background: '#fff', border: '1px solid rgba(10,10,10,0.08)', cursor: 'pointer', fontSize: '20px', background: 'none', padding: 0 }}>‹</button>
-            <div style={{ fontSize: '22px', fontWeight: '800', color: '#0A0A0A' }}>Admin Account</div>
+          <div style={{ fontSize: '22px', fontWeight: '800', color: '#0A0A0A' }}>Admin Account</div>
+
+          {/* Profile Photo Upload Section */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: profilePhoto ? `url(${profilePhoto})` : 'transparent', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+              {!profilePhoto && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                  <div style={{ fontSize: '24px' }}>+</div>
+                  <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)', textAlign: 'center', lineHeight: '1.3' }}>Upload<br/>profile<br/>photo</div>
+                </div>
+              )}
+            </div>
+            <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.4)', textAlign: 'center' }}>Square photo, 1050x1050 px</div>
           </div>
 
           {/* Account Info Card */}
@@ -26,7 +40,7 @@ export default function AdminAccountPage() {
             </div>
             <div style={{ padding: '14px 16px', borderBottom: '1px solid rgba(10,10,10,0.07)', display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '13px', color: 'rgba(10,10,10,0.6)' }}>Email</span>
-              <span style={{ fontSize: '13px', fontWeight: '600', color: '#0A0A0A' }}>bwilliams@aegis-247.com</span>
+              <span style={{ fontSize: '13px', fontWeight: '600', color: '#0A0A0A' }}>hello@nearbyvibes.com</span>
             </div>
             <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between' }}>
               <span style={{ fontSize: '13px', color: 'rgba(10,10,10,0.6)' }}>Role</span>
@@ -35,7 +49,7 @@ export default function AdminAccountPage() {
           </div>
 
           {/* Sign Out Button */}
-          <button style={{ background: '#3EE8A8', border: 'none', borderRadius: '14px', padding: '12px', fontSize: '13.5px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer', marginTop: '8px' }}>Sign out</button>
+          <button style={{ background: '#3EE8A8', border: 'none', borderRadius: '14px', padding: '14px 16px', fontSize: '14px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer' }}>Sign out</button>
         </div>
 
         {/* Admin Bottom Navigation */}
@@ -52,7 +66,7 @@ export default function AdminAccountPage() {
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.3" stroke="currentColor" strokeWidth="1.8"/><path d="M2.5 20c1.2-3.6 3.8-5.4 6.5-5.4s5.3 1.8 6.5 5.4" stroke="currentColor" strokeWidth="1.8"/><circle cx="17.5" cy="8.5" r="2.6" stroke="currentColor" strokeWidth="1.6"/><path d="M15.5 14.6c2.2.3 4 1.8 5 4.9" stroke="currentColor" strokeWidth="1.6"/></svg>
             <span>Users</span>
           </button>
-          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#7F53F3', background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
+          <button style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#6B3FD1', background: 'none', border: 'none', cursor: 'pointer', flex: 1 }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/><path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke="currentColor" strokeWidth="1.8"/></svg>
             <span>Account</span>
           </button>

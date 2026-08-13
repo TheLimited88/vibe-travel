@@ -7,9 +7,9 @@
   --color-text-primary: #0A0A0A;
   --color-text-secondary: rgba(10,10,10,0.6);
   --color-text-tertiary: rgba(10,10,10,0.5);
-  --color-accent: #7F53F3;
+  --color-accent: #6B3FD1;
   --color-accent-deep: #95048B;
-  --color-cta-gradient: linear-gradient(135deg, #95048B, #7F53F3);
+  --color-cta-gradient: linear-gradient(135deg, #95048B, #6B3FD1);
   --color-success: #25EFB8;
   --color-success-text: #0A9B71;
   --color-distance-bg: #d5ede8;
@@ -53,6 +53,20 @@ body {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+/* WCAG 2.4.7 Focus Visible - Keyboard Navigation */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+[role="button"]:focus-visible {
+  outline: 3px solid #6B3FD1;
+  outline-offset: 2px;
+}
+
+input:focus-visible {
+  outline-offset: -2px;
+  border-radius: 6px;
 }
 
 /* Ensure nav buttons display text properly */

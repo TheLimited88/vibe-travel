@@ -14,7 +14,7 @@ export default function CategoryChips({ selectedCategory, onSelectCategory }: Ca
         display: 'flex',
         gap: '8px',
         overflowX: 'auto',
-        paddingBottom: '4px',
+        paddingBottom: '8px',
         marginBottom: '12px',
         fontFamily: "'Inter', sans-serif",
       }}
@@ -24,10 +24,10 @@ export default function CategoryChips({ selectedCategory, onSelectCategory }: Ca
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: '8px',
-          fontSize: '12.5px',
+          gap: '5px',
+          fontSize: '11px',
           fontWeight: 600,
-          padding: '8px 16px',
+          padding: '5px 12px',
           borderRadius: '999px',
           background: selectedCategory === 'all' ? '#7F53F3' : '#FFFFFF',
           border: `1px solid ${selectedCategory === 'all' ? '#7F53F3' : 'rgba(10, 10, 10, 0.1)'}`,
@@ -35,6 +35,8 @@ export default function CategoryChips({ selectedCategory, onSelectCategory }: Ca
           whiteSpace: 'nowrap',
           cursor: 'pointer',
           transition: 'all 0.2s',
+          flexShrink: 0,
+          lineHeight: 1,
         }}
       >
         All
@@ -53,10 +55,10 @@ export default function CategoryChips({ selectedCategory, onSelectCategory }: Ca
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '8px',
-              fontSize: '12.5px',
+              gap: '5px',
+              fontSize: '11px',
               fontWeight: 600,
-              padding: '8px 16px',
+              padding: '5px 12px',
               borderRadius: '999px',
               background: isSelected ? category.color : '#FFFFFF',
               border: `1px solid ${isSelected ? category.color : 'rgba(10, 10, 10, 0.1)'}`,
@@ -64,27 +66,30 @@ export default function CategoryChips({ selectedCategory, onSelectCategory }: Ca
               whiteSpace: 'nowrap',
               cursor: 'pointer',
               transition: 'all 0.2s',
+              flexShrink: 0,
+              lineHeight: 1,
             }}
           >
-            <div
+            <span
               style={{
+                width: '14px',
+                height: '14px',
+                borderRadius: '999px',
+                background: category.color,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: category.color,
                 flexShrink: 0,
               }}
             >
               <svg
-                width="16"
-                height="16"
+                width="9"
+                height="9"
                 viewBox="0 0 24 24"
+                fill="none"
                 dangerouslySetInnerHTML={{ __html: category.icon }}
               />
-            </div>
+            </span>
             {category.label}
           </button>
         );

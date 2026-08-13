@@ -103,10 +103,10 @@ export default function EditPlacePage() {
 
             {/* SEO URL */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '11px', fontWeight: '700', color: '#7F53F3', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: '#6B3FD1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 SEO URL (generated from title)
               </label>
-              <div style={{ fontSize: '12px', color: '#7F53F3', wordBreak: 'break-all' }}>{seoUrl}</div>
+              <div style={{ fontSize: '12px', color: '#6B3FD1', wordBreak: 'break-all' }}>{seoUrl}</div>
             </div>
 
             {/* Subtitle */}
@@ -170,7 +170,7 @@ export default function EditPlacePage() {
                 <button
                   onClick={() => setLocationMode('address')}
                   style={{
-                    background: locationMode === 'address' ? '#7F53F3' : '#fff',
+                    background: locationMode === 'address' ? '#6B3FD1' : '#fff',
                     color: locationMode === 'address' ? '#fff' : '#0A0A0A',
                     border: locationMode === 'address' ? 'none' : '1px solid rgba(10,10,10,0.12)',
                     borderRadius: '999px',
@@ -185,7 +185,7 @@ export default function EditPlacePage() {
                 <button
                   onClick={() => setLocationMode('coords')}
                   style={{
-                    background: locationMode === 'coords' ? '#7F53F3' : '#fff',
+                    background: locationMode === 'coords' ? '#6B3FD1' : '#fff',
                     color: locationMode === 'coords' ? '#fff' : '#0A0A0A',
                     border: locationMode === 'coords' ? 'none' : '1px solid rgba(10,10,10,0.12)',
                     borderRadius: '999px',
@@ -269,7 +269,7 @@ export default function EditPlacePage() {
 
               {/* Map Preview */}
               <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #eef0ea' }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#7F53F3', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
                 <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)' }}>Google Maps · tap map to drop pin, drag to adjust</span>
               </div>
             </div>
@@ -310,7 +310,7 @@ export default function EditPlacePage() {
                     flexShrink: 0,
                   }}
                 />
-                <span style={{ fontSize: '13px', fontWeight: '600', color: '#7F53F3' }}>Brett Williams</span>
+                <span style={{ fontSize: '13px', fontWeight: '600', color: '#6B3FD1' }}>Brett Williams</span>
               </div>
             </div>
 
@@ -429,13 +429,13 @@ export default function EditPlacePage() {
               </label>
               <button
                 style={{
-                  border: '2px dashed #7F53F3',
+                  border: '2px dashed #6B3FD1',
                   background: 'transparent',
                   borderRadius: '10px',
                   padding: '10px 12px',
                   fontSize: '13px',
                   fontWeight: '600',
-                  color: '#7F53F3',
+                  color: '#6B3FD1',
                   cursor: 'pointer',
                 }}
               >
@@ -552,7 +552,7 @@ export default function EditPlacePage() {
             </button>
 
             {/* Distance Badge */}
-            <div style={{ position: 'absolute', top: '118px', left: '14px', display: 'flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(135deg,#95048B,#7F53F3)', borderRadius: '999px', padding: '6px 12px', zIndex: 1, boxShadow: '0 3px 10px rgba(127,83,243,0.4)' }}>
+            <div style={{ position: 'absolute', top: '118px', left: '14px', display: 'flex', alignItems: 'center', gap: '5px', background: 'linear-gradient(135deg,#95048B,#6B3FD1)', borderRadius: '999px', padding: '6px 12px', zIndex: 1, boxShadow: '0 3px 10px rgba(127,83,243,0.4)' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#fff" strokeWidth="1.8" /><circle cx="12" cy="9.5" r="2.3" stroke="#fff" strokeWidth="1.8" /></svg>
               <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>0.6 mi</span>
             </div>
@@ -572,7 +572,7 @@ export default function EditPlacePage() {
             {/* Content */}
             <div style={{ flex: 1, overflow: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {/* Category Badge */}
-              <div style={{ display: 'inline-block', background: 'rgba(127,83,243,0.1)', color: '#7F53F3', padding: '3px 10px', borderRadius: '999px', fontSize: '10.5px', fontWeight: '700', alignSelf: 'flex-start' }}>
+              <div style={{ display: 'inline-block', background: 'rgba(127,83,243,0.1)', color: '#6B3FD1', padding: '3px 10px', borderRadius: '999px', fontSize: '10.5px', fontWeight: '700', alignSelf: 'flex-start' }}>
                 {category}
               </div>
 
@@ -594,7 +594,7 @@ export default function EditPlacePage() {
                   <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>1893</span>
                   <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.75 }}>Visited</span>
                 </div>
-                <button style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px', background: '#7F53F3', border: 'none', borderRadius: '14px', padding: '9px 6px', color: '#fff', cursor: 'pointer' }}>
+                <button style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px', background: '#6B3FD1', border: 'none', borderRadius: '14px', padding: '9px 6px', color: '#fff', cursor: 'pointer' }}>
                   <span style={{ fontSize: '16px', lineHeight: '1' }}>⭐</span>
                   <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>301</span>
                   <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.85 }}>Saved</span>
@@ -623,8 +623,8 @@ export default function EditPlacePage() {
                   <div>
                     <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A', marginBottom: '8px' }}>Location</div>
                     <div style={{ position: 'relative', height: '150px', borderRadius: '14px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 26px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 26px), #eef0ea' }}>
-                      <div style={{ position: 'absolute', left: '50%', top: '50%', width: '26px', height: '26px', borderRadius: '999px 999px 999px 0', background: '#7F53F3', transform: 'translate(-50%,-100%) rotate(-45deg)', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
-                      <button style={{ position: 'absolute', bottom: '10px', right: '10px', background: '#fff', color: '#7F53F3', fontSize: '12px', fontWeight: '700', border: 'none', borderRadius: '999px', padding: '6px 12px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}>Open in Maps</button>
+                      <div style={{ position: 'absolute', left: '50%', top: '50%', width: '26px', height: '26px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', transform: 'translate(-50%,-100%) rotate(-45deg)', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
+                      <button style={{ position: 'absolute', bottom: '10px', right: '10px', background: '#fff', color: '#6B3FD1', fontSize: '12px', fontWeight: '700', border: 'none', borderRadius: '999px', padding: '6px 12px', cursor: 'pointer', boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}>Open in Maps</button>
                     </div>
                   </div>
 
