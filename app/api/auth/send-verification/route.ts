@@ -43,17 +43,45 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({
         personalizations: [{ to: [{ email }] }],
         from: { email: process.env.SENDGRID_FROM_EMAIL },
-        subject: 'Verify Your Vibe Travel Email',
+        subject: 'Verify Your Email',
         html: `
-          <h2 style="color: #0A0A0A; margin-bottom: 16px;">Verify Your Email</h2>
-          <p style="color: #0A0A0A; font-size: 14px; line-height: 1.5;">Hello,</p>
-          <p style="color: #0A0A0A; font-size: 14px; line-height: 1.5;">Please confirm your email address by clicking the button below. This link will take you to Vibe Travel so we can mark your account as verified.</p>
-          <p style="margin: 24px 0;">
-            <a href="${verifyLink}" style="background-color: #6B3FD1; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600;">Verify Email Address</a>
-          </p>
-          <p style="color: #666; font-size: 12px;">This link expires in 60 minutes.</p>
-          <p style="color: #0A0A0A; font-size: 14px; line-height: 1.5;">If you didn't ask to verify this address, you can ignore this email.</p>
-          <p style="color: #0A0A0A; font-size: 14px; margin-top: 24px;">Thanks,<br><strong>Vibe Travel team</strong></p>
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8">
+              <style>
+                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; color: #1a1a1a; line-height: 1.6; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                h1 { font-size: 24px; font-weight: 700; margin: 0 0 20px 0; color: #1a1a1a; }
+                p { font-size: 14px; margin: 0 0 16px 0; color: #1a1a1a; }
+                .button { display: inline-block; background-color: #0052CC; color: white; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 24px 0; }
+                .footer { font-size: 13px; color: #666; margin-top: 32px; }
+                .divider { height: 1px; background-color: #e0e0e0; margin: 24px 0; }
+              </style>
+            </head>
+            <body>
+              <div class="container">
+                <h1>Verify Your Email</h1>
+
+                <p>Hello,</p>
+
+                <p>Please confirm your email address by clicking the button below. This link will take you to Vibe Travel so we can mark your account as verified.</p>
+
+                <center>
+                  <a href="${verifyLink}" class="button">Verify Email Address</a>
+                </center>
+
+                <p>If you didn't ask to verify this address, you can ignore this email.</p>
+
+                <div class="divider"></div>
+
+                <div class="footer">
+                  <p>Thanks,<br>Vibe Travel team</p>
+                  <p style="margin-top: 16px; color: #999; font-size: 12px;">This verification link expires in 60 minutes.</p>
+                </div>
+              </div>
+            </body>
+          </html>
         `,
       }),
     });
