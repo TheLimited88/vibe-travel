@@ -3,6 +3,10 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { setDoc, doc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
+import { sendVerificationEmail } from '@/lib/auth';
 
 export default function CreateAccountPage() {
   const router = useRouter();
@@ -10,30 +14,74 @@ export default function CreateAccountPage() {
   const [password, setPassword] = useState('');
   const [captchaChecked, setCaptchaChecked] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
-  const [verificationCode, setVerificationCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [userId, setUserId] = useState('');
 
   const has8Chars = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
   const isPasswordValid = has8Chars && hasUppercase && hasNumber;
 
-  const handleCreateAccount = () => {
-    if (isPasswordValid && captchaChecked && email) {
-      setShowVerification(true);
+  const handleCreateAccount = async () => {
+    if (!isPasswordValid || !captchaChecked || !email) return;
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      // Create Firebase user
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const newUserId = userCredential.user.uid;
+      setUserId(newUserId);
+
+      // Create user document in Firestore
+      await setDoc(doc(db, 'users', newUserId), {
+        email,
+        emailVerified: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        savedPlaces: [],
+        visitedPlaces: [],
+        reviews: [],
+      });
+
+      // Send verification email
+      const emailSent = await sendVerificationEmail(email, newUserId);
+
+      if (emailSent) {
+        setShowVerification(true);
+      } else {
+        setError('Failed to send verification email. Please try again.');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create account';
+      setError(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
-    if (verificationCode.length === 6) {
-      console.log('Verify email:', { email, verificationCode });
-      setShowVerification(false);
-      router.push('/');
-    }
+    // User will be redirected via email link to verify-email page
+    // Show message about checking email
+    router.push('/auth/reset-email-sent');
   };
 
-  const handleResend = () => {
-    console.log('Resend code to:', email);
+  const handleResend = async () => {
+    if (!userId) return;
+
+    setIsLoading(true);
+    const emailSent = await sendVerificationEmail(email, userId);
+
+    if (emailSent) {
+      setError('');
+      alert('Verification email resent. Please check your inbox.');
+    } else {
+      setError('Failed to resend verification email');
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -207,10 +255,16 @@ export default function CreateAccountPage() {
           </div>
         </div>
 
+        {error && (
+          <div style={{ padding: '12px', background: 'rgba(197, 56, 85, 0.1)', borderRadius: '8px', marginBottom: '12px', fontSize: '12px', color: '#C53855' }}>
+            {error}
+          </div>
+        )}
+
         <button
           type="button"
           onClick={handleCreateAccount}
-          disabled={!isPasswordValid || !captchaChecked || !email}
+          disabled={!isPasswordValid || !captchaChecked || !email || isLoading}
           style={{
             width: '100%',
             padding: '11px',
@@ -222,10 +276,10 @@ export default function CreateAccountPage() {
             borderRadius: '12px',
             cursor: 'pointer',
             color: '#0A0A0A',
-            opacity: isPasswordValid && captchaChecked && email ? 1 : 0.5,
+            opacity: isPasswordValid && captchaChecked && email && !isLoading ? 1 : 0.5,
           }}
         >
-          Create account
+          {isLoading ? 'Creating account...' : 'Create account'}
         </button>
 
         <div style={{ fontSize: '10px', color: 'rgba(10,10,10,0.5)', lineHeight: '1.4', textAlign: 'center' }}>
@@ -236,70 +290,55 @@ export default function CreateAccountPage() {
           <>
             <div style={{ position: 'fixed', top: '0', left: '0', right: '0', bottom: '0', background: 'rgba(0, 0, 0, 0.5)', zIndex: 999 }} />
             <div style={{ position: 'fixed', height: 'auto', maxHeight: '80vh', left: '0px', right: '0px', bottom: '0px', background: '#FFFFFF', borderRadius: '24px 24px 0px 0px', padding: '24px 20px 80px 20px', boxSizing: 'border-box', overflow: 'auto', zIndex: 1000 }}>
-              <h2 style={{ fontSize: '16px', fontWeight: '700', margin: '0 0 8px', color: '#0A0A0A' }}>Verify your email</h2>
-              <p style={{ fontSize: '13px', color: 'rgba(0,0,0,0.6)', margin: '0 0 20px', lineHeight: '1.5' }}>
-                We sent a 6-digit code to your email. Enter it below to finish creating your account.
+              <h2 style={{ fontSize: '18px', fontWeight: '700', margin: '0 0 12px', color: '#0A0A0A' }}>Check your email</h2>
+              <p style={{ fontSize: '14px', color: 'rgba(0,0,0,0.6)', margin: '0 0 20px', lineHeight: '1.6' }}>
+                We sent a verification link to <strong>{email}</strong>. Click the link in the email to verify your account and complete sign up.
               </p>
 
-              <input
-                type="text"
-                placeholder="1 2 3 4 5 6"
-                maxLength={6}
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  fontSize: '16px',
-                  border: '1px solid rgba(0,0,0,0.1)',
-                  borderRadius: '10px',
-                  boxSizing: 'border-box',
-                  color: '#0A0A0A',
-                  textAlign: 'center',
-                  letterSpacing: '6px',
-                  marginBottom: '16px',
-                }}
-              />
+              <div style={{ background: 'rgba(107, 63, 209, 0.1)', borderRadius: '8px', padding: '12px', marginBottom: '20px', fontSize: '12px', color: '#6B3FD1' }}>
+                📧 The link expires in 60 minutes
+              </div>
 
-              <button
-                onClick={handleVerify}
-                style={{
-                  position: 'absolute',
-                  width: '322px',
-                  height: '42px',
-                  left: '20px',
-                  top: '167px',
-                  fontSize: '16px',
-                  fontWeight: '600',
-                  border: 'none',
-                  background: '#3EE8A8',
-                  borderRadius: '14px',
-                  cursor: 'pointer',
-                  color: '#0A0A0A',
-                }}
-              >
-                Verify & continue
-              </button>
+              <p style={{ fontSize: '13px', color: 'rgba(0,0,0,0.6)', margin: '0 0 16px' }}>
+                Didn't receive an email?
+              </p>
 
               <button
                 type="button"
                 onClick={handleResend}
+                disabled={isLoading}
                 style={{
-                  position: 'absolute',
-                  bottom: '20px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
+                  width: '100%',
+                  padding: '10px',
                   background: 'none',
-                  border: 'none',
+                  border: '1px solid #6B3FD1',
+                  borderRadius: '8px',
                   color: '#6B3FD1',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   fontWeight: '600',
                   cursor: 'pointer',
-                  padding: '8px 0',
-                  textDecoration: 'none',
+                  marginBottom: '12px',
+                  opacity: isLoading ? 0.5 : 1,
                 }}
               >
-                Resend code
+                {isLoading ? 'Sending...' : 'Resend verification link'}
+              </button>
+
+              <button
+                onClick={() => router.push('/')}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  background: '#6B3FD1',
+                  border: 'none',
+                  borderRadius: '8px',
+                  color: '#fff',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                }}
+              >
+                Back to home
               </button>
             </div>
           </>
