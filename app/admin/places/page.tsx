@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { places } from '@/data/places';
 import { categories } from '@/data/categories';
 import MapView from '@/components/MapView';
+import { useImageUpload } from '@/hooks/useImageUpload';
 
 const categoryColors: { [key: string]: string } = {
   beach: '#F97316',
@@ -130,8 +131,9 @@ export default function AdminPlacesPage() {
     about: '',
     youtube: '',
     status: 'draft' as 'draft' | 'published',
-    heroImage: null as File | null,
-    gallery: [] as File[],
+    heroImageUrl: '',
+    heroImageUrls: { thumbnail: '', mobile: '', desktop: '' },
+    gallery: [] as string[],
     locationMode: 'address' as 'address' | 'gps',
     latitude: '',
     longitude: '',
@@ -148,6 +150,24 @@ export default function AdminPlacesPage() {
   const [showPreview, setShowPreview] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [previewSheetExpanded, setPreviewSheetExpanded] = useState(false);
+
+  const { uploadImage, uploadProgress } = useImageUpload();
+
+  const handleImageUpload = async (file: File | null, imageType: string) => {
+    if (!file) return;
+    const placeId = formData.title.toLowerCase().replace(/\s+/g, '-') || 'place';
+    const uploadedUrls = await uploadImage(file, placeId, imageType);
+
+    if (uploadedUrls) {
+      if (imageType === 'hero') {
+        setFormData({
+          ...formData,
+          heroImageUrl: uploadedUrls.mobile,
+          heroImageUrls: uploadedUrls,
+        });
+      }
+    }
+  };
 
   const filteredPlaces = places.filter(p => {
     const statusMatch = filterStatus === 'all' || p.status === filterStatus;
@@ -496,10 +516,20 @@ export default function AdminPlacesPage() {
                     <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Hero (square tile format, 1:1, 1080 x 1080 px)</label>
                     <button style={{ width: '16px', height: '16px', borderRadius: '999px', background: 'rgba(10,10,10,0.1)', border: 'none', color: 'rgba(10,10,10,0.6)', fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>i</button>
                   </div>
-                  <label style={{ width: '120px', height: '120px', borderRadius: '12px', background: '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(10,10,10,0.6)', fontSize: '12px', textAlign: 'center', fontWeight: '500' }}>
-                    {formData.heroImage ? '✓ Image added' : '+ Upload'}
-                    <input type="file" accept="image/*" onChange={(e) => setFormData({ ...formData, heroImage: e.target.files?.[0] || null })} style={{ display: 'none' }} />
+                  <label style={{ width: '120px', height: '120px', borderRadius: '12px', background: '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(10,10,10,0.6)', fontSize: '12px', textAlign: 'center', fontWeight: '500', opacity: uploadProgress.isUploading ? 0.6 : 1 }}>
+                    {uploadProgress.isUploading ? '📤 Uploading...' : formData.heroImageUrl ? '✓ Image added' : '+ Upload'}
+                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files?.[0] || null, 'hero')} disabled={uploadProgress.isUploading} style={{ display: 'none' }} />
                   </label>
+                  {uploadProgress.error && (
+                    <div style={{ padding: '8px 12px', background: 'rgba(197, 56, 85, 0.1)', borderRadius: '8px', fontSize: '11px', color: '#C53855' }}>
+                      ❌ {uploadProgress.error}
+                    </div>
+                  )}
+                  {uploadProgress.success && (
+                    <div style={{ padding: '8px 12px', background: 'rgba(10, 155, 113, 0.1)', borderRadius: '8px', fontSize: '11px', color: '#0A9B71' }}>
+                      ✅ Compressed & uploaded! 90% size reduction
+                    </div>
+                  )}
                 </div>
 
                 {/* Gallery */}
@@ -595,8 +625,12 @@ export default function AdminPlacesPage() {
                       <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>0.6 mi</span>
                     </div>
 
-                    {/* Placeholder Image */}
-                    <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Media Gallery</div>
+                    {/* Hero Image or Placeholder */}
+                    {formData.heroImageUrl ? (
+                      <img src={formData.heroImageUrl} alt="Hero preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.5)' }}>Media Gallery</div>
+                    )}
                   </div>
 
                   {/* Bottom Sheet Card */}
