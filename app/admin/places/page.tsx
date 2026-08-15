@@ -80,7 +80,7 @@ const categoryLabels: { [key: string]: string } = {
   photography_location: 'Photography Location',
 };
 
-const categoryIcons: { [key: string]: JSX.Element } = {
+const categoryIcons: { [key: string]: React.ReactElement } = {
   landmark: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2L6 8h3v10h6V8h3L12 2z" fill="currentColor"/></svg>,
   historic_site: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><rect x="4" y="6" width="16" height="14" fill="currentColor" opacity="0.3" stroke="currentColor" strokeWidth="1.5"/><line x1="12" y1="6" x2="12" y2="20" stroke="currentColor" strokeWidth="1"/><rect x="8" y="10" width="2" height="3" fill="currentColor"/><rect x="14" y="10" width="2" height="3" fill="currentColor"/></svg>,
   museum: <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 8L12 4l8 4v11H4V8z" stroke="currentColor" strokeWidth="1.5" fill="none"/><line x1="8" y1="8" x2="8" y2="19" stroke="currentColor" strokeWidth="1"/><line x1="16" y1="8" x2="16" y2="19" stroke="currentColor" strokeWidth="1"/></svg>,
@@ -133,7 +133,7 @@ export default function AdminPlacesPage() {
     status: 'draft' as 'draft' | 'published',
     heroImageUrl: '',
     heroImageUrls: { thumbnail: '', mobile: '', desktop: '' },
-    gallery: [] as string[],
+    gallery: [] as (string | File)[],
     locationMode: 'address' as 'address' | 'gps',
     latitude: '',
     longitude: '',
