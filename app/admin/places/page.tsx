@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { places } from '@/data/places';
 import { categories } from '@/data/categories';
 import MapView from '@/components/MapView';
@@ -298,7 +298,8 @@ export default function AdminPlacesPage() {
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <button onClick={() => {
                         setEditingPlaceSlug(place.slug);
-                        setFormData({
+                        setFormData(prev => ({
+                          ...prev,
                           title: place.title,
                           subtitle: place.subtitle,
                           category: place.category,
@@ -307,7 +308,7 @@ export default function AdminPlacesPage() {
                           about: place.about,
                           youtube: '',
                           status: place.status as 'draft' | 'published',
-                        });
+                        }));
                       }} style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(10,10,10,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, cursor: 'pointer' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4 20h4l11-11-4-4L4 16v4z" stroke="#0A0A0A" strokeWidth="1.7" strokeLinejoin="round"/><path d="M14 6l4 4" stroke="#0A0A0A" strokeWidth="1.7"/></svg>
                       </button>

@@ -48,8 +48,7 @@ async function compressImage(
     .resize(config.maxWidth, config.maxHeight, {
       fit: 'inside',
       withoutEnlargement: true,
-    })
-    .withMetadata(false); // Remove EXIF data
+    });
 
   if (config.format === 'webp') {
     processor = processor.webp({ quality: config.quality });

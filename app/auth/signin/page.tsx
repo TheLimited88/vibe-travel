@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
@@ -8,17 +8,73 @@ export default function SignInPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [staySignedIn, setStaySignedIn] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const has8Chars = password.length >= 8;
   const hasUppercase = /[A-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
 
-  const handleSignIn = (e: React.FormEvent) => {
+  // Load Cloudflare Turnstile script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    document.head.appendChild(script);
+  }, []);
+
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (captchaChecked && email && password) {
-      console.log('Sign in:', { email, password });
+    setError('');
+    setIsLoading(true);
+
+    try {
+      // Get CAPTCHA token from Turnstile
+      const turnstile = (window as any).turnstile;
+      if (!turnstile) {
+        setError('Security check not loaded. Please refresh the page.');
+        setIsLoading(false);
+        return;
+      }
+
+      const token = turnstile.getResponse();
+      if (!token) {
+        setError('Please complete the security check');
+        setIsLoading(false);
+        return;
+      }
+
+      // Call secure signin API
+      const response = await fetch('/api/auth/signin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          captchaToken: token,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Sign in failed');
+        // Reset CAPTCHA on error
+        turnstile?.reset?.();
+        setIsLoading(false);
+        return;
+      }
+
+      // Success - redirect to home
+      if (data.success) {
+        // Store user info (use a proper auth state management in production)
+        localStorage.setItem('user', JSON.stringify(data.user));
+        router.push('/');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+      setIsLoading(false);
     }
   };
 
@@ -202,20 +258,27 @@ export default function SignInPage() {
           </Link>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '6px', padding: '8px 10px', background: '#fafafa', marginBottom: '14px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', border: '1.5px solid rgba(10,10,10,0.3)', borderRadius: '3px', flexShrink: 0 }}></div>
-            <span style={{ fontSize: '11px', color: 'rgba(10,10,10,0.65)' }}>Verify you are human</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#F6821F"><path d="M17 15.5c1.4 0 2.5-1.1 2.5-2.5 0-1.3-1-2.4-2.3-2.5-.3-2.5-2.4-4.5-5-4.5-2 0-3.7 1.2-4.5 2.9-1.9.2-3.4 1.8-3.4 3.8 0 2.1 1.7 3.8 3.8 3.8H17z"/></svg>
-            <span style={{ fontSize: '7px', color: 'rgba(10,10,10,0.4)', letterSpacing: '0.2px' }}>Cloudflare</span>
-          </div>
+        {/* Cloudflare Turnstile CAPTCHA */}
+        <div style={{ marginBottom: '14px', display: 'flex', justifyContent: 'center' }}>
+          <div
+            className="cf-turnstile"
+            data-sitekey={process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY}
+            data-theme="light"
+            data-callback="turnstileCallback"
+            style={{ marginBottom: '0' }}
+          />
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div style={{ padding: '8px 10px', background: '#FFE5E5', border: '1px solid #E85D75', borderRadius: '8px', marginBottom: '14px' }}>
+            <span style={{ fontSize: '11px', color: '#E85D75', fontWeight: '500' }}>⚠️ {error}</span>
+          </div>
+        )}
 
         <button
           onClick={handleSignIn}
-          disabled={!captchaChecked || !email || !password}
+          disabled={isLoading || !email || !password}
           style={{
             width: '100%',
             padding: '11px',
@@ -225,12 +288,12 @@ export default function SignInPage() {
             border: 'none',
             background: '#3EE8A8',
             borderRadius: '12px',
-            cursor: 'pointer',
+            cursor: isLoading || !email || !password ? 'not-allowed' : 'pointer',
             color: '#0A0A0A',
-            opacity: captchaChecked && email && password ? 1 : 0.5,
+            opacity: isLoading || !email || !password ? 0.5 : 1,
           }}
         >
-          Sign in
+          {isLoading ? 'Signing in...' : 'Sign in'}
         </button>
 
         <div style={{ fontSize: '10px', color: 'rgba(10,10,10,0.5)', lineHeight: '1.4', textAlign: 'center' }}>

@@ -1,0 +1,52 @@
+name = "vibe-travel-security"
+type = "javascript"
+account_id = "8b39b25c367e0e4d8788b34cfc531f31"
+workers_dev = true
+
+# Cloudflare security settings
+[env.production]
+routes = [
+  { pattern = "vibetravel.fun/api/auth/*", zone_name = "vibetravel.fun" }
+]
+
+[[triggers.crons]]
+cron = "0 */6 * * *"  # Every 6 hours - cleanup expired lockouts
+
+[build]
+command = "npm run build"
+
+# Rate limiting and DDoS protection
+[rate_limiting]
+enabled = true
+rules = [
+  # Signup endpoint - 3 per hour per IP
+  {
+    pattern = "/api/auth/sign*",
+    requests_per_minute = 5,
+    requests_per_hour = 3
+  },
+  # Login endpoint - 5 per minute per IP
+  {
+    pattern = "/api/auth/signin",
+    requests_per_minute = 5,
+    requests_per_hour = 50
+  },
+  # Password reset - 3 per hour
+  {
+    pattern = "/api/auth/password-reset",
+    requests_per_minute = 2,
+    requests_per_hour = 3
+  }
+]
+
+# WAF rules
+[waf]
+enabled = true
+rules = [
+  # Block obvious bot signatures
+  "Cloudflare/Bot Management",
+  # Block SQL injection attempts
+  "OWASP ModSecurity Core Rule Set",
+  # Rate limit API abuse
+  "Rate Limiting"
+]
