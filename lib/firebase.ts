@@ -1,6 +1,6 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps } from 'firebase/app';
+import { getAuth, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -11,8 +11,32 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
 };
 
-const app = initializeApp(firebaseConfig);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+let auth: Auth | null = null;
+let db: Firestore | null = null;
 
-export default app;
+const initializeFirebase = () => {
+  if (getApps().length === 0) {
+    const app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    return app;
+  }
+  return getApps()[0];
+};
+
+export const getAuthInstance = (): Auth => {
+  if (!auth) {
+    initializeFirebase();
+  }
+  return auth!;
+};
+
+export const getDbInstance = (): Firestore => {
+  if (!db) {
+    initializeFirebase();
+  }
+  return db!;
+};
+
+export const auth_lazy = () => getAuthInstance();
+export const db_lazy = () => getDbInstance();
