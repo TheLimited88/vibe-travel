@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const LINK_VALIDITY_MINUTES = 10;
 const LINK_VALIDITY_MS = LINK_VALIDITY_MINUTES * 60 * 1000;
 
-export default function ResetPasswordFormPage() {
+function ResetPasswordFormContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
@@ -357,5 +357,13 @@ export default function ResetPasswordFormPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordFormPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordFormContent />
+    </Suspense>
   );
 }
