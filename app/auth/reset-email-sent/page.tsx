@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function ResetEmailSentPage() {
+function ResetEmailSentContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '123@gmail.com';
@@ -145,5 +145,13 @@ export default function ResetEmailSentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetEmailSentPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetEmailSentContent />
+    </Suspense>
   );
 }
