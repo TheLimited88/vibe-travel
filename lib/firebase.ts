@@ -1,42 +1,52 @@
+'use client';
+
 import { initializeApp, getApps } from 'firebase/app';
-import { getAuth, Auth } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '',
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '',
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '',
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
 };
 
-let auth: Auth | null = null;
-let db: Firestore | null = null;
+let app: any = null;
 
-const initializeFirebase = () => {
-  if (getApps().length === 0) {
-    const app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
+const getFirebaseApp = () => {
+  try {
+    if (!app) {
+      const apps = getApps();
+      if (apps.length === 0) {
+        app = initializeApp(firebaseConfig);
+      } else {
+        app = apps[0];
+      }
+    }
     return app;
+  } catch (error) {
+    return null;
   }
-  return getApps()[0];
 };
 
-export const getAuthInstance = (): Auth => {
-  if (!auth) {
-    initializeFirebase();
+export const auth = (() => {
+  try {
+    const firebaseApp = getFirebaseApp();
+    return firebaseApp ? getAuth(firebaseApp) : null;
+  } catch {
+    return null;
   }
-  return auth!;
-};
+})();
 
-export const getDbInstance = (): Firestore => {
-  if (!db) {
-    initializeFirebase();
+export const db = (() => {
+  try {
+    const firebaseApp = getFirebaseApp();
+    return firebaseApp ? getFirestore(firebaseApp) : null;
+  } catch {
+    return null;
   }
-  return db!;
-};
+})();
 
-export const auth_lazy = () => getAuthInstance();
-export const db_lazy = () => getDbInstance();
+export default app;
