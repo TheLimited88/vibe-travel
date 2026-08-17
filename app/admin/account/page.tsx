@@ -1,12 +1,19 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 export default function AdminAccountPage() {
   const router = useRouter();
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const savedPhoto = localStorage.getItem('adminProfilePhoto');
+    if (savedPhoto) {
+      setProfilePhoto(savedPhoto);
+    }
+  }, []);
 
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
