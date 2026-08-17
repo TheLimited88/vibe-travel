@@ -10,6 +10,7 @@ export default function AdminSignInPage() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const passwordRequirements = {
     length: password.length >= 8,
@@ -157,20 +158,41 @@ export default function AdminSignInPage() {
               <label style={{ display: 'block', fontSize: '12.5px', fontWeight: '600', color: '#0A0A0A', marginBottom: '6px' }}>
                 Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{
-                  width: '100%',
-                  border: '1px solid rgba(10,10,10,0.12)',
-                  borderRadius: '12px',
-                  padding: '12px 14px',
-                  fontSize: '14px',
-                  fontFamily: "'Inter',sans-serif",
-                  boxSizing: 'border-box',
-                }}
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    border: '1px solid rgba(10,10,10,0.12)',
+                    borderRadius: '12px',
+                    padding: '12px 14px 12px 40px',
+                    fontSize: '14px',
+                    fontFamily: "'Inter',sans-serif",
+                    boxSizing: 'border-box',
+                    paddingRight: '40px',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    color: 'rgba(10,10,10,0.5)',
+                    padding: '4px',
+                  }}
+                >
+                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                </button>
+              </div>
             </div>
 
             {/* Password Requirements */}
