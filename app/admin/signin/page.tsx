@@ -23,7 +23,7 @@ export default function AdminSignInPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch('/api/admin/verify-admin', {
+      const response = await fetch('/api/admin/verify-turnstile', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
