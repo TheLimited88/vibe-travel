@@ -1,9 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 export default function AdminAccountPage() {
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const result = event.target?.result as string;
+        setProfilePhoto(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
@@ -21,7 +38,10 @@ export default function AdminAccountPage() {
 
           {/* Profile Photo Upload Section */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: profilePhoto ? `url(${profilePhoto})` : 'transparent', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}>
+            <div
+              onClick={handlePhotoClick}
+              style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: profilePhoto ? `url(${profilePhoto})` : 'transparent', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}
+            >
               {!profilePhoto && (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                   <div style={{ fontSize: '24px' }}>+</div>
@@ -29,6 +49,13 @@ export default function AdminAccountPage() {
                 </div>
               )}
             </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoChange}
+              style={{ display: 'none' }}
+            />
             <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.4)', textAlign: 'center' }}>Square photo, 1050x1050 px</div>
           </div>
 
