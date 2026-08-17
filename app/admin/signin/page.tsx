@@ -28,13 +28,11 @@ export default function AdminSignInPage() {
       setTurnstileLoaded(true);
       // Render Turnstile widget after a brief delay to ensure DOM is ready
       setTimeout(() => {
-        if (window.turnstile && document.getElementById('turnstile')) {
+        const container = document.getElementById('turnstile');
+        if (window.turnstile && container && container.children.length === 0) {
           window.turnstile.render('#turnstile', {
             sitekey: process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY,
             theme: 'light',
-            callback: (token: string) => {
-              turnstileRef.current = token;
-            },
           });
         }
       }, 100);
@@ -56,11 +54,14 @@ export default function AdminSignInPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    if (!turnstileRef.current) {
+    // Get CAPTCHA token from Turnstile
+    const token = window.turnstile?.getResponse?.();
+    if (!token) {
       alert('Please complete the CAPTCHA verification');
       setIsSubmitting(false);
       return;
     }
+    turnstileRef.current = token;
 
     try {
       // Send credentials and token to backend for verification
