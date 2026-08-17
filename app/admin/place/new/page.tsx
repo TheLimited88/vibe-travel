@@ -42,40 +42,56 @@ export default function NewPlacePage() {
   }, []);
 
   useEffect(() => {
-    // Initialize Google Places services when script loads
-    if (typeof window !== 'undefined' && (window as any).google) {
-      setAutocompleteService(new (window as any).google.maps.places.AutocompleteService());
-      setPlacesService(new (window as any).google.maps.places.PlacesService(document.createElement('div')));
-    }
+    // Wait for Google Maps to load
+    const initializeGooglePlaces = () => {
+      if (typeof window !== 'undefined' && (window as any).google?.maps?.places) {
+        setAutocompleteService(new (window as any).google.maps.places.AutocompleteService());
+        setPlacesService(new (window as any).google.maps.places.PlacesService(document.createElement('div')));
+      } else {
+        setTimeout(initializeGooglePlaces, 100);
+      }
+    };
+    initializeGooglePlaces();
   }, []);
 
-  const handleAddressSearch = async (query: string) => {
+  const handleAddressSearch = (query: string) => {
     setAddress(query);
-    if (query.length < 2 || !autocompleteService) {
+    if (query.length < 2) {
       setSearchResults([]);
       setShowResults(false);
       return;
     }
 
-    try {
-      const predictions = await autocompleteService.getPlacePredictions({ input: query });
-      setSearchResults(predictions.predictions || []);
-      setShowResults((predictions.predictions?.length || 0) > 0);
-    } catch (error) {
-      setSearchResults([]);
+    if (!autocompleteService) {
+      console.warn('Autocomplete service not initialized');
+      return;
     }
+
+    autocompleteService.getPlacePredictions(
+      { input: query },
+      (predictions: any, status: any) => {
+        if (status === 'OK' && predictions) {
+          setSearchResults(predictions);
+          setShowResults(predictions.length > 0);
+        } else {
+          setSearchResults([]);
+          setShowResults(false);
+        }
+      }
+    );
   };
 
   const selectResult = (result: any) => {
     if (!placesService) return;
 
     setAddress(result.description);
+    setShowResults(false);
 
-    // Get detailed info including lat/lng
+    // Get detailed info including lat/lng using callback
     placesService.getDetails(
       { placeId: result.place_id },
-      (place: any) => {
-        if (place?.geometry?.location) {
+      (place: any, status: any) => {
+        if (status === 'OK' && place?.geometry?.location) {
           setMapLat(place.geometry.location.lat());
           setMapLng(place.geometry.location.lng());
         }
@@ -83,7 +99,6 @@ export default function NewPlacePage() {
     );
 
     setSearchResults([]);
-    setShowResults(false);
   };
 
   const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
