@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const contentPages = [
   { key: 'about', label: 'About', title: 'About Vibe Travel' },
@@ -12,6 +13,7 @@ const contentPages = [
 ];
 
 export default function ContentPage() {
+  const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('about');
   const [isEditing, setIsEditing] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(true);
