@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminAccountPage() {
+  const router = useRouter();
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -20,6 +22,11 @@ export default function AdminAccountPage() {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('adminToken');
+    router.push('/admin/signin');
   };
 
   return (
@@ -82,7 +89,7 @@ export default function AdminAccountPage() {
           </div>
 
           {/* Sign Out Button */}
-          <button style={{ background: '#3EE8A8', border: 'none', borderRadius: '14px', padding: '14px 16px', fontSize: '14px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer' }}>Sign out</button>
+          <button onClick={handleSignOut} style={{ background: '#3EE8A8', border: 'none', borderRadius: '14px', padding: '14px 16px', fontSize: '14px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer' }}>Sign out</button>
         </div>
 
         {/* Admin Bottom Navigation */}
