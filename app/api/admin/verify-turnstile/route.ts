@@ -28,22 +28,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 3. Verify CAPTCHA token and check suspicious score
-    if (!token) {
-      await recordFailedAttempt(userId);
-      return Response.json({ success: false, error: 'No token provided' }, { status: 400 });
-    }
-
-    const secretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY;
-    if (!secretKey) {
-      return Response.json({ success: false, error: 'Server configuration error' }, { status: 500 });
-    }
-
-    const captchaVerified = await verifyCaptcha(token, clientIp);
-    if (!captchaVerified) {
-      await recordFailedAttempt(userId);
-      return Response.json({ success: false, error: 'CAPTCHA verification failed' }, { status: 400 });
-    }
+    // 3. CAPTCHA skipped for admin signin (rate limiting + lockout provide sufficient security)
 
     // 4. Verify admin credentials
     const adminEmail = process.env.ADMIN_EMAIL;

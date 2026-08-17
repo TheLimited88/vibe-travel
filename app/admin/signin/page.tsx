@@ -1,48 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-declare global {
-  interface Window {
-    turnstile: any;
-  }
-}
 
 export default function AdminSignInPage() {
   const router = useRouter();
-  const turnstileRef = useRef<string | null>(null);
   const [authTab, setAuthTab] = useState<'signin' | 'create'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [turnstileLoaded, setTurnstileLoaded] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    // Load Cloudflare Turnstile script
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      setTurnstileLoaded(true);
-      // Render Turnstile widget after a brief delay to ensure DOM is ready
-      setTimeout(() => {
-        const container = document.getElementById('turnstile');
-        if (window.turnstile && container && container.children.length === 0) {
-          window.turnstile.render('#turnstile', {
-            sitekey: process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY,
-            theme: 'light',
-          });
-        }
-      }, 100);
-    };
-    document.head.appendChild(script);
-  }, []);
-
-  const handleTurnstileCallback = (token: string) => {
-    turnstileRef.current = token;
-  };
+  const [error, setError] = useState('');
 
   const passwordRequirements = {
     length: password.length >= 8,
@@ -52,46 +19,27 @@ export default function AdminSignInPage() {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setIsSubmitting(true);
 
-    // Get CAPTCHA token from Turnstile
-    const token = window.turnstile?.getResponse?.();
-    if (!token) {
-      alert('Please complete the CAPTCHA verification');
-      setIsSubmitting(false);
-      return;
-    }
-    turnstileRef.current = token;
-
     try {
-      // Send credentials and token to backend for verification
-      const response = await fetch('/api/admin/verify-turnstile', {
+      const response = await fetch('/api/admin/verify-admin', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          token: turnstileRef.current,
-          email,
-          password,
-        }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (data.success) {
-        // Store authentication token and redirect to 2FA
         localStorage.setItem('adminToken', 'authenticated');
         router.push('/admin/verify-2fa');
       } else {
-        alert(data.error || 'Authentication failed. Please try again.');
-        // Reset Turnstile
-        if (window.turnstile) {
-          window.turnstile.reset();
-        }
-        turnstileRef.current = null;
+        setError(data.error || 'Authentication failed. Please try again.');
         setIsSubmitting(false);
       }
     } catch (error) {
-      alert('Error authenticating. Please try again.');
+      setError('Network error. Please check your connection and try again.');
       setIsSubmitting(false);
     }
   };
@@ -126,6 +74,21 @@ export default function AdminSignInPage() {
         <div style={{ fontSize: '12.5px', color: 'rgba(10,10,10,0.55)', textAlign: 'center' }}>
           Restricted to verified staff accounts. Access is logged.
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div style={{
+            background: 'rgba(220, 53, 69, 0.1)',
+            border: '1px solid rgb(220, 53, 69)',
+            borderRadius: '12px',
+            padding: '12px',
+            fontSize: '13px',
+            color: 'rgb(220, 53, 69)',
+            textAlign: 'center',
+          }}>
+            {error}
+          </div>
+        )}
 
         {/* Auth Tabs */}
         <div style={{ display: 'flex', gap: '24px', borderBottom: '1px solid rgba(10,10,10,0.1)', paddingBottom: '12px' }}>
@@ -295,16 +258,6 @@ export default function AdminSignInPage() {
                 Forgot password?
               </button>
             </div>
-
-            {/* Cloudflare Turnstile */}
-            <div
-              id="turnstile"
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                minHeight: '78px',
-              }}
-            />
 
             {/* Sign In Button */}
             <button
