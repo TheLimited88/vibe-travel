@@ -37,7 +37,7 @@ export default function Admin2FAPage() {
         // Store authentication token and 2FA verified status
         localStorage.setItem('adminToken', 'authenticated');
         localStorage.setItem('admin2FAVerified', 'true');
-        router.push('/admin/places');
+        router.push('/admin/account');
       } else {
         setError('Incorrect code. Please try again.');
         setCode('');
