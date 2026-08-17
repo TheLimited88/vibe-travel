@@ -19,6 +19,10 @@ export default function NewPlacePage() {
   const [preview, setPreview] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const [adminProfilePhoto, setAdminProfilePhoto] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [mapLat, setMapLat] = useState(40.7128);
+  const [mapLng, setMapLng] = useState(-74.006);
+  const [showResults, setShowResults] = useState(false);
 
   useEffect(() => {
     const photo = localStorage.getItem('adminProfilePhoto');
@@ -26,6 +30,32 @@ export default function NewPlacePage() {
       setAdminProfilePhoto(photo);
     }
   }, []);
+
+  const handleAddressSearch = async (query: string) => {
+    setAddress(query);
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+      const data = await res.json();
+      setSearchResults(data);
+      setShowResults(data.length > 0);
+    } catch (error) {
+      setSearchResults([]);
+    }
+  };
+
+  const selectResult = (result: any) => {
+    setAddress(result.display_name);
+    setMapLat(parseFloat(result.lat));
+    setMapLng(parseFloat(result.lon));
+    setSearchResults([]);
+    setShowResults(false);
+  };
 
   if (preview) {
     const catLabel = categories.find(c => c.key === category)?.label || 'Hidden Beach';
@@ -218,10 +248,21 @@ export default function NewPlacePage() {
               <button style={{ border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: '#6B3FD1', color: '#fff' }}>Address</button>
               <button style={{ background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>GPS Coordinates</button>
             </div>
-            <input type="text" placeholder="Search Google Maps address…" value={address} onChange={(e) => setAddress(e.target.value)} style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A' }} />
+            <div style={{ position: 'relative' }}>
+              <input type="text" placeholder="Search Google Maps address…" value={address} onChange={(e) => handleAddressSearch(e.target.value)} style={{ width: '100%', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }} />
+              {showResults && searchResults.length > 0 && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', marginTop: '4px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                  {searchResults.map((result, idx) => (
+                    <button key={idx} onClick={() => selectResult(result)} style={{ width: '100%', background: 'none', border: 'none', padding: '10px 12px', textAlign: 'left', fontSize: '13px', color: '#0A0A0A', cursor: 'pointer', borderBottom: idx < searchResults.length - 1 ? '1px solid rgba(10,10,10,0.06)' : 'none' }}>
+                      {result.display_name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #eef0ea', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }}></div>
-              <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)' }}>Google Maps · tap map to drop pin, drag to adjust</span>
+              <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
             </div>
           </div>
 
