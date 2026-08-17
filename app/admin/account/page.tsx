@@ -24,6 +24,13 @@ export default function AdminAccountPage() {
     }
   };
 
+  const handleDeletePhoto = () => {
+    setProfilePhoto(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSignOut = () => {
     localStorage.removeItem('adminToken');
     router.push('/admin/signin');
@@ -70,6 +77,22 @@ export default function AdminAccountPage() {
               style={{ display: 'none' }}
             />
             <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.4)', textAlign: 'center' }}>Square photo, 1050x1050 px</div>
+            {profilePhoto && (
+              <button
+                onClick={handleDeletePhoto}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#C23B3B',
+                  fontSize: '12px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  marginTop: '4px',
+                }}
+              >
+                Delete photo
+              </button>
+            )}
           </div>
 
           {/* Account Info Card */}
