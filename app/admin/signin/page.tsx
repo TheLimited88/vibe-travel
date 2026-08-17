@@ -129,59 +129,6 @@ export default function AdminSignInPage() {
         {/* Sign In Form */}
         {authTab === 'signin' && (
           <form onSubmit={handleSignIn} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {/* Google Button */}
-            <button
-              type="button"
-              style={{
-                background: '#fff',
-                border: '1px solid rgba(10,10,10,0.1)',
-                borderRadius: '14px',
-                padding: '13px',
-                fontSize: '14px',
-                fontWeight: '600',
-                color: '#0A0A0A',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" fill="#4285F4" opacity="0.1"/>
-                <text x="50%" y="50%" textAnchor="middle" dominantBaseline="central" fontSize="12" fontWeight="bold" fill="#4285F4">
-                  G
-                </text>
-              </svg>
-              Continue with Google
-            </button>
-
-            {/* Apple Button */}
-            <button
-              type="button"
-              style={{
-                background: '#0A0A0A',
-                border: 'none',
-                borderRadius: '14px',
-                padding: '13px',
-                fontSize: '14px',
-                fontWeight: '700',
-                color: '#fff',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-              }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-                <path d="M17.05 13.5c-.22-1.9 1.25-3.4 1.38-3.53-1.33-1.95-3.45-2.15-4.15-2.21-1.77-.2-3.47 1.04-4.38 1.04-.9 0-2.26-1-3.71-.97-1.9.03-3.66 1.1-4.65 2.8-1.98 3.43-.5 8.5 1.43 11.3 1 1.42 2.15 3 3.69 2.95 1.52-.05 2.1-.98 3.94-.98 1.84 0 2.37 1 3.95.98 1.55-.02 2.54-1.42 3.53-2.87 1.1-1.6 1.55-3.16 1.58-3.24-.05-.02-3.18-1.22-3.23-4.84z"/>
-              </svg>
-              Continue with Apple
-            </button>
-
-            {/* Divider */}
-            <div style={{ textAlign: 'center', color: 'rgba(10,10,10,0.5)', fontSize: '12px' }}>or</div>
 
             {/* Email Input */}
             <div>
