@@ -1,43 +1,61 @@
+import { checkRateLimit, rateLimitConfigs } from '@/lib/rateLimit';
+import { getAccountLockStatus, recordFailedAttempt, clearFailedAttempts } from '@/lib/accountLockout';
+import { verifyCaptcha } from '@/lib/captcha';
+
 export async function POST(request: Request) {
   try {
     const { token, email, password } = await request.json();
+    const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
+    const userId = email || 'admin-unknown';
 
+    // 1. Check rate limiting by email
+    const allowed = checkRateLimit(email, rateLimitConfigs.signin);
+    if (!allowed) {
+      return Response.json(
+        { success: false, error: 'Too many signin attempts. Please try again later.' },
+        { status: 429 }
+      );
+    }
+
+    // 2. Check account lockout
+    const lockStatus = await getAccountLockStatus(userId);
+    if (lockStatus.isLocked && lockStatus.lockedUntil) {
+      const remainingMs = lockStatus.lockedUntil - Date.now();
+      const minutesRemaining = Math.ceil(remainingMs / 60000);
+      return Response.json(
+        { success: false, error: `Account locked. Try again in ${minutesRemaining} minute${minutesRemaining !== 1 ? 's' : ''}.` },
+        { status: 429 }
+      );
+    }
+
+    // 3. Verify CAPTCHA token and check suspicious score
     if (!token) {
+      await recordFailedAttempt(userId);
       return Response.json({ success: false, error: 'No token provided' }, { status: 400 });
     }
 
     const secretKey = process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY;
-
     if (!secretKey) {
       return Response.json({ success: false, error: 'Server configuration error' }, { status: 500 });
     }
 
-    // Verify token with Cloudflare
-    const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        secret: secretKey,
-        response: token,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (!data.success) {
-      return Response.json({ success: false, error: 'Token verification failed' }, { status: 400 });
+    const captchaVerified = await verifyCaptcha(token, clientIp);
+    if (!captchaVerified) {
+      await recordFailedAttempt(userId);
+      return Response.json({ success: false, error: 'CAPTCHA verification failed' }, { status: 400 });
     }
 
-    // Verify admin credentials (server-side)
+    // 4. Verify admin credentials
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@vibetravel.com';
     const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPassword123';
 
     if (email !== adminEmail || password !== adminPassword) {
+      await recordFailedAttempt(userId);
       return Response.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
     }
 
+    // 5. Success - clear failed attempts
+    await clearFailedAttempts(userId);
     return Response.json({ success: true });
   } catch (error) {
     console.error('Admin authentication error:', error);
