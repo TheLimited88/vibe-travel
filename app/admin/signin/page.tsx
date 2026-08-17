@@ -29,7 +29,7 @@ export default function AdminSignInPage() {
       // Render Turnstile widget
       if (window.turnstile) {
         window.turnstile.render('#turnstile', {
-          sitekey: process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITEKEY,
+          sitekey: process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY,
           theme: 'light',
         });
       }
