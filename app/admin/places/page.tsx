@@ -27,7 +27,10 @@ export default function AdminPlacesPage() {
 
           {/* Empty State */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', paddingTop: '40px' }}>
-            <div style={{ fontSize: '48px' }}>📍</div>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" style={{ color: 'rgba(10,10,10,0.3)' }}>
+              <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <circle cx="12" cy="9.5" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
+            </svg>
             <div style={{ fontSize: '16px', fontWeight: '600', color: '#0A0A0A', textAlign: 'center' }}>No places yet</div>
             <div style={{ fontSize: '13px', color: 'rgba(10,10,10,0.6)', textAlign: 'center' }}>Create your first place to get started</div>
             <button onClick={() => router.push('/admin/place/new')} style={{ background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '13px 24px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', marginTop: '16px' }}>+ New Place</button>
