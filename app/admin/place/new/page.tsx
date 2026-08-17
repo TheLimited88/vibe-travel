@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { categories } from '@/data/categories';
+import Script from 'next/script';
 
 // Build color map from canonical categories
 const categoryColorMap = categories.reduce((map, cat) => {
@@ -23,6 +24,9 @@ export default function NewPlacePage() {
   const [mapLat, setMapLat] = useState(40.7128);
   const [mapLng, setMapLng] = useState(-74.006);
   const [showResults, setShowResults] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [autocompleteService, setAutocompleteService] = useState<any>(null);
+  const [placesService, setPlacesService] = useState<any>(null);
 
   useEffect(() => {
     const photo = localStorage.getItem('adminProfilePhoto');
@@ -31,31 +35,53 @@ export default function NewPlacePage() {
     }
   }, []);
 
+  useEffect(() => {
+    // Initialize Google Places services when script loads
+    if (typeof window !== 'undefined' && (window as any).google) {
+      setAutocompleteService(new (window as any).google.maps.places.AutocompleteService());
+      setPlacesService(new (window as any).google.maps.places.PlacesService(document.createElement('div')));
+    }
+  }, []);
+
   const handleAddressSearch = async (query: string) => {
     setAddress(query);
-    if (query.length < 2) {
+    if (query.length < 2 || !autocompleteService) {
       setSearchResults([]);
       setShowResults(false);
       return;
     }
 
     try {
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
-      const data = await res.json();
-      setSearchResults(data);
-      setShowResults(data.length > 0);
+      const predictions = await autocompleteService.getPlacePredictions({ input: query });
+      setSearchResults(predictions.predictions || []);
+      setShowResults((predictions.predictions?.length || 0) > 0);
     } catch (error) {
       setSearchResults([]);
     }
   };
 
   const selectResult = (result: any) => {
-    setAddress(result.display_name);
-    setMapLat(parseFloat(result.lat));
-    setMapLng(parseFloat(result.lon));
+    if (!placesService) return;
+
+    setAddress(result.description);
+
+    // Get detailed info including lat/lng
+    placesService.getDetails(
+      { placeId: result.place_id },
+      (place: any) => {
+        if (place?.geometry?.location) {
+          setMapLat(place.geometry.location.lat());
+          setMapLng(place.geometry.location.lng());
+        }
+      }
+    );
+
     setSearchResults([]);
     setShowResults(false);
   };
+
+  // Google Maps script will load the Places library
+  const GOOGLE_MAPS_API_KEY = 'AIzaSyASw89W0DUvoLSCkDHcdl2d-KEuosJ9Nvg';
 
   if (preview) {
     const catLabel = categories.find(c => c.key === category)?.label || 'Hidden Beach';
@@ -194,8 +220,15 @@ export default function NewPlacePage() {
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
-      <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
+    <>
+      <Script src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`} strategy="beforeInteractive" onLoad={() => {
+        if (typeof window !== 'undefined' && (window as any).google) {
+          setAutocompleteService(new (window as any).google.maps.places.AutocompleteService());
+          setPlacesService(new (window as any).google.maps.places.PlacesService(document.createElement('div')));
+        }
+      }} />
+      <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
+        <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
         {/* Status Bar */}
         <div style={{ height: '44px', background: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 16px', fontSize: '12px', fontWeight: '600', borderBottom: '1px solid rgba(0,0,0,0.05)', flexShrink: 0 }}>
           <span>9:41</span>
@@ -254,7 +287,7 @@ export default function NewPlacePage() {
                 <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', marginTop: '4px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
                   {searchResults.map((result, idx) => (
                     <button key={idx} onClick={() => selectResult(result)} style={{ width: '100%', background: 'none', border: 'none', padding: '10px 12px', textAlign: 'left', fontSize: '13px', color: '#0A0A0A', cursor: 'pointer', borderBottom: idx < searchResults.length - 1 ? '1px solid rgba(10,10,10,0.06)' : 'none' }}>
-                      {result.display_name}
+                      {result.description}
                     </button>
                   ))}
                 </div>
@@ -341,6 +374,7 @@ export default function NewPlacePage() {
           <div style={{ height: '20px' }}></div>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
