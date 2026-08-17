@@ -167,11 +167,10 @@ export default function AdminSignInPage() {
                     width: '100%',
                     border: '1px solid rgba(10,10,10,0.12)',
                     borderRadius: '12px',
-                    padding: '12px 14px 12px 40px',
+                    padding: '12px 40px 12px 14px',
                     fontSize: '14px',
                     fontFamily: "'Inter',sans-serif",
                     boxSizing: 'border-box',
-                    paddingRight: '40px',
                   }}
                 />
                 <button
@@ -185,12 +184,17 @@ export default function AdminSignInPage() {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: '18px',
-                    color: 'rgba(10,10,10,0.5)',
-                    padding: '4px',
+                    fontSize: '16px',
+                    color: 'rgba(10,10,10,0.4)',
+                    padding: '0',
+                    width: '20px',
+                    height: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                   }}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? '◉' : '○'}
                 </button>
               </div>
             </div>
