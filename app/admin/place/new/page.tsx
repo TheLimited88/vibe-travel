@@ -27,6 +27,12 @@ export default function NewPlacePage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [autocompleteService, setAutocompleteService] = useState<any>(null);
   const [placesService, setPlacesService] = useState<any>(null);
+  const [heroImage, setHeroImage] = useState<{ url: string; key: string } | null>(null);
+  const [galleryImages, setGalleryImages] = useState<{ url: string; key: string }[]>([]);
+  const [uploadingHero, setUploadingHero] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const heroInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const photo = localStorage.getItem('adminProfilePhoto');
@@ -78,6 +84,82 @@ export default function NewPlacePage() {
 
     setSearchResults([]);
     setShowResults(false);
+  };
+
+  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingHero(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'hero');
+
+    try {
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setHeroImage({ url: data.url, key: data.key });
+      }
+    } catch (error) {
+      alert('Upload failed');
+    }
+    setUploadingHero(false);
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || galleryImages.length >= 6) return;
+
+    setUploadingGallery(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'gallery');
+
+    try {
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success) {
+        setGalleryImages([...galleryImages, { url: data.url, key: data.key }]);
+      }
+    } catch (error) {
+      alert('Upload failed');
+    }
+    setUploadingGallery(false);
+  };
+
+  const deleteHero = async () => {
+    if (!heroImage) return;
+    try {
+      await fetch('/api/admin/upload-image', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: heroImage.key }),
+      });
+      setHeroImage(null);
+    } catch (error) {
+      alert('Delete failed');
+    }
+  };
+
+  const deleteGalleryImage = async (index: number) => {
+    const image = galleryImages[index];
+    try {
+      await fetch('/api/admin/upload-image', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: image.key }),
+      });
+      setGalleryImages(galleryImages.filter((_, i) => i !== index));
+    } catch (error) {
+      alert('Delete failed');
+    }
   };
 
   // Google Maps script will load the Places library
@@ -327,21 +409,40 @@ export default function NewPlacePage() {
               <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Hero (square tile format, 1:1, 1080 x 1080 px)</label>
               <button style={{ width: '16px', height: '16px', borderRadius: '999px', background: 'rgba(10,10,10,0.1)', border: 'none', color: 'rgba(10,10,10,0.6)', fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>i</button>
             </div>
-            <div style={{ width: '150px', height: '150px', borderRadius: '12px', background: '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'rgba(10,10,10,0.6)', fontSize: '12px', textAlign: 'center' }}>+ Upload</div>
+            {heroImage ? (
+              <div style={{ position: 'relative', width: '150px', height: '150px', borderRadius: '12px', overflow: 'hidden' }}>
+                <img src={heroImage.url} alt="Hero" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <button onClick={deleteHero} style={{ position: 'absolute', top: '4px', right: '4px', background: '#C23B3B', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', fontSize: '10px', fontWeight: '700', cursor: 'pointer' }}>Delete</button>
+                <button onClick={() => heroInputRef.current?.click()} style={{ position: 'absolute', bottom: '4px', left: '4px', background: '#6B3FD1', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', fontSize: '10px', fontWeight: '700', cursor: 'pointer' }}>Change</button>
+              </div>
+            ) : (
+              <button onClick={() => heroInputRef.current?.click()} style={{ width: '150px', height: '150px', borderRadius: '12px', background: uploadingHero ? '#e0e0e0' : '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: uploadingHero ? 'not-allowed' : 'pointer', color: 'rgba(10,10,10,0.6)', fontSize: '12px', textAlign: 'center' }}>
+                {uploadingHero ? 'Uploading...' : '+ Upload'}
+              </button>
+            )}
+            <input ref={heroInputRef} type="file" accept="image/*" onChange={handleHeroUpload} style={{ display: 'none' }} />
           </div>
 
           {/* Gallery */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-              <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Gallery — photo or video, up to 6. Drag ⠿ to reorder</label>
+              <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Gallery — photo or video, up to 6. Drag ⠿ to reorder ({galleryImages.length}/6)</label>
               <button style={{ width: '16px', height: '16px', borderRadius: '999px', background: 'rgba(10,10,10,0.1)', border: 'none', color: 'rgba(10,10,10,0.6)', fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>i</button>
             </div>
             <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
-              {[1, 2, 3].map((i) => (
-                <div key={i} style={{ position: 'relative', flexShrink: 0, width: '88px', height: '156px', borderRadius: '10px', background: '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', cursor: 'grab', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.6)', fontSize: '11px' }}>+ Add</div>
+              {galleryImages.map((img, idx) => (
+                <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '88px', height: '156px', borderRadius: '10px', overflow: 'hidden' }}>
+                  <img src={img.url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button onClick={() => deleteGalleryImage(idx)} style={{ position: 'absolute', top: '2px', right: '2px', background: '#C23B3B', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 4px', fontSize: '9px', fontWeight: '700', cursor: 'pointer' }}>✕</button>
+                </div>
               ))}
-              <div style={{ position: 'relative', flexShrink: 0, width: '88px', height: '156px', borderRadius: '10px', background: '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.6)', fontSize: '11px' }}>+ 3 more</div>
+              {galleryImages.length < 6 && (
+                <button onClick={() => galleryInputRef.current?.click()} style={{ position: 'relative', flexShrink: 0, width: '88px', height: '156px', borderRadius: '10px', background: uploadingGallery ? '#e0e0e0' : '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', cursor: uploadingGallery ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.6)', fontSize: '11px' }}>
+                  {uploadingGallery ? 'Uploading...' : '+ Add'}
+                </button>
+              )}
             </div>
+            <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleGalleryUpload} style={{ display: 'none' }} />
           </div>
 
           {/* YouTube URL */}
