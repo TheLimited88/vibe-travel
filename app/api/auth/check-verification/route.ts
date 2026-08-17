@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { checkRateLimit, rateLimitConfigs } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
+    const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
+    const allowed = checkRateLimit(clientIp, rateLimitConfigs.emailVerification);
+    if (!allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const { userId } = await request.json();
 
     if (!userId) {

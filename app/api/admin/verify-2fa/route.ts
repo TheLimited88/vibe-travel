@@ -6,9 +6,12 @@ export async function POST(request: Request) {
       return Response.json({ success: false, error: 'Invalid code format' }, { status: 400 });
     }
 
-    // For demo purposes, accept any 6-digit code
-    // In production, verify against TOTP secret stored for the user
-    const admin2FASecret = process.env.ADMIN_2FA_SECRET || '123456';
+    const admin2FASecret = process.env.ADMIN_2FA_SECRET;
+
+    if (!admin2FASecret) {
+      console.error('2FA secret not configured');
+      return Response.json({ success: false, error: 'Server configuration error' }, { status: 500 });
+    }
 
     if (code === admin2FASecret) {
       return Response.json({ success: true });

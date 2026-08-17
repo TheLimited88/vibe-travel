@@ -46,8 +46,13 @@ export async function POST(request: Request) {
     }
 
     // 4. Verify admin credentials
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@vibetravel.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'AdminPassword123';
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      console.error('Admin credentials not configured');
+      return Response.json({ success: false, error: 'Server configuration error' }, { status: 500 });
+    }
 
     if (email !== adminEmail || password !== adminPassword) {
       await recordFailedAttempt(userId);

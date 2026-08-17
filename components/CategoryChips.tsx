@@ -87,8 +87,27 @@ export default function CategoryChips({ selectedCategory, onSelectCategory }: Ca
                 height="9"
                 viewBox="0 0 24 24"
                 fill="none"
-                dangerouslySetInnerHTML={{ __html: category.icon }}
-              />
+              >
+                {category.icon.split('<path').slice(1).map((pathStr, i) => {
+                  const match = pathStr.match(/d="([^"]+)"/);
+                  const stroke = pathStr.match(/stroke="([^"]+)"/)?.[1];
+                  const fill = pathStr.match(/fill="([^"]+)"/)?.[1];
+                  if (match) {
+                    return (
+                      <path
+                        key={i}
+                        d={match[1]}
+                        stroke={stroke || '#fff'}
+                        fill={fill || 'none'}
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    );
+                  }
+                  return null;
+                })}
+              </svg>
             </span>
             {category.label}
           </button>

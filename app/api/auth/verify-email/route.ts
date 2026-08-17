@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/firebase';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { checkRateLimit, rateLimitConfigs } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
   try {
+    const clientIp = request.headers.get('x-forwarded-for') || 'unknown';
+    const allowed = checkRateLimit(clientIp, { maxAttempts: 10, windowMs: 60000 });
+    if (!allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+    }
+
     const { token } = await request.json();
 
     if (!token) {

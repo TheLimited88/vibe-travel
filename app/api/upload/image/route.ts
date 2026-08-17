@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processImage, getCompressionStats } from '@/lib/imageProcessing';
 import { uploadProcessedImages } from '@/lib/r2Storage';
+import { getAuth } from 'firebase/auth';
 
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const authHeader = request.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const placeId = formData.get('placeId') as string;
