@@ -26,13 +26,18 @@ export default function AdminSignInPage() {
     script.defer = true;
     script.onload = () => {
       setTurnstileLoaded(true);
-      // Render Turnstile widget
-      if (window.turnstile) {
-        window.turnstile.render('#turnstile', {
-          sitekey: process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY,
-          theme: 'light',
-        });
-      }
+      // Render Turnstile widget after a brief delay to ensure DOM is ready
+      setTimeout(() => {
+        if (window.turnstile && document.getElementById('turnstile')) {
+          window.turnstile.render('#turnstile', {
+            sitekey: process.env.NEXT_PUBLIC_CLOUDFLARE_TURNSTILE_SITE_KEY,
+            theme: 'light',
+            callback: (token: string) => {
+              turnstileRef.current = token;
+            },
+          });
+        }
+      }, 100);
     };
     document.head.appendChild(script);
   }, []);
@@ -291,15 +296,14 @@ export default function AdminSignInPage() {
             </div>
 
             {/* Cloudflare Turnstile */}
-            {turnstileLoaded && (
-              <div
-                id="turnstile"
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                }}
-              />
-            )}
+            <div
+              id="turnstile"
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                minHeight: '78px',
+              }}
+            />
 
             {/* Sign In Button */}
             <button
