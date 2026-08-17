@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { categories } from '@/data/categories';
 
 // Build color map from canonical categories
@@ -12,12 +12,20 @@ const categoryColorMap = categories.reduce((map, cat) => {
 export default function NewPlacePage() {
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
-  const [category, setCategory] = useState('hidden_beach');
+  const [category, setCategory] = useState('landmark');
   const [address, setAddress] = useState('');
   const [about, setAbout] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [preview, setPreview] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
+  const [adminProfilePhoto, setAdminProfilePhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    const photo = localStorage.getItem('adminProfilePhoto');
+    if (photo) {
+      setAdminProfilePhoto(photo);
+    }
+  }, []);
 
   if (preview) {
     const catLabel = categories.find(c => c.key === category)?.label || 'Hidden Beach';
@@ -197,19 +205,9 @@ export default function NewPlacePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Category</label>
             <select value={category} onChange={(e) => setCategory(e.target.value)} style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A' }}>
-              <optgroup label="Popular">
-                <option value="hidden_beach">Hidden Beach</option>
-                <option value="scenic_lookout">Scenic Lookout</option>
-                <option value="historic_building">Historic Building</option>
-              </optgroup>
-              <optgroup label="All categories">
-                <option value="waterfall">Waterfall</option>
-                <option value="street_art">Street Art</option>
-                <option value="walking_trail">Walking Trail</option>
-                <option value="local_market">Local Market</option>
-                <option value="photography_location">Photography Spot</option>
-                <option value="quiet_escape">Quiet Escape</option>
-              </optgroup>
+              {categories.sort((a, b) => a.label.localeCompare(b.label)).map(cat => (
+                <option key={cat.key} value={cat.key}>{cat.label}</option>
+              ))}
             </select>
           </div>
 
@@ -240,7 +238,11 @@ export default function NewPlacePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Creator Profile</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#E8D5F2', flexShrink: 0 }}></div>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: '#E8D5F2', flexShrink: 0, overflow: 'hidden' }}>
+                {adminProfilePhoto && (
+                  <img src={adminProfilePhoto} alt="Admin profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                )}
+              </div>
               <div style={{ fontSize: '13px', fontWeight: '600', color: '#6B3FD1' }}>Brett Williams</div>
             </div>
           </div>

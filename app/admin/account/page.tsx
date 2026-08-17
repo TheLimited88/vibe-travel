@@ -19,6 +19,7 @@ export default function AdminAccountPage() {
       reader.onload = (event) => {
         const result = event.target?.result as string;
         setProfilePhoto(result);
+        localStorage.setItem('adminProfilePhoto', result);
       };
       reader.readAsDataURL(file);
     }
@@ -26,6 +27,7 @@ export default function AdminAccountPage() {
 
   const handleDeletePhoto = () => {
     setProfilePhoto(null);
+    localStorage.removeItem('adminProfilePhoto');
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
