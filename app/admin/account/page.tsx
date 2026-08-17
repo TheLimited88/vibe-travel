@@ -40,9 +40,15 @@ export default function AdminAccountPage() {
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <div
               onClick={handlePhotoClick}
-              style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: profilePhoto ? `url(${profilePhoto})` : 'transparent', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative' }}
+              style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'transparent', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', overflow: 'hidden' }}
             >
-              {!profilePhoto && (
+              {profilePhoto ? (
+                <img
+                  src={profilePhoto}
+                  alt="Profile"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
                   <div style={{ fontSize: '24px' }}>+</div>
                   <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)', textAlign: 'center', lineHeight: '1.3' }}>Upload<br/>profile<br/>photo</div>
