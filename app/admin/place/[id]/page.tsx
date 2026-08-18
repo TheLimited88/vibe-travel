@@ -1,10 +1,12 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import Script from 'next/script';
 
 const POPULAR_CATEGORIES = ['Hidden Beach', 'Scenic Lookout', 'Historic Building'];
 const ALL_CATEGORIES = ['Waterfall', 'Street Art', 'Walking Trail', 'Market', 'Photo Spot', 'Quiet Place'];
+const GOOGLE_MAPS_API_KEY = 'AIzaSyASw89W0DUvoLSCkDHcdl2d-KEuosJ9Nvg';
 
 export default function EditPlacePage() {
   const router = useRouter();
@@ -17,24 +19,141 @@ export default function EditPlacePage() {
   const [about, setAbout] = useState(
     'Most of the beaches in this city get crowded by 10am in July. This one never does — because it\'s technically a landfill cap that\'s been slowly crumbling into Jamaica Bay since the 1950s, and the tideline is a permanent glitter of sea glass, old bottles, and the occasional shoe sole.'
   );
-  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [heroInfoOpen, setHeroInfoOpen] = useState(false);
   const [galleryInfoOpen, setGalleryInfoOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [previewExpanded, setPreviewExpanded] = useState(false);
 
+  // Location — matches Admin New Place: Google Places autocomplete + geocoding
+  const [mapLat, setMapLat] = useState(40.6089);
+  const [mapLng, setMapLng] = useState(-73.9065);
+  const [geocoded, setGeocoded] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [gpsLat, setGpsLat] = useState('');
+  const [gpsLng, setGpsLng] = useState('');
+  const [autocompleteService, setAutocompleteService] = useState<any>(null);
+  const [placesService, setPlacesService] = useState<any>(null);
+  const [geocoder, setGeocoder] = useState<any>(null);
+
   const seoUrl = `vibetravel.app/places/${title.toLowerCase().replace(/\s+/g, '-')}`;
   const aboutLength = about.length;
 
-  const addressSuggestions = [
-    'Flatbush Ave & Aviation Rd, Brooklyn, NY',
-    'Flatbush Ave & Aviation Rd, Brooklyn, NY, New York, NY, USA',
-    'Flatbush Ave & Aviation Rd, Brooklyn, NY St, Brooklyn, NY, USA',
-    'Flatbush Ave & Aviation Rd, Brooklyn, NY Ave, Queens, NY, USA',
-  ];
+  useEffect(() => {
+    const initializeGooglePlaces = () => {
+      if (typeof window !== 'undefined' && (window as any).google?.maps?.places) {
+        setAutocompleteService(new (window as any).google.maps.places.AutocompleteService());
+        setPlacesService(new (window as any).google.maps.places.PlacesService(document.createElement('div')));
+        setGeocoder(new (window as any).google.maps.Geocoder());
+      } else {
+        setTimeout(initializeGooglePlaces, 100);
+      }
+    };
+    initializeGooglePlaces();
+  }, []);
+
+  useEffect(() => {
+    // Resolve this place's existing address to coordinates once Google is ready
+    if (geocoder && address && !geocoded) {
+      geocoder.geocode({ address }, (results: any, status: any) => {
+        if (status === 'OK' && results && results[0]) {
+          const location = results[0].geometry.location;
+          setMapLat(location.lat());
+          setMapLng(location.lng());
+          setGeocoded(true);
+        }
+      });
+    }
+  }, [geocoder]);
+
+  const handleAddressSearch = (query: string) => {
+    setAddress(query);
+    setGeocoded(false);
+    if (query.length < 2) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
+
+    if (!autocompleteService) {
+      console.warn('Autocomplete service not initialized');
+      return;
+    }
+
+    autocompleteService.getPlacePredictions(
+      { input: query },
+      (predictions: any, status: any) => {
+        if (status === 'OK' && predictions) {
+          setSearchResults(predictions);
+          setShowResults(predictions.length > 0);
+        } else {
+          setSearchResults([]);
+          setShowResults(false);
+        }
+      }
+    );
+  };
+
+  const selectResult = (result: any) => {
+    setAddress(result.description);
+    setShowResults(false);
+    setSearchResults([]);
+
+    if (placesService && result.place_id) {
+      placesService.getDetails(
+        { placeId: result.place_id, fields: ['geometry'] },
+        (place: any, status: any) => {
+          if (status === 'OK' && place?.geometry?.location) {
+            setMapLat(place.geometry.location.lat());
+            setMapLng(place.geometry.location.lng());
+            setGeocoded(true);
+          }
+        }
+      );
+    }
+  };
+
+  const confirmAddressGeocode = () => {
+    const addr = address.trim();
+    if (!addr || !geocoder) return;
+
+    geocoder.geocode({ address: addr }, (results: any, status: any) => {
+      if (status === 'OK' && results && results[0]) {
+        const location = results[0].geometry.location;
+        setMapLat(location.lat());
+        setMapLng(location.lng());
+        setGeocoded(true);
+        if (results[0].formatted_address) {
+          setAddress(results[0].formatted_address);
+        }
+      } else {
+        console.warn('Google geocoding failed for address:', addr, status);
+      }
+    });
+  };
+
+  const handleAddressKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmAddressGeocode();
+    }
+  };
+
+  const handleGpsChange = (lat: string, lng: string) => {
+    setGpsLat(lat);
+    setGpsLng(lng);
+    const parsedLat = parseFloat(lat);
+    const parsedLng = parseFloat(lng);
+    if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+      setMapLat(parsedLat);
+      setMapLng(parsedLng);
+    }
+  };
 
   return (
+    <>
+      <Script src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`} strategy="afterInteractive" />
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
       <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
         {/* Header */}
@@ -201,57 +320,31 @@ export default function EditPlacePage() {
 
               {locationMode === 'address' && (
                 <>
-                  <input
-                    value={address}
-                    onChange={(e) => {
-                      setAddress(e.target.value);
-                      setShowAddressSuggestions(true);
-                    }}
-                    onFocus={() => setShowAddressSuggestions(true)}
-                    style={{
-                      border: '1px solid rgba(10,10,10,0.12)',
-                      borderRadius: '10px',
-                      padding: '10px 12px',
-                      paddingLeft: '34px',
-                      fontSize: '14px',
-                      fontFamily: 'inherit',
-                      color: '#0A0A0A',
-                      position: 'relative',
-                    }}
-                    placeholder="Search Google Maps address…"
-                  />
-
-                  {showAddressSuggestions && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
-                      {addressSuggestions.map((suggestion, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                            setAddress(suggestion);
-                            setShowAddressSuggestions(false);
-                          }}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            background: '#fff',
-                            border: '1px solid rgba(10,10,10,0.1)',
-                            borderTop: idx === 0 ? 'none' : '1px solid rgba(10,10,10,0.06)',
-                            borderRadius: idx === 0 ? '10px 10px 0 0' : idx === addressSuggestions.length - 1 ? '0 0 10px 10px' : '0',
-                            padding: '10px 12px',
-                            fontSize: '13px',
-                            color: '#0A0A0A',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            width: '100%',
-                          }}
-                        >
-                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                            <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="rgba(10,10,10,0.4)" strokeWidth="1.6" />
-                          </svg>
-                          {suggestion}
-                        </button>
-                      ))}
+                  <div style={{ position: 'relative' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="rgba(10,10,10,0.4)" strokeWidth="1.6"/><circle cx="12" cy="9.5" r="2.3" stroke="rgba(10,10,10,0.4)" strokeWidth="1.6"/></svg>
+                    <input
+                      type="text"
+                      placeholder="Search a place name or address"
+                      value={address}
+                      onChange={(e) => handleAddressSearch(e.target.value)}
+                      onKeyDown={handleAddressKeyDown}
+                      style={{ width: '100%', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', padding: '10px 12px 10px 34px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }}
+                    />
+                    {showResults && searchResults.length > 0 && !geocoded && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px', background: '#fff', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', boxShadow: '0 6px 16px rgba(0,0,0,0.12)', zIndex: 6, overflow: 'hidden' }}>
+                        {searchResults.map((result, idx) => (
+                          <button key={idx} onClick={() => selectResult(result)} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', background: 'none', border: 'none', borderBottom: idx < searchResults.length - 1 ? '1px solid rgba(10,10,10,0.06)' : 'none', padding: '10px 12px', fontSize: '13px', color: '#0A0A0A', textAlign: 'left', cursor: 'pointer' }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="rgba(10,10,10,0.4)" strokeWidth="1.6"/></svg>
+                            {result.description}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  {geocoded && address && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: 'rgba(127,83,243,0.06)', borderRadius: '8px', padding: '8px 10px', marginTop: '2px' }}>
+                      <span style={{ fontSize: '12.5px', fontWeight: '600', color: '#0A0A0A' }}>{address}</span>
+                      <span style={{ fontSize: '11px', color: 'rgba(10,10,10,0.55)' }}>GPS: {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
                     </div>
                   )}
                 </>
@@ -260,8 +353,8 @@ export default function EditPlacePage() {
               {locationMode === 'coords' && (
                 <>
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <input placeholder="Lat 40.6892" style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }} />
-                    <input placeholder="Lng -74.0445" style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }} />
+                    <input type="text" inputMode="decimal" placeholder="Lat 40.6892" value={gpsLat} onChange={(e) => handleGpsChange(e.target.value, gpsLng)} style={{ flex: 1, minWidth: 0, width: 0, boxSizing: 'border-box', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }} />
+                    <input type="text" inputMode="decimal" placeholder="Lng -74.0445" value={gpsLng} onChange={(e) => handleGpsChange(gpsLat, e.target.value)} style={{ flex: 1, minWidth: 0, width: 0, boxSizing: 'border-box', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }} />
                   </div>
                   <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)' }}>Use for places without a street address — parks, trailheads, remote lookouts.</div>
                 </>
@@ -269,7 +362,7 @@ export default function EditPlacePage() {
 
               {/* Map Preview */}
               <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #eef0ea' }}>
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#7F53F3', transformOrigin: 'bottom', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
                 <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)' }}>Google Maps · tap map to drop pin, drag to adjust</span>
               </div>
             </div>
@@ -708,5 +801,6 @@ export default function EditPlacePage() {
         </div>
       )}
     </div>
+    </>
   );
 }
