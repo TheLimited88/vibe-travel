@@ -66,10 +66,14 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const writeResult = await updatePlace(slug, body);
-    const verifyRead = await getPlace(slug);
+    await updatePlace(slug, body);
+    const verifyRead1 = await getPlace(slug);
 
-    return Response.json({ success: true, writeTime: writeResult?.writeTime?.toString?.() || null, verifyRead });
+    // Second update+read in the SAME invocation, to isolate cross-invocation vs within-invocation staleness
+    await updatePlace(slug, { subtitle: (body.subtitle || '') + ' [second write]' });
+    const verifyRead2 = await getPlace(slug);
+
+    return Response.json({ success: true, verifyRead1, verifyRead2 });
   } catch (error) {
     console.error('Update place error:', error);
     return Response.json({ error: 'Failed to update place', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
