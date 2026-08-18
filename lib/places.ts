@@ -1,15 +1,4 @@
-import { db } from '@/lib/firebase';
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  orderBy,
-} from 'firebase/firestore';
+import { getAdminDb } from '@/lib/firebaseAdmin';
 
 export interface PlaceImage {
   url: string;
@@ -48,12 +37,13 @@ export function slugify(title: string): string {
 }
 
 export async function createPlace(data: Omit<PlaceRecord, 'slug' | 'createdAt' | 'updatedAt'> & { slug?: string }): Promise<PlaceRecord> {
+  const adminDb = getAdminDb();
   const baseSlug = data.slug || slugify(data.title);
   let slug = baseSlug;
   let attempt = 1;
 
   // Ensure slug uniqueness
-  while ((await getDoc(doc(db, PLACES_COLLECTION, slug))).exists()) {
+  while ((await adminDb.collection(PLACES_COLLECTION).doc(slug).get()).exists) {
     attempt += 1;
     slug = `${baseSlug}-${attempt}`;
   }
@@ -66,29 +56,28 @@ export async function createPlace(data: Omit<PlaceRecord, 'slug' | 'createdAt' |
     updatedAt: now,
   };
 
-  await setDoc(doc(db, PLACES_COLLECTION, slug), record);
+  await adminDb.collection(PLACES_COLLECTION).doc(slug).set(record);
   return record;
 }
 
 export async function updatePlace(slug: string, data: Partial<Omit<PlaceRecord, 'slug' | 'createdAt'>>): Promise<void> {
-  await updateDoc(doc(db, PLACES_COLLECTION, slug), {
+  await getAdminDb().collection(PLACES_COLLECTION).doc(slug).update({
     ...data,
     updatedAt: Date.now(),
   });
 }
 
 export async function getPlace(slug: string): Promise<PlaceRecord | null> {
-  const snap = await getDoc(doc(db, PLACES_COLLECTION, slug));
-  if (!snap.exists()) return null;
+  const snap = await getAdminDb().collection(PLACES_COLLECTION).doc(slug).get();
+  if (!snap.exists) return null;
   return snap.data() as PlaceRecord;
 }
 
 export async function listPlaces(): Promise<PlaceRecord[]> {
-  const q = query(collection(db, PLACES_COLLECTION), orderBy('updatedAt', 'desc'));
-  const snap = await getDocs(q);
+  const snap = await getAdminDb().collection(PLACES_COLLECTION).orderBy('updatedAt', 'desc').get();
   return snap.docs.map((d) => d.data() as PlaceRecord);
 }
 
 export async function deletePlace(slug: string): Promise<void> {
-  await deleteDoc(doc(db, PLACES_COLLECTION, slug));
+  await getAdminDb().collection(PLACES_COLLECTION).doc(slug).delete();
 }
