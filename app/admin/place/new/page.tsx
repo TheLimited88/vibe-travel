@@ -96,36 +96,42 @@ export default function NewPlacePage() {
     );
   };
 
-  const geocodeAddress = (description: string) => {
-    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    if (!mapboxToken) return;
-
-    fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(description)}.json?access_token=${mapboxToken}`
-    )
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.features && data.features[0]?.geometry?.coordinates) {
-          const [lng, lat] = data.features[0].geometry.coordinates;
-          setMapLat(lat);
-          setMapLng(lng);
-          setGeocoded(true);
-        }
-      })
-      .catch((error) => console.error('Mapbox geocoding error:', error));
-  };
-
   const selectResult = (result: any) => {
     setAddress(result.description);
     setShowResults(false);
     setSearchResults([]);
-    geocodeAddress(result.description);
+
+    if (placesService && result.place_id) {
+      placesService.getDetails(
+        { placeId: result.place_id, fields: ['geometry'] },
+        (place: any, status: any) => {
+          if (status === 'OK' && place?.geometry?.location) {
+            setMapLat(place.geometry.location.lat());
+            setMapLng(place.geometry.location.lng());
+            setGeocoded(true);
+          }
+        }
+      );
+    }
   };
 
   const confirmAddressGeocode = () => {
     const addr = address.trim();
-    if (!addr) return;
-    geocodeAddress(addr);
+    if (!addr || !geocoder) return;
+
+    geocoder.geocode({ address: addr }, (results: any, status: any) => {
+      if (status === 'OK' && results && results[0]) {
+        const location = results[0].geometry.location;
+        setMapLat(location.lat());
+        setMapLng(location.lng());
+        setGeocoded(true);
+        if (results[0].formatted_address) {
+          setAddress(results[0].formatted_address);
+        }
+      } else {
+        console.warn('Google geocoding failed for address:', addr, status);
+      }
+    });
   };
 
   const handleAddressKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
