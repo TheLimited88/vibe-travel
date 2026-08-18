@@ -24,6 +24,11 @@ function getAdminApp(): App {
 export function getAdminDb(): Firestore {
   if (!dbInstance) {
     dbInstance = getFirestore(getAdminApp());
+    // gRPC's persistent streaming connections don't play well with Vercel's
+    // frozen/reused serverless containers — reads through a resumed stale
+    // connection can silently return outdated data. REST transport makes
+    // every call a fresh HTTP request instead, which is reliable here.
+    dbInstance.settings({ preferRest: true });
   }
   return dbInstance;
 }
