@@ -1,11 +1,10 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect, useRef } from 'react';
 import Script from 'next/script';
+import { categories } from '@/data/categories';
 
-const POPULAR_CATEGORIES = ['Hidden Beach', 'Scenic Lookout', 'Historic Building'];
-const ALL_CATEGORIES = ['Waterfall', 'Street Art', 'Walking Trail', 'Market', 'Photo Spot', 'Quiet Place'];
 const GOOGLE_MAPS_API_KEY = 'AIzaSyASw89W0DUvoLSCkDHcdl2d-KEuosJ9Nvg';
 
 const VIBE_TAGS = [
@@ -20,21 +19,37 @@ const VIBE_TAGS = [
 
 export default function EditPlacePage() {
   const router = useRouter();
+  const params = useParams();
+  const slug = typeof params.id === 'string' ? params.id : '';
+
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState('');
+  const [status, setStatus] = useState<'draft' | 'published'>('draft');
+
   const [showPreview, setShowPreview] = useState(false);
-  const [title, setTitle] = useState('Dead Horse Bay');
-  const [subtitle, setSubtitle] = useState('A sea-glass shoreline built on a century of buried trash');
-  const [category, setCategory] = useState('Hidden Beach');
-  const [vibes, setVibes] = useState<string[]>(['Hidden Gem', 'Quirky']);
+  const [title, setTitle] = useState('');
+  const [subtitle, setSubtitle] = useState('');
+  const [category, setCategory] = useState('beach');
+  const [vibes, setVibes] = useState<string[]>([]);
   const [locationMode, setLocationMode] = useState<'address' | 'coords'>('address');
-  const [address, setAddress] = useState('Flatbush Ave & Aviation Rd, Brooklyn, NY');
-  const [about, setAbout] = useState(
-    'Most of the beaches in this city get crowded by 10am in July. This one never does — because it\'s technically a landfill cap that\'s been slowly crumbling into Jamaica Bay since the 1950s, and the tideline is a permanent glitter of sea glass, old bottles, and the occasional shoe sole.'
-  );
+  const [address, setAddress] = useState('');
+  const [about, setAbout] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [heroInfoOpen, setHeroInfoOpen] = useState(false);
   const [galleryInfoOpen, setGalleryInfoOpen] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [previewExpanded, setPreviewExpanded] = useState(false);
+
+  const [heroImage, setHeroImage] = useState<{ url: string; key: string } | null>(null);
+  const [galleryImages, setGalleryImages] = useState<{ url: string; key: string }[]>([]);
+  const [uploadingHero, setUploadingHero] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const heroInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const [youtubeUrl, setYoutubeUrl] = useState('');
 
   // Location — matches Admin New Place: Google Places autocomplete + geocoding
   const [mapLat, setMapLat] = useState(40.6089);
@@ -50,6 +65,47 @@ export default function EditPlacePage() {
 
   const seoUrl = `vibetravel.app/places/${title.toLowerCase().replace(/\s+/g, '-')}`;
   const aboutLength = about.length;
+
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchPlace = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/admin/places?slug=${encodeURIComponent(slug)}`);
+        const data = await res.json();
+
+        if (!data.success) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
+
+        const p = data.place;
+        setTitle(p.title || '');
+        setSubtitle(p.subtitle || '');
+        setCategory(p.category || 'beach');
+        setVibes(p.vibes || []);
+        setAddress(p.address || '');
+        if (typeof p.lat === 'number' && typeof p.lng === 'number') {
+          setMapLat(p.lat);
+          setMapLng(p.lng);
+          setGeocoded(true);
+        }
+        setAbout(p.about || '');
+        setHeroImage(p.heroImage || null);
+        setGalleryImages(p.galleryImages || []);
+        setYoutubeUrl(p.youtubeUrl || '');
+        setStatus(p.status === 'published' ? 'published' : 'draft');
+      } catch (error) {
+        console.error('Failed to load place:', error);
+        setNotFound(true);
+      }
+      setLoading(false);
+    };
+
+    fetchPlace();
+  }, [slug]);
 
   useEffect(() => {
     const initializeGooglePlaces = () => {
@@ -172,6 +228,150 @@ export default function EditPlacePage() {
     }
   };
 
+  const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingHero(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'hero');
+
+    try {
+      const res = await fetch('/api/admin/upload-image', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        setHeroImage({ url: data.url, key: data.key });
+      }
+    } catch (error) {
+      alert('Upload failed');
+    }
+    setUploadingHero(false);
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || galleryImages.length >= 6) return;
+
+    setUploadingGallery(true);
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', 'gallery');
+
+    try {
+      const res = await fetch('/api/admin/upload-image', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (data.success) {
+        setGalleryImages([...galleryImages, { url: data.url, key: data.key }]);
+      }
+    } catch (error) {
+      alert('Upload failed');
+    }
+    setUploadingGallery(false);
+  };
+
+  const deleteHero = async () => {
+    if (!heroImage) return;
+    try {
+      await fetch('/api/admin/upload-image', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: heroImage.key }),
+      });
+      setHeroImage(null);
+    } catch (error) {
+      alert('Delete failed');
+    }
+  };
+
+  const deleteGalleryImage = async (index: number) => {
+    const image = galleryImages[index];
+    try {
+      await fetch('/api/admin/upload-image', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: image.key }),
+      });
+      setGalleryImages(galleryImages.filter((_, i) => i !== index));
+    } catch (error) {
+      alert('Delete failed');
+    }
+  };
+
+  const handleSaveChanges = async () => {
+    if (!title.trim()) {
+      setToast('Title is required');
+      setTimeout(() => setToast(''), 2500);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/places?slug=${encodeURIComponent(slug)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          subtitle,
+          category,
+          vibes,
+          address,
+          lat: mapLat,
+          lng: mapLng,
+          about,
+          heroImage,
+          galleryImages,
+          youtubeUrl,
+          status,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setToast('Place saved');
+        setTimeout(() => router.push('/admin/places'), 900);
+      } else {
+        setToast(data.error || 'Save failed');
+        setSaving(false);
+        setTimeout(() => setToast(''), 3000);
+      }
+    } catch (error) {
+      setToast('Network error — save failed');
+      setSaving(false);
+      setTimeout(() => setToast(''), 3000);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    setDeleting(true);
+    try {
+      await fetch(`/api/admin/places?slug=${encodeURIComponent(slug)}`, { method: 'DELETE' });
+      router.push('/admin/places');
+    } catch (error) {
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+      alert('Delete failed');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#fff', fontSize: '13px', color: 'rgba(10,10,10,0.5)' }}>
+        Loading…
+      </div>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#fff' }}>
+        <div style={{ fontSize: '16px', fontWeight: '700', color: '#0A0A0A' }}>Place not found</div>
+        <button onClick={() => router.push('/admin/places')} style={{ background: '#6B3FD1', color: '#fff', border: 'none', borderRadius: '12px', padding: '10px 18px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}>Back to Places</button>
+      </div>
+    );
+  }
+
   return (
     <>
       <Script src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`} strategy="afterInteractive" />
@@ -286,20 +486,9 @@ export default function EditPlacePage() {
                   background: '#fff',
                 }}
               >
-                <optgroup label="Popular">
-                  {POPULAR_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </optgroup>
-                <optgroup label="All categories">
-                  {ALL_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </optgroup>
+                {categories.sort((a, b) => a.label.localeCompare(b.label)).map((cat) => (
+                  <option key={cat.key} value={cat.key}>{cat.label}</option>
+                ))}
               </select>
             </div>
 
@@ -482,15 +671,18 @@ export default function EditPlacePage() {
                   </div>
                 )}
               </div>
-              <div
-                style={{
-                  width: '150px',
-                  height: '150px',
-                  borderRadius: '12px',
-                  background: '#E8D5F2',
-                  border: '1px solid rgba(10,10,10,0.08)',
-                }}
-              />
+              {heroImage ? (
+                <div style={{ position: 'relative', width: '150px', height: '150px', borderRadius: '12px', overflow: 'hidden' }}>
+                  <img src={heroImage.url} alt="Hero" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <button onClick={deleteHero} style={{ position: 'absolute', top: '4px', right: '4px', background: '#C23B3B', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', fontSize: '10px', fontWeight: '700', cursor: 'pointer' }}>Delete</button>
+                  <button onClick={() => heroInputRef.current?.click()} style={{ position: 'absolute', bottom: '4px', left: '4px', background: '#6B3FD1', color: '#fff', border: 'none', borderRadius: '6px', padding: '4px 8px', fontSize: '10px', fontWeight: '700', cursor: 'pointer' }}>Change</button>
+                </div>
+              ) : (
+                <button onClick={() => heroInputRef.current?.click()} style={{ width: '150px', height: '150px', borderRadius: '12px', background: uploadingHero ? '#e0e0e0' : '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: uploadingHero ? 'not-allowed' : 'pointer', color: 'rgba(10,10,10,0.6)', fontSize: '12px', textAlign: 'center' }}>
+                  {uploadingHero ? 'Uploading...' : '+ Upload'}
+                </button>
+              )}
+              <input ref={heroInputRef} type="file" accept="image/*" onChange={handleHeroUpload} style={{ display: 'none' }} />
             </div>
 
             {/* Gallery */}
@@ -525,29 +717,27 @@ export default function EditPlacePage() {
                 )}
               </div>
               <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
-                {[0, 1, 2].map((i) => (
-                  <div
-                    key={i}
-                    draggable
-                    style={{
-                      position: 'relative',
-                      flexShrink: 0,
-                      width: '88px',
-                      height: '156px',
-                      borderRadius: '10px',
-                      background: '#E8D5F2',
-                      border: '1px solid rgba(10,10,10,0.08)',
-                      cursor: 'grab',
-                    }}
-                  />
+                {galleryImages.map((img, idx) => (
+                  <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '88px', height: '156px', borderRadius: '10px', overflow: 'hidden' }}>
+                    <img src={img.url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <button onClick={() => deleteGalleryImage(idx)} style={{ position: 'absolute', top: '2px', right: '2px', background: '#C23B3B', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 4px', fontSize: '9px', fontWeight: '700', cursor: 'pointer' }}>✕</button>
+                  </div>
                 ))}
+                {galleryImages.length < 6 && (
+                  <button onClick={() => galleryInputRef.current?.click()} style={{ position: 'relative', flexShrink: 0, width: '88px', height: '156px', borderRadius: '10px', background: uploadingGallery ? '#e0e0e0' : '#f0f0f0', border: '2px dashed rgba(10,10,10,0.2)', cursor: uploadingGallery ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.6)', fontSize: '11px' }}>
+                    {uploadingGallery ? 'Uploading...' : '+ Add'}
+                  </button>
+                )}
               </div>
+              <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleGalleryUpload} style={{ display: 'none' }} />
             </div>
 
             {/* YouTube URL */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>YouTube URL (optional)</label>
               <input
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
                 placeholder="https://youtube.com/watch?v=..."
                 style={{
                   border: '1px solid rgba(10,10,10,0.12)',
@@ -555,7 +745,7 @@ export default function EditPlacePage() {
                   padding: '10px 12px',
                   fontSize: '14px',
                   fontFamily: 'inherit',
-                  color: 'rgba(10,10,10,0.6)',
+                  color: '#0A0A0A',
                 }}
               />
             </div>
@@ -584,31 +774,33 @@ export default function EditPlacePage() {
             {/* Action Buttons */}
             <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
               <button
+                onClick={() => setStatus('draft')}
                 style={{
                   flex: 1,
-                  background: '#fff',
-                  color: '#0A0A0A',
-                  border: '1px solid rgba(10,10,10,0.12)',
                   borderRadius: '12px',
-                  padding: '12px',
-                  fontSize: '13.5px',
-                  fontWeight: '600',
+                  padding: '11px',
+                  fontSize: '13px',
+                  fontWeight: '700',
                   cursor: 'pointer',
+                  border: status === 'draft' ? '1px solid #7F53F3' : '1px solid rgba(10,10,10,0.1)',
+                  background: status === 'draft' ? 'rgba(127,83,243,0.1)' : '#fff',
+                  color: status === 'draft' ? '#7F53F3' : '#0A0A0A',
                 }}
               >
                 Save Draft
               </button>
               <button
+                onClick={() => setStatus('published')}
                 style={{
                   flex: 1,
-                  background: '#95048B',
-                  color: '#fff',
-                  border: 'none',
                   borderRadius: '12px',
-                  padding: '12px',
-                  fontSize: '13.5px',
+                  padding: '11px',
+                  fontSize: '13px',
                   fontWeight: '700',
                   cursor: 'pointer',
+                  border: 'none',
+                  background: status === 'published' ? 'linear-gradient(135deg,#95048B,#7F53F3)' : 'rgba(10,10,10,0.06)',
+                  color: status === 'published' ? '#fff' : '#0A0A0A',
                 }}
               >
                 Publish
@@ -616,6 +808,8 @@ export default function EditPlacePage() {
             </div>
 
             <button
+              onClick={handleSaveChanges}
+              disabled={saving}
               style={{
                 width: '100%',
                 background: '#3EE8A8',
@@ -625,10 +819,11 @@ export default function EditPlacePage() {
                 padding: '12px',
                 fontSize: '13.5px',
                 fontWeight: '700',
-                cursor: 'pointer',
+                cursor: saving ? 'not-allowed' : 'pointer',
+                opacity: saving ? 0.7 : 1,
               }}
             >
-              Save Changes
+              {saving ? 'Saving…' : 'Save Changes'}
             </button>
 
             {/* Danger Zone */}
@@ -828,6 +1023,8 @@ export default function EditPlacePage() {
               Cancel
             </button>
             <button
+              onClick={handleConfirmDelete}
+              disabled={deleting}
               style={{
                 width: '100%',
                 background: '#C23B3B',
@@ -837,12 +1034,19 @@ export default function EditPlacePage() {
                 padding: '12px',
                 fontSize: '13.5px',
                 fontWeight: '700',
-                cursor: 'pointer',
+                cursor: deleting ? 'not-allowed' : 'pointer',
+                opacity: deleting ? 0.7 : 1,
               }}
             >
-              Delete
+              {deleting ? 'Deleting…' : 'Delete'}
             </button>
           </div>
+        </div>
+      )}
+
+      {toast && (
+        <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: '#0A0A0A', color: '#fff', fontSize: '13px', fontWeight: '600', padding: '12px 20px', borderRadius: '999px', boxShadow: '0 6px 20px rgba(0,0,0,0.25)', zIndex: 999 }}>
+          {toast}
         </div>
       )}
     </div>

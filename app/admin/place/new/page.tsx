@@ -53,6 +53,9 @@ export default function NewPlacePage() {
   const [gpsLat, setGpsLat] = useState('');
   const [gpsLng, setGpsLng] = useState('');
   const [geocoded, setGeocoded] = useState(false);
+  const [status, setStatus] = useState<'draft' | 'published'>('draft');
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState('');
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
@@ -198,6 +201,52 @@ export default function NewPlacePage() {
 
   const removeVibe = (v: string) => {
     setVibes((prev) => prev.filter((x) => x !== v));
+  };
+
+  const handleSaveChanges = async () => {
+    if (!title.trim()) {
+      setToast('Title is required');
+      setTimeout(() => setToast(''), 2500);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/places', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          subtitle,
+          category,
+          vibes,
+          address,
+          lat: mapLat,
+          lng: mapLng,
+          about,
+          heroImage,
+          galleryImages,
+          youtubeUrl,
+          status,
+          createdBy: 'Brett Williams',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setToast('Place saved');
+        setTimeout(() => router.push('/admin/places'), 900);
+      } else {
+        setToast(data.error || 'Save failed');
+        setSaving(false);
+        setTimeout(() => setToast(''), 3000);
+      }
+    } catch (error) {
+      setToast('Network error — save failed');
+      setSaving(false);
+      setTimeout(() => setToast(''), 3000);
+    }
   };
 
   const handleGpsChange = (lat: string, lng: string) => {
@@ -635,11 +684,47 @@ export default function NewPlacePage() {
 
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
-            <button style={{ flex: 1, background: 'rgba(127,83,243,0.1)', color: '#6B3FD1', border: '1px solid rgba(127,83,243,0.3)', borderRadius: '14px', padding: '12px', fontSize: '13.5px', fontWeight: '700', cursor: 'pointer' }}>Save Draft</button>
-            <button style={{ flex: 1, background: 'none', color: '#0A0A0A', border: 'none', padding: '12px', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}>Publish</button>
+            <button
+              onClick={() => setStatus('draft')}
+              style={{
+                flex: 1,
+                borderRadius: '12px',
+                padding: '11px',
+                fontSize: '13px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                border: status === 'draft' ? '1px solid #7F53F3' : '1px solid rgba(10,10,10,0.1)',
+                background: status === 'draft' ? 'rgba(127,83,243,0.1)' : '#fff',
+                color: status === 'draft' ? '#7F53F3' : '#0A0A0A',
+              }}
+            >
+              Save Draft
+            </button>
+            <button
+              onClick={() => setStatus('published')}
+              style={{
+                flex: 1,
+                borderRadius: '12px',
+                padding: '11px',
+                fontSize: '13px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                border: 'none',
+                background: status === 'published' ? 'linear-gradient(135deg,#95048B,#7F53F3)' : 'rgba(10,10,10,0.06)',
+                color: status === 'published' ? '#fff' : '#0A0A0A',
+              }}
+            >
+              Publish
+            </button>
           </div>
 
-          <button style={{ width: '100%', background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '13px', fontSize: '14.5px', fontWeight: '700', cursor: 'pointer', marginTop: '12px' }}>Save Changes</button>
+          <button
+            onClick={handleSaveChanges}
+            disabled={saving}
+            style={{ width: '100%', background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '13px', fontSize: '14.5px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer', marginTop: '2px', opacity: saving ? 0.7 : 1 }}
+          >
+            {saving ? 'Saving…' : 'Save Changes'}
+          </button>
 
           {/* Danger Zone */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(10,10,10,0.08)' }}>
@@ -652,6 +737,12 @@ export default function NewPlacePage() {
         </div>
       </div>
       </div>
+
+      {toast && (
+        <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: '#0A0A0A', color: '#fff', fontSize: '13px', fontWeight: '600', padding: '12px 20px', borderRadius: '999px', boxShadow: '0 6px 20px rgba(0,0,0,0.25)', zIndex: 999 }}>
+          {toast}
+        </div>
+      )}
     </>
   );
 }
