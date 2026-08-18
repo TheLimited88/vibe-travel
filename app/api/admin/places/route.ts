@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     return Response.json({ success: true, places });
   } catch (error) {
     console.error('List places error:', error);
-    return Response.json({ error: 'Failed to load places' }, { status: 500 });
+    return Response.json({ error: 'Failed to load places', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     return Response.json({ success: true, place: record });
   } catch (error) {
     console.error('Create place error:', error);
-    return Response.json({ error: 'Failed to save place' }, { status: 500 });
+    return Response.json({ error: 'Failed to save place', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 

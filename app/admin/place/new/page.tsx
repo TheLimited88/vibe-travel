@@ -238,14 +238,14 @@ export default function NewPlacePage() {
         setToast('Place saved');
         setTimeout(() => router.push('/admin/places'), 900);
       } else {
-        setToast(data.error || 'Save failed');
+        setToast((data.error || 'Save failed') + (data.details ? ': ' + data.details : ''));
         setSaving(false);
-        setTimeout(() => setToast(''), 3000);
+        setTimeout(() => setToast(''), 10000);
       }
     } catch (error) {
       setToast('Network error — save failed');
       setSaving(false);
-      setTimeout(() => setToast(''), 3000);
+      setTimeout(() => setToast(''), 10000);
     }
   };
 
