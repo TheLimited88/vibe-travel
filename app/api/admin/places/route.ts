@@ -1,5 +1,9 @@
 import { createPlace, listPlaces, getPlace, updatePlace, deletePlace, slugify } from '@/lib/places';
 
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
