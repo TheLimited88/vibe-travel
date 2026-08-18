@@ -45,6 +45,9 @@ export default function NewPlacePage() {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<any>(null);
   const marker = useRef<any>(null);
+  const [locationMode, setLocationMode] = useState<'address' | 'coordinates'>('address');
+  const [gpsLat, setGpsLat] = useState('');
+  const [gpsLng, setGpsLng] = useState('');
 
   useEffect(() => {
     const photo = localStorage.getItem('adminProfilePhoto');
@@ -127,6 +130,15 @@ export default function NewPlacePage() {
         }
       })
       .catch((error) => console.error('Mapbox geocoding error:', error));
+  };
+
+  const handleGpsUpdate = () => {
+    const lat = parseFloat(gpsLat);
+    const lng = parseFloat(gpsLng);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      setMapLat(lat);
+      setMapLng(lng);
+    }
   };
 
   const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -398,21 +410,30 @@ export default function NewPlacePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Location</label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <button style={{ border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: '#6B3FD1', color: '#fff' }}>Address</button>
-              <button style={{ background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>GPS Coordinates</button>
+              <button onClick={() => setLocationMode('address')} style={{ border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: locationMode === 'address' ? '#6B3FD1' : '#fff', color: locationMode === 'address' ? '#fff' : '#0A0A0A', borderColor: locationMode === 'address' ? 'transparent' : 'rgba(10,10,10,0.12)', borderWidth: locationMode === 'address' ? 0 : 1 }}>Address</button>
+              <button onClick={() => setLocationMode('coordinates')} style={{ background: locationMode === 'coordinates' ? '#6B3FD1' : '#fff', color: locationMode === 'coordinates' ? '#fff' : '#0A0A0A', border: locationMode === 'coordinates' ? 'none' : '1px solid rgba(10,10,10,0.12)', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>GPS Coordinates</button>
             </div>
-            <div style={{ position: 'relative' }}>
-              <input type="text" placeholder="Search Google Maps address…" value={address} onChange={(e) => handleAddressSearch(e.target.value)} style={{ width: '100%', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }} />
-              {showResults && searchResults.length > 0 && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', marginTop: '4px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  {searchResults.map((result, idx) => (
-                    <button key={idx} onClick={() => selectResult(result)} style={{ width: '100%', background: 'none', border: 'none', padding: '10px 12px', textAlign: 'left', fontSize: '13px', color: '#0A0A0A', cursor: 'pointer', borderBottom: idx < searchResults.length - 1 ? '1px solid rgba(10,10,10,0.06)' : 'none' }}>
-                      {result.description}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+
+            {locationMode === 'address' ? (
+              <div style={{ position: 'relative' }}>
+                <input type="text" placeholder="Search Google Maps address…" value={address} onChange={(e) => handleAddressSearch(e.target.value)} style={{ width: '100%', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }} />
+                {showResults && searchResults.length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', marginTop: '4px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
+                    {searchResults.map((result, idx) => (
+                      <button key={idx} onClick={() => selectResult(result)} style={{ width: '100%', background: 'none', border: 'none', padding: '10px 12px', textAlign: 'left', fontSize: '13px', color: '#0A0A0A', cursor: 'pointer', borderBottom: idx < searchResults.length - 1 ? '1px solid rgba(10,10,10,0.06)' : 'none' }}>
+                        {result.description}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input type="number" placeholder="Latitude" value={gpsLat} onChange={(e) => setGpsLat(e.target.value)} step="0.0001" style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }} />
+                <input type="number" placeholder="Longitude" value={gpsLng} onChange={(e) => setGpsLng(e.target.value)} step="0.0001" style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }} />
+                <button onClick={handleGpsUpdate} style={{ background: '#6B3FD1', color: '#fff', border: 'none', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>Set</button>
+              </div>
+            )}
             <div style={{ position: 'relative', height: '180px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #f5f5f5', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '24px', height: '24px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}></div>
               <span style={{ position: 'absolute', bottom: '8px', right: '10px', fontSize: '10px', color: 'rgba(10,10,10,0.6)' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
