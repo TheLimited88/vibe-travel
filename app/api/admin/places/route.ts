@@ -62,12 +62,13 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    await updatePlace(slug, body);
+    const writeResult = await updatePlace(slug, body);
+    const verifyRead = await getPlace(slug);
 
-    return Response.json({ success: true });
+    return Response.json({ success: true, writeTime: writeResult?.writeTime?.toString?.() || null, verifyRead });
   } catch (error) {
     console.error('Update place error:', error);
-    return Response.json({ error: 'Failed to update place' }, { status: 500 });
+    return Response.json({ error: 'Failed to update place', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 

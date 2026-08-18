@@ -60,8 +60,8 @@ export async function createPlace(data: Omit<PlaceRecord, 'slug' | 'createdAt' |
   return record;
 }
 
-export async function updatePlace(slug: string, data: Partial<Omit<PlaceRecord, 'slug' | 'createdAt'>>): Promise<void> {
-  await getAdminDb().collection(PLACES_COLLECTION).doc(slug).update({
+export async function updatePlace(slug: string, data: Partial<Omit<PlaceRecord, 'slug' | 'createdAt'>>) {
+  return getAdminDb().collection(PLACES_COLLECTION).doc(slug).update({
     ...data,
     updatedAt: Date.now(),
   });
