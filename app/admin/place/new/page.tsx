@@ -17,11 +17,22 @@ const categoryColorMap = categories.reduce((map, cat) => {
   return map;
 }, {} as Record<string, string>);
 
+const VIBE_TAGS = [
+  'Bucket List', 'Must See', 'Iconic', 'Tourist Favourite', 'Local Favourite', 'Hidden Gem', 'Local Secret',
+  'Off the Beaten Path', 'Odd but Interesting', 'Quirky', 'Unique', 'Ancient', 'Historic', 'Military History',
+  'Art & Culture', 'Architecture', 'Music History', 'Film & TV', 'Literary', 'Scenic', 'Great Views', 'Photo Worthy',
+  'Sunset', 'Sunrise', 'Rooftop', 'Waterfront', 'Nature', 'Wildlife', 'Adventure', 'Urban Explorer', 'Romantic',
+  'Date Night', 'Family Friendly', 'Kid Friendly', 'Foodie Favourite', 'Nightlife', 'Lively', 'Trendy', 'Relaxing',
+  'Peaceful', 'Wellness', 'Spiritual', 'Shopping', 'Sports', 'Educational', 'Free', 'Luxury', 'Budget Friendly',
+  'Seasonal', 'Festive', 'Rainy Day',
+];
+
 export default function NewPlacePage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [category, setCategory] = useState('landmark');
+  const [vibes, setVibes] = useState<string[]>([]);
   const [address, setAddress] = useState('');
   const [about, setAbout] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -139,6 +150,16 @@ export default function NewPlacePage() {
       e.preventDefault();
       confirmAddressGeocode();
     }
+  };
+
+  const onVibeSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const v = e.target.value;
+    if (!v) return;
+    setVibes((prev) => (prev.includes(v) || prev.length >= 2 ? prev : [...prev, v]));
+  };
+
+  const removeVibe = (v: string) => {
+    setVibes((prev) => prev.filter((x) => x !== v));
   };
 
   const handleGpsChange = (lat: string, lng: string) => {
@@ -415,6 +436,30 @@ export default function NewPlacePage() {
                 <option key={cat.key} value={cat.key}>{cat.label}</option>
               ))}
             </select>
+          </div>
+
+          {/* Vibe */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Vibe <span style={{ fontWeight: '500', color: 'rgba(10,10,10,0.4)' }}>(up to 2)</span></span>
+            <select
+              value=""
+              onChange={onVibeSelect}
+              disabled={vibes.length >= 2}
+              style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', background: '#fff', opacity: vibes.length >= 2 ? 0.5 : 1 }}
+            >
+              <option value="">Add a vibe tag…</option>
+              {VIBE_TAGS.map((v) => (
+                <option key={v} value={v}>{v}</option>
+              ))}
+            </select>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              {vibes.map((v) => (
+                <span key={v} style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'rgba(127,83,243,0.1)', color: '#6B3FD1', borderRadius: '999px', padding: '5px 6px 5px 12px', fontSize: '12.5px', fontWeight: '600' }}>
+                  {v}
+                  <button onClick={() => removeVibe(v)} aria-label="Remove vibe" style={{ width: '16px', height: '16px', borderRadius: '999px', border: 'none', background: 'rgba(127,83,243,0.2)', color: '#6B3FD1', fontSize: '11px', lineHeight: '1', cursor: 'pointer' }}>×</button>
+                </span>
+              ))}
+            </div>
           </div>
 
           {/* Location */}
