@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { categories } from '@/data/categories';
 import Script from 'next/script';
 
@@ -17,6 +18,7 @@ const categoryColorMap = categories.reduce((map, cat) => {
 }, {} as Record<string, string>);
 
 export default function NewPlacePage() {
+  const router = useRouter();
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
   const [category, setCategory] = useState('landmark');
