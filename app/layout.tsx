@@ -1,13 +1,6 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
-
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      link: any;
-    }
-  }
-}
 
 export const metadata: Metadata = {
   title: "Vibe Travel - Discover Nearby Places",
@@ -47,11 +40,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
         <link href="https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.css" rel="stylesheet" />
-        <script src="https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.js"></script>
       </head>
       <body style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
         {children}
         <ServiceWorkerRegistration />
+        <Script src="https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.js" strategy="beforeInteractive" />
       </body>
     </html>
   );
