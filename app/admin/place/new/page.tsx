@@ -45,6 +45,7 @@ export default function NewPlacePage() {
   const [locationMode, setLocationMode] = useState<'address' | 'coordinates'>('address');
   const [gpsLat, setGpsLat] = useState('');
   const [gpsLng, setGpsLng] = useState('');
+  const [geocoded, setGeocoded] = useState(false);
 
   useEffect(() => {
     const photo = localStorage.getItem('adminProfilePhoto');
@@ -67,18 +68,9 @@ export default function NewPlacePage() {
     initializeGooglePlaces();
   }, []);
 
-  // Map display uses coordinate visualization, not live tiles
-
-  useEffect(() => {
-    // Update marker position when coordinates change
-    if (marker.current && map.current) {
-      marker.current.setLngLat([mapLng, mapLat]);
-      map.current.flyTo({ center: [mapLng, mapLat], zoom: 15 });
-    }
-  }, [mapLat, mapLng]);
-
   const handleAddressSearch = (query: string) => {
     setAddress(query);
+    setGeocoded(false);
     if (query.length < 2) {
       setSearchResults([]);
       setShowResults(false);
@@ -104,17 +96,12 @@ export default function NewPlacePage() {
     );
   };
 
-  const selectResult = (result: any) => {
-    setAddress(result.description);
-    setShowResults(false);
-    setSearchResults([]);
-
-    // Fetch coordinates from Mapbox in the background (non-blocking)
+  const geocodeAddress = (description: string) => {
     const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
     if (!mapboxToken) return;
 
     fetch(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(result.description)}.json?access_token=${mapboxToken}`
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(description)}.json?access_token=${mapboxToken}`
     )
       .then((response) => response.json())
       .then((data) => {
@@ -122,17 +109,40 @@ export default function NewPlacePage() {
           const [lng, lat] = data.features[0].geometry.coordinates;
           setMapLat(lat);
           setMapLng(lng);
+          setGeocoded(true);
         }
       })
       .catch((error) => console.error('Mapbox geocoding error:', error));
   };
 
-  const handleGpsUpdate = () => {
-    const lat = parseFloat(gpsLat);
-    const lng = parseFloat(gpsLng);
-    if (!isNaN(lat) && !isNaN(lng)) {
-      setMapLat(lat);
-      setMapLng(lng);
+  const selectResult = (result: any) => {
+    setAddress(result.description);
+    setShowResults(false);
+    setSearchResults([]);
+    geocodeAddress(result.description);
+  };
+
+  const confirmAddressGeocode = () => {
+    const addr = address.trim();
+    if (!addr) return;
+    geocodeAddress(addr);
+  };
+
+  const handleAddressKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      confirmAddressGeocode();
+    }
+  };
+
+  const handleGpsChange = (lat: string, lng: string) => {
+    setGpsLat(lat);
+    setGpsLng(lng);
+    const parsedLat = parseFloat(lat);
+    const parsedLng = parseFloat(lng);
+    if (!isNaN(parsedLat) && !isNaN(parsedLng)) {
+      setMapLat(parsedLat);
+      setMapLng(parsedLng);
     }
   };
 
@@ -402,52 +412,59 @@ export default function NewPlacePage() {
           </div>
 
           {/* Location */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Location</label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button onClick={() => setLocationMode('address')} style={{ border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: locationMode === 'address' ? '#6B3FD1' : '#fff', color: locationMode === 'address' ? '#fff' : '#0A0A0A', borderColor: locationMode === 'address' ? 'transparent' : 'rgba(10,10,10,0.12)', borderWidth: locationMode === 'address' ? 0 : 1 }}>Address</button>
-              <button onClick={() => setLocationMode('coordinates')} style={{ background: locationMode === 'coordinates' ? '#6B3FD1' : '#fff', color: locationMode === 'coordinates' ? '#fff' : '#0A0A0A', border: locationMode === 'coordinates' ? 'none' : '1px solid rgba(10,10,10,0.12)', borderRadius: '999px', padding: '8px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}>GPS Coordinates</button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Location</span>
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button onClick={() => setLocationMode('address')} style={{ border: locationMode === 'address' ? 'none' : '1px solid rgba(10,10,10,0.12)', borderRadius: '999px', padding: '7px 13px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: locationMode === 'address' ? '#6B3FD1' : '#fff', color: locationMode === 'address' ? '#fff' : '#0A0A0A' }}>Address</button>
+              <button onClick={() => setLocationMode('coordinates')} style={{ border: locationMode === 'coordinates' ? 'none' : '1px solid rgba(10,10,10,0.12)', borderRadius: '999px', padding: '7px 13px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', background: locationMode === 'coordinates' ? '#6B3FD1' : '#fff', color: locationMode === 'coordinates' ? '#fff' : '#0A0A0A' }}>GPS Coordinates</button>
             </div>
 
-            {locationMode === 'address' ? (
-              <div style={{ position: 'relative' }}>
-                <input type="text" placeholder="Search Google Maps address…" value={address} onChange={(e) => handleAddressSearch(e.target.value)} style={{ width: '100%', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }} />
-                {showResults && searchResults.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#fff', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', marginTop: '4px', zIndex: 10, maxHeight: '200px', overflowY: 'auto', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                    {searchResults.map((result, idx) => (
-                      <button key={idx} onClick={() => selectResult(result)} style={{ width: '100%', background: 'none', border: 'none', padding: '10px 12px', textAlign: 'left', fontSize: '13px', color: '#0A0A0A', cursor: 'pointer', borderBottom: idx < searchResults.length - 1 ? '1px solid rgba(10,10,10,0.06)' : 'none' }}>
-                        {result.description}
-                      </button>
-                    ))}
+            {locationMode === 'address' && (
+              <>
+                <div style={{ position: 'relative' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="rgba(10,10,10,0.4)" strokeWidth="1.6"/><circle cx="12" cy="9.5" r="2.3" stroke="rgba(10,10,10,0.4)" strokeWidth="1.6"/></svg>
+                  <input
+                    type="text"
+                    placeholder="Search a place name or address"
+                    value={address}
+                    onChange={(e) => handleAddressSearch(e.target.value)}
+                    onKeyDown={handleAddressKeyDown}
+                    style={{ width: '100%', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', padding: '10px 12px 10px 34px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }}
+                  />
+                  {showResults && searchResults.length > 0 && !geocoded && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, marginTop: '4px', background: '#fff', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', boxShadow: '0 6px 16px rgba(0,0,0,0.12)', zIndex: 6, overflow: 'hidden' }}>
+                      {searchResults.map((result, idx) => (
+                        <button key={idx} onClick={() => selectResult(result)} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', background: 'none', border: 'none', borderBottom: idx < searchResults.length - 1 ? '1px solid rgba(10,10,10,0.06)' : 'none', padding: '10px 12px', fontSize: '13px', color: '#0A0A0A', textAlign: 'left', cursor: 'pointer' }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="rgba(10,10,10,0.4)" strokeWidth="1.6"/></svg>
+                          {result.description}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {geocoded && address && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', background: 'rgba(127,83,243,0.06)', borderRadius: '8px', padding: '8px 10px', marginTop: '2px' }}>
+                    <span style={{ fontSize: '12.5px', fontWeight: '600', color: '#0A0A0A' }}>{address}</span>
+                    <span style={{ fontSize: '11px', color: 'rgba(10,10,10,0.55)' }}>GPS: {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
                   </div>
                 )}
-              </div>
-            ) : null}
-
-            {locationMode === 'coordinates' && (
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="number" placeholder="Latitude" value={gpsLat} onChange={(e) => setGpsLat(e.target.value)} step="0.0001" style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }} />
-                <input type="number" placeholder="Longitude" value={gpsLng} onChange={(e) => setGpsLng(e.target.value)} step="0.0001" style={{ flex: 1, border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A', boxSizing: 'border-box' }} />
-                <button onClick={handleGpsUpdate} style={{ background: '#6B3FD1', color: '#fff', border: 'none', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>Set</button>
-              </div>
+              </>
             )}
 
-            {/* Location Info Display Card */}
-            <div style={{ background: 'rgba(107, 63, 209, 0.08)', border: '1px solid rgba(107, 63, 209, 0.2)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.5)', textTransform: 'uppercase' }}>Address</span>
-              </div>
-              <span style={{ fontSize: '13px', fontWeight: '500', color: '#0A0A0A', lineHeight: '1.4' }}>{address || '—'}</span>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
-                <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.5)', textTransform: 'uppercase' }}>Coordinates</span>
-              </div>
-              <span style={{ fontSize: '13px', fontFamily: 'monospace', fontWeight: '500', color: '#6B3FD1' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
-            </div>
+            {locationMode === 'coordinates' && (
+              <>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input type="text" inputMode="decimal" placeholder="Lat 40.6892" value={gpsLat} onChange={(e) => handleGpsChange(e.target.value, gpsLng)} style={{ flex: 1, minWidth: 0, width: 0, boxSizing: 'border-box', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }} />
+                  <input type="text" inputMode="decimal" placeholder="Lng -74.0445" value={gpsLng} onChange={(e) => handleGpsChange(gpsLat, e.target.value)} style={{ flex: 1, minWidth: 0, width: 0, boxSizing: 'border-box', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }} />
+                </div>
+                <span style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)' }}>Use for places without a street address — parks, trailheads, remote lookouts.</span>
+              </>
+            )}
 
             {/* Map Preview */}
-            <div style={{ position: 'relative', height: '160px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '26px', height: '26px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}></div>
+            <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #eef0ea' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#7F53F3', transformOrigin: 'bottom', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }}></div>
+              <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)' }}>Google Maps · tap map to drop pin, drag to adjust</span>
             </div>
           </div>
 
