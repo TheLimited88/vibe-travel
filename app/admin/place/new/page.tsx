@@ -431,9 +431,23 @@ export default function NewPlacePage() {
                 <button onClick={handleGpsUpdate} style={{ background: '#6B3FD1', color: '#fff', border: 'none', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>Set</button>
               </div>
             )}
-            <div style={{ position: 'relative', height: '180px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #f5f5f5', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '24px', height: '24px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}></div>
-              <span style={{ position: 'absolute', bottom: '8px', right: '10px', fontSize: '10px', color: 'rgba(10,10,10,0.6)' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
+
+            {/* Location Info Display Card */}
+            <div style={{ background: 'rgba(107, 63, 209, 0.08)', border: '1px solid rgba(107, 63, 209, 0.2)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.5)', textTransform: 'uppercase' }}>Address</span>
+              </div>
+              <span style={{ fontSize: '13px', fontWeight: '500', color: '#0A0A0A', lineHeight: '1.4' }}>{address || '—'}</span>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+                <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.5)', textTransform: 'uppercase' }}>Coordinates</span>
+              </div>
+              <span style={{ fontSize: '13px', fontFamily: 'monospace', fontWeight: '500', color: '#6B3FD1' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
+            </div>
+
+            {/* Map Preview */}
+            <div style={{ position: 'relative', height: '160px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #f5f5f5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '26px', height: '26px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}></div>
             </div>
           </div>
 
