@@ -4,12 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { categories } from '@/data/categories';
 import Script from 'next/script';
-
-declare global {
-  interface Window {
-    mapboxgl?: any;
-  }
-}
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
 // Build color map from canonical categories
 const categoryColorMap = categories.reduce((map, cat) => {
@@ -57,6 +53,9 @@ export default function NewPlacePage() {
   const [gpsLat, setGpsLat] = useState('');
   const [gpsLng, setGpsLng] = useState('');
   const [geocoded, setGeocoded] = useState(false);
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
+  const markerRef = useRef<mapboxgl.Marker | null>(null);
 
   useEffect(() => {
     const photo = localStorage.getItem('adminProfilePhoto');
@@ -78,6 +77,45 @@ export default function NewPlacePage() {
     };
     initializeGooglePlaces();
   }, []);
+
+  useEffect(() => {
+    if (!mapContainerRef.current || mapInstanceRef.current) return;
+
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    if (!token) {
+      console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set — map will not render');
+      return;
+    }
+
+    mapboxgl.accessToken = token;
+
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [mapLng, mapLat],
+      zoom: 14,
+      attributionControl: false,
+    });
+
+    const marker = new mapboxgl.Marker({ color: '#7F53F3' })
+      .setLngLat([mapLng, mapLat])
+      .addTo(map);
+
+    mapInstanceRef.current = map;
+    markerRef.current = marker;
+
+    return () => {
+      map.remove();
+      mapInstanceRef.current = null;
+      markerRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapInstanceRef.current || !markerRef.current) return;
+    markerRef.current.setLngLat([mapLng, mapLat]);
+    mapInstanceRef.current.flyTo({ center: [mapLng, mapLat], zoom: 15, duration: 800 });
+  }, [mapLat, mapLng]);
 
   const handleAddressSearch = (query: string) => {
     setAddress(query);
@@ -513,9 +551,9 @@ export default function NewPlacePage() {
             )}
 
             {/* Map Preview */}
-            <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #eef0ea' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#7F53F3', transformOrigin: 'bottom', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }}></div>
-              <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)' }}>Google Maps · tap map to drop pin, drag to adjust</span>
+            <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: '#eef0ea' }}>
+              <div ref={mapContainerRef} style={{ position: 'absolute', inset: 0 }} />
+              <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)', background: 'rgba(255,255,255,0.85)', padding: '2px 6px', borderRadius: '6px', pointerEvents: 'none', zIndex: 2 }}>Google Maps · tap map to drop pin, drag to adjust</span>
             </div>
           </div>
 
