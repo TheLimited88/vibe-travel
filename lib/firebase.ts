@@ -1,8 +1,6 @@
-'use client';
-
-import { initializeApp, getApps } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
+import { getFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'fake-key-for-build',
@@ -13,42 +11,18 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || 'fake.appspot.com',
 };
 
-let app: any;
-let authInstance: any;
-let dbInstance: any;
+function getFirebaseApp(): FirebaseApp {
+  const apps = getApps();
+  return apps.length > 0 ? apps[0] : initializeApp(firebaseConfig);
+}
 
-const getFirebaseApp = () => {
-  try {
-    if (!app) {
-      const apps = getApps();
-      if (apps.length > 0) {
-        app = apps[0];
-      } else if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
-        app = initializeApp(firebaseConfig);
-      }
-    }
-  } catch (error) {
-    console.error('Firebase init error:', error);
-  }
-  return app;
-};
+const app = getFirebaseApp();
 
-export const auth = new Proxy({}, {
-  get: () => {
-    if (!authInstance && getFirebaseApp()) {
-      authInstance = getAuth(getFirebaseApp());
-    }
-    return authInstance;
-  }
-}) as any;
-
-export const db = new Proxy({}, {
-  get: () => {
-    if (!dbInstance && getFirebaseApp()) {
-      dbInstance = getFirestore(getFirebaseApp());
-    }
-    return dbInstance;
-  }
-}) as any;
+// Real SDK instances — NOT lazy proxies. Firestore/Auth functions like doc(),
+// collection(), and signInWithEmailAndPassword() validate their first argument
+// with `instanceof Firestore` / `instanceof Auth`, which a Proxy wrapping a
+// plain object fails, even though property access on it appears to work.
+export const auth: Auth = getAuth(app);
+export const db: Firestore = getFirestore(app);
 
 export default app;
