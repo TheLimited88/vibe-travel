@@ -47,6 +47,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/favicon.ico" />
         <link href="https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.css" rel="stylesheet" />
+        <script src="https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.js"></script>
       </head>
       <body style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
         {children}

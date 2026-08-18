@@ -71,8 +71,55 @@ export default function NewPlacePage() {
   }, []);
 
   useEffect(() => {
-    // Map initialization - placeholder for future real map implementation
+    if (!mapContainer.current || map.current) return;
+
+    const initMapbox = () => {
+      if (!window.mapboxgl || !process.env.NEXT_PUBLIC_MAPBOX_TOKEN) return;
+
+      window.mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+      try {
+        map.current = new window.mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [mapLng, mapLat],
+          zoom: 14,
+        });
+
+        map.current.on('load', () => {
+          const el = document.createElement('div');
+          el.style.backgroundImage = `url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCAzMiA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTYgMEM2LjM0IDAgMCA3Ljc1IDAgMTZjMCA5IDEzLjk1IDI4IDE2IDMyYzIuMDUtNC4xMSAxNi0yMyAxNi0zMkMzMiA3Ljc1IDI1LjY2IDAgMTYgMHptMCA2YzUuNTIgMCAxMCA0LjQ4IDEwIDEwcy00LjQ4IDEwLTEwIDEwLTEwLTQuNDgtMTAtMTAgNC40OC0xMCAxMC0xMHoiIGZpbGw9IiM2QjNGRDEiLz48L3N2Zz4=')`;
+          el.style.width = '32px';
+          el.style.height = '48px';
+          el.style.backgroundSize = 'contain';
+          el.style.backgroundRepeat = 'no-repeat';
+
+          marker.current = new window.mapboxgl.Marker(el)
+            .setLngLat([mapLng, mapLat])
+            .addTo(map.current);
+        });
+      } catch (error) {
+        console.error('Mapbox initialization error:', error);
+      }
+    };
+
+    const timer = setTimeout(() => {
+      if (window.mapboxgl) {
+        initMapbox();
+      }
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+    };
   }, []);
+
+  useEffect(() => {
+    if (marker.current && map.current) {
+      marker.current.setLngLat([mapLng, mapLat]);
+      map.current.flyTo({ center: [mapLng, mapLat], zoom: 14 });
+    }
+  }, [mapLat, mapLng]);
 
   useEffect(() => {
     // Update marker position when coordinates change
@@ -434,10 +481,8 @@ export default function NewPlacePage() {
                 <button onClick={handleGpsUpdate} style={{ background: '#6B3FD1', color: '#fff', border: 'none', borderRadius: '10px', padding: '10px 14px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', whiteSpace: 'nowrap' }}>Set</button>
               </div>
             )}
-            <div style={{ position: 'relative', height: '180px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #f5f5f5', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '24px', height: '24px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}></div>
-              <span style={{ position: 'absolute', bottom: '8px', right: '10px', fontSize: '10px', color: 'rgba(10,10,10,0.6)' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
-            </div>
+            <div ref={mapContainer} style={{ position: 'relative', height: '200px', borderRadius: '10px', overflow: 'hidden', marginTop: '8px', background: '#e8e8e8' }} />
+            <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)', marginTop: '6px', textAlign: 'right' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</div>
           </div>
 
           {/* About */}
