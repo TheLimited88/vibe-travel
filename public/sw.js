@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vibe-travel-v1';
+const CACHE_NAME = 'vibe-travel-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/manifest.json',
@@ -29,6 +29,15 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') {
+    return;
+  }
+
+  const url = new URL(event.request.url);
+
+  // Never cache API responses — they're dynamic data, not static assets.
+  // Caching these made every GET forever return whatever was first fetched
+  // for that exact URL, regardless of what actually changed server-side.
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
 
