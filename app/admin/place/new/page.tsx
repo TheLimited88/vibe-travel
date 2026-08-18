@@ -66,7 +66,24 @@ export default function NewPlacePage() {
   }, []);
 
   useEffect(() => {
-    // Initialize Mapbox map
+    // Load Mapbox GL JS if not already loaded
+    const loadMapbox = () => {
+      if (window.mapboxgl) {
+        initializeMapbox();
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.js';
+      script.async = true;
+      script.onload = () => {
+        if (window.mapboxgl) {
+          initializeMapbox();
+        }
+      };
+      document.head.appendChild(script);
+    };
+
     const initializeMapbox = () => {
       if (!window.mapboxgl || !mapContainer.current || map.current) return;
 
@@ -94,10 +111,8 @@ export default function NewPlacePage() {
       });
     };
 
-    if (typeof window !== 'undefined' && window.mapboxgl) {
-      initializeMapbox();
-    } else {
-      setTimeout(initializeMapbox, 100);
+    if (typeof window !== 'undefined') {
+      loadMapbox();
     }
 
     return () => {
@@ -383,7 +398,6 @@ export default function NewPlacePage() {
 
   return (
     <>
-      <Script src="https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.js" strategy="afterInteractive" />
       <Script src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`} strategy="afterInteractive" />
       <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
         <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
