@@ -318,12 +318,7 @@ export default function NewPlacePage() {
 
   return (
     <>
-      <Script src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`} strategy="beforeInteractive" onLoad={() => {
-        if (typeof window !== 'undefined' && (window as any).google) {
-          setAutocompleteService(new (window as any).google.maps.places.AutocompleteService());
-          setPlacesService(new (window as any).google.maps.places.PlacesService(document.createElement('div')));
-        }
-      }} />
+      <Script src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`} strategy="afterInteractive" />
       <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
         <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
         {/* Status Bar */}
