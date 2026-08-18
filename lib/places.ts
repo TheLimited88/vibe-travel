@@ -61,10 +61,13 @@ export async function createPlace(data: Omit<PlaceRecord, 'slug' | 'createdAt' |
 }
 
 export async function updatePlace(slug: string, data: Partial<Omit<PlaceRecord, 'slug' | 'createdAt'>>) {
-  return getAdminDb().collection(PLACES_COLLECTION).doc(slug).update({
-    ...data,
-    updatedAt: Date.now(),
-  });
+  return getAdminDb().collection(PLACES_COLLECTION).doc(slug).set(
+    {
+      ...data,
+      updatedAt: Date.now(),
+    },
+    { merge: true }
+  );
 }
 
 export async function getPlace(slug: string): Promise<PlaceRecord | null> {
