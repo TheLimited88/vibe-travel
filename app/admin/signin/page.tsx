@@ -167,10 +167,12 @@ export default function AdminSignInPage() {
                     width: '100%',
                     border: '1px solid rgba(10,10,10,0.12)',
                     borderRadius: '12px',
-                    padding: '12px 40px 12px 0px',
+                    padding: '12px 40px 12px 0',
                     fontSize: '14px',
                     fontFamily: "'Inter',sans-serif",
                     boxSizing: 'border-box',
+                    textIndent: '0',
+                    paddingLeft: '0',
                   }}
                 />
                 <button

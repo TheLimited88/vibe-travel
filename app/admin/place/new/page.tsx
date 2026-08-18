@@ -4,6 +4,12 @@ import { useState, useEffect, useRef } from 'react';
 import { categories } from '@/data/categories';
 import Script from 'next/script';
 
+declare global {
+  interface Window {
+    mapboxgl?: any;
+  }
+}
+
 // Build color map from canonical categories
 const categoryColorMap = categories.reduce((map, cat) => {
   map[cat.key] = cat.color;
@@ -27,12 +33,16 @@ export default function NewPlacePage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [autocompleteService, setAutocompleteService] = useState<any>(null);
   const [placesService, setPlacesService] = useState<any>(null);
+  const [geocoder, setGeocoder] = useState<any>(null);
   const [heroImage, setHeroImage] = useState<{ url: string; key: string } | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ url: string; key: string }[]>([]);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const heroInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const map = useRef<any>(null);
+  const marker = useRef<any>(null);
 
   useEffect(() => {
     const photo = localStorage.getItem('adminProfilePhoto');
@@ -42,17 +52,69 @@ export default function NewPlacePage() {
   }, []);
 
   useEffect(() => {
-    // Wait for Google Maps to load
+    // Initialize Google Places
     const initializeGooglePlaces = () => {
       if (typeof window !== 'undefined' && (window as any).google?.maps?.places) {
         setAutocompleteService(new (window as any).google.maps.places.AutocompleteService());
         setPlacesService(new (window as any).google.maps.places.PlacesService(document.createElement('div')));
+        setGeocoder(new (window as any).google.maps.Geocoder());
       } else {
         setTimeout(initializeGooglePlaces, 100);
       }
     };
     initializeGooglePlaces();
   }, []);
+
+  useEffect(() => {
+    // Initialize Mapbox map
+    const initializeMapbox = () => {
+      if (!window.mapboxgl || !mapContainer.current || map.current) return;
+
+      window.mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+
+      map.current = new window.mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [mapLng, mapLat],
+        zoom: 15,
+      });
+
+      map.current.on('load', () => {
+        const el = document.createElement('div');
+        el.className = 'marker';
+        el.style.backgroundImage = `url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAyNCAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI2IiBmaWxsPSIjNkIzRkQxIi8+PHBhdGggZD0iTTEyIDAgQzE2LjQxOCAwIDIwIDMuNTgyIDIwIDhDMjAgMTQgMTIgMzIgMTIgMzJDMTIgMzIgNCAyMiA0IDhDNCAzLjU4MiA3LjU4MiAwIDEyIDB6IiBmaWxsPSIjNkIzRkQxIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')`;
+        el.style.width = '32px';
+        el.style.height = '32px';
+        el.style.backgroundSize = '100%';
+        el.style.cursor = 'pointer';
+
+        marker.current = new window.mapboxgl.Marker(el)
+          .setLngLat([mapLng, mapLat])
+          .addTo(map.current);
+      });
+    };
+
+    if (typeof window !== 'undefined' && window.mapboxgl) {
+      initializeMapbox();
+    } else {
+      setTimeout(initializeMapbox, 100);
+    }
+
+    return () => {
+      if (map.current) {
+        map.current.remove();
+        map.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // Update marker position when coordinates change
+    if (marker.current && map.current) {
+      marker.current.setLngLat([mapLng, mapLat]);
+      map.current.flyTo({ center: [mapLng, mapLat], zoom: 15 });
+    }
+  }, [mapLat, mapLng]);
 
   const handleAddressSearch = (query: string) => {
     setAddress(query);
@@ -82,23 +144,26 @@ export default function NewPlacePage() {
   };
 
   const selectResult = (result: any) => {
-    if (!placesService) return;
-
     setAddress(result.description);
     setShowResults(false);
-
-    // Get detailed info including lat/lng using callback
-    placesService.getDetails(
-      { placeId: result.place_id },
-      (place: any, status: any) => {
-        if (status === 'OK' && place?.geometry?.location) {
-          setMapLat(place.geometry.location.lat());
-          setMapLng(place.geometry.location.lng());
-        }
-      }
-    );
-
     setSearchResults([]);
+
+    // Fetch coordinates from Mapbox in the background (non-blocking)
+    const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    if (!mapboxToken) return;
+
+    fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(result.description)}.json?access_token=${mapboxToken}`
+    )
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.features && data.features[0]?.geometry?.coordinates) {
+          const [lng, lat] = data.features[0].geometry.coordinates;
+          setMapLat(lat);
+          setMapLng(lng);
+        }
+      })
+      .catch((error) => console.error('Mapbox geocoding error:', error));
   };
 
   const handleHeroUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,6 +383,7 @@ export default function NewPlacePage() {
 
   return (
     <>
+      <Script src="https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.js" strategy="afterInteractive" />
       <Script src={`https://maps.googleapis.com/maps/api/js?key=${GOOGLE_MAPS_API_KEY}&libraries=places`} strategy="afterInteractive" />
       <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
         <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -385,10 +451,8 @@ export default function NewPlacePage() {
                 </div>
               )}
             </div>
-            <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #eef0ea', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '22px', height: '22px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }}></div>
-              <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
-            </div>
+            <div ref={mapContainer} style={{ position: 'relative', height: '200px', borderRadius: '10px', overflow: 'hidden', marginTop: '8px', background: '#f0f0f0' }} />
+            <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)', marginTop: '6px', textAlign: 'right' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</div>
           </div>
 
           {/* About */}
