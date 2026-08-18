@@ -68,61 +68,7 @@ export default function NewPlacePage() {
   }, []);
 
   useEffect(() => {
-    // Load Mapbox GL JS if not already loaded
-    const loadMapbox = () => {
-      if (window.mapboxgl) {
-        initializeMapbox();
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.js';
-      script.async = true;
-      script.onload = () => {
-        if (window.mapboxgl) {
-          initializeMapbox();
-        }
-      };
-      document.head.appendChild(script);
-    };
-
-    const initializeMapbox = () => {
-      if (!window.mapboxgl || !mapContainer.current || map.current) return;
-
-      window.mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-
-      map.current = new window.mapboxgl.Map({
-        container: mapContainer.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [mapLng, mapLat],
-        zoom: 15,
-      });
-
-      map.current.on('load', () => {
-        const el = document.createElement('div');
-        el.className = 'marker';
-        el.style.backgroundImage = `url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAyNCAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI2IiBmaWxsPSIjNkIzRkQxIi8+PHBhdGggZD0iTTEyIDAgQzE2LjQxOCAwIDIwIDMuNTgyIDIwIDhDMjAgMTQgMTIgMzIgMTIgMzJDMTIgMzIgNCAyMiA0IDhDNCAzLjU4MiA3LjU4MiAwIDEyIDB6IiBmaWxsPSIjNkIzRkQxIiBmaWxsLW9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')`;
-        el.style.width = '32px';
-        el.style.height = '32px';
-        el.style.backgroundSize = '100%';
-        el.style.cursor = 'pointer';
-
-        marker.current = new window.mapboxgl.Marker(el)
-          .setLngLat([mapLng, mapLat])
-          .addTo(map.current);
-      });
-    };
-
-    if (typeof window !== 'undefined') {
-      loadMapbox();
-    }
-
-    return () => {
-      if (map.current) {
-        map.current.remove();
-        map.current = null;
-      }
-    };
+    // Map initialization - placeholder for future real map implementation
   }, []);
 
   useEffect(() => {
@@ -467,8 +413,10 @@ export default function NewPlacePage() {
                 </div>
               )}
             </div>
-            <div ref={mapContainer} style={{ position: 'relative', height: '200px', borderRadius: '10px', overflow: 'hidden', marginTop: '8px', background: '#f0f0f0' }} />
-            <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)', marginTop: '6px', textAlign: 'right' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</div>
+            <div style={{ position: 'relative', height: '180px', borderRadius: '10px', overflow: 'hidden', background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 22px), #f5f5f5', marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -100%)', width: '24px', height: '24px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', boxShadow: '0 2px 8px rgba(0,0,0,0.25)' }}></div>
+              <span style={{ position: 'absolute', bottom: '8px', right: '10px', fontSize: '10px', color: 'rgba(10,10,10,0.6)' }}>📍 {mapLat.toFixed(4)}, {mapLng.toFixed(4)}</span>
+            </div>
           </div>
 
           {/* About */}
