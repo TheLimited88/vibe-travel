@@ -1,6 +1,6 @@
 import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore, type Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || 'fake-key-for-build',
@@ -23,6 +23,13 @@ const app = getFirebaseApp();
 // with `instanceof Firestore` / `instanceof Auth`, which a Proxy wrapping a
 // plain object fails, even though property access on it appears to work.
 export const auth: Auth = getAuth(app);
-export const db: Firestore = getFirestore(app);
+
+// Server-side (API routes / Node) can't hold the WebSocket-style stream
+// Firestore prefers, which surfaces as "client is offline" on first use.
+// Force long-polling there; browsers keep the default, more efficient transport.
+export const db: Firestore =
+  typeof window === 'undefined'
+    ? initializeFirestore(app, { experimentalForceLongPolling: true })
+    : getFirestore(app);
 
 export default app;
