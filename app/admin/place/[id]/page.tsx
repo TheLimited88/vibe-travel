@@ -80,6 +80,7 @@ export default function EditPlacePage() {
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
   const geocoderRef = useRef<any>(null);
+  const [mapExpanded, setMapExpanded] = useState(false);
 
   const seoUrl = `vibetravel.app/places/${title.toLowerCase().replace(/\s+/g, '-')}`;
   const aboutLength = about.length;
@@ -222,6 +223,16 @@ export default function EditPlacePage() {
     markerRef.current.setLngLat([mapLng, mapLat]);
     mapInstanceRef.current.flyTo({ center: [mapLng, mapLat], zoom: 15, duration: 800 });
   }, [mapLat, mapLng]);
+
+  useEffect(() => {
+    // Mapbox needs an explicit resize call whenever its container's actual
+    // pixel size changes (e.g. toggling between the inline preview and the
+    // fullscreen expanded view) — it doesn't detect this on its own.
+    const timer = setTimeout(() => {
+      mapInstanceRef.current?.resize();
+    }, 50);
+    return () => clearTimeout(timer);
+  }, [mapExpanded]);
 
   const handleAddressSearch = (query: string) => {
     setAddress(query);
@@ -701,9 +712,49 @@ export default function EditPlacePage() {
               )}
 
               {/* Map Preview */}
-              <div style={{ position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: '#eef0ea' }}>
+              <div
+                style={
+                  mapExpanded
+                    ? { position: 'fixed', inset: 0, zIndex: 90, background: '#eef0ea' }
+                    : { position: 'relative', height: '110px', borderRadius: '10px', overflow: 'hidden', background: '#eef0ea' }
+                }
+              >
                 <div ref={mapContainerRef} style={{ position: 'absolute', inset: 0 }} />
-                <span style={{ position: 'absolute', bottom: '6px', right: '8px', fontSize: '9.5px', color: 'rgba(10,10,10,0.6)', background: 'rgba(255,255,255,0.85)', padding: '2px 6px', borderRadius: '6px', pointerEvents: 'none', zIndex: 2 }}>Google Maps · tap map to drop pin, drag to adjust</span>
+                <span
+                  style={{
+                    position: 'absolute',
+                    bottom: mapExpanded ? '16px' : '6px',
+                    right: mapExpanded ? '16px' : '8px',
+                    fontSize: mapExpanded ? '12px' : '9.5px',
+                    color: 'rgba(10,10,10,0.6)',
+                    background: 'rgba(255,255,255,0.85)',
+                    padding: '2px 6px',
+                    borderRadius: '6px',
+                    pointerEvents: 'none',
+                    zIndex: 2,
+                  }}
+                >
+                  Google Maps · tap map to drop pin, drag to adjust
+                </span>
+                {mapExpanded ? (
+                  <button
+                    type="button"
+                    onClick={() => setMapExpanded(false)}
+                    aria-label="Close expanded map"
+                    style={{ position: 'absolute', top: '16px', right: '16px', width: '44px', height: '44px', borderRadius: '999px', background: 'rgba(255,255,255,0.9)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.15)', cursor: 'pointer', zIndex: 2 }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 5l14 14M19 5L5 19" stroke="#0A0A0A" strokeWidth="2" strokeLinecap="round" /></svg>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setMapExpanded(true)}
+                    aria-label="Expand map"
+                    style={{ position: 'absolute', top: '6px', right: '6px', width: '26px', height: '26px', borderRadius: '7px', background: 'rgba(255,255,255,0.92)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 1px 4px rgba(0,0,0,0.2)', cursor: 'pointer', zIndex: 2 }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M8 3H4a1 1 0 00-1 1v4M16 3h4a1 1 0 011 1v4M8 21H4a1 1 0 01-1-1v-4M16 21h4a1 1 0 001-1v-4" stroke="#0A0A0A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                )}
               </div>
             </div>
 
