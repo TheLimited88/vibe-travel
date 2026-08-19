@@ -25,6 +25,11 @@ interface ContentVersion {
   createdAt: number;
 }
 
+function getYoutubeThumbUrl(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
+}
+
 const DEFAULT_ABOUT_SECTIONS: Section[] = [
   { id: 1, type: 'header', content: 'About Vibe Travel' },
   { id: 2, type: 'text', content: 'Vibe Travel is a curated atlas of the city\'s overlooked corners, written and photographed by a single guide rather than crowdsourced from everyone. We believe the best travel recommendations come from someone who\'s actually been there twice.' },
@@ -304,7 +309,16 @@ export default function ContentPage() {
                     <p style={{ fontSize: '14px', color: 'rgba(10,10,10,0.7)', margin: 0, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{section.content}</p>
                   )}
                   {section.type === 'youtube' && section.content && (
-                    <div style={{ width: '100%', height: '200px', borderRadius: '12px', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: 'rgba(10,10,10,0.6)' }}>▶ YouTube Video</div>
+                    getYoutubeThumbUrl(section.content) ? (
+                      <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: '12px', overflow: 'hidden', background: '#0A0A0A' }}>
+                        <img src={getYoutubeThumbUrl(section.content)!} alt="YouTube thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="rgba(0,0,0,0.5)" /><path d="M10 8l6 4-6 4V8z" fill="#fff" /></svg>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ width: '100%', height: '200px', borderRadius: '12px', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: 'rgba(10,10,10,0.6)' }}>▶ YouTube Video</div>
+                    )
                   )}
                 </div>
               ))}
