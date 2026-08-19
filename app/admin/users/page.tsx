@@ -264,21 +264,6 @@ export default function UsersPage() {
           <div style={{ background: '#fff', borderRadius: '24px 24px 0 0', width: '100%', maxWidth: '375px', padding: '24px 16px 32px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ fontSize: '18px', fontWeight: '700', color: '#0A0A0A' }}>Edit user</div>
 
-            {/* Profile Photo Upload */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
-              <div style={{ width: '80px', height: '80px', borderRadius: '999px', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'rgba(10,10,10,0.02)' }}>
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Profile</div>
-                  <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)' }}>photo</div>
-                  <div style={{ fontSize: '10px', color: 'rgba(10,10,10,0.4)', marginTop: '2px' }}>or browse</div>
-                  <div style={{ fontSize: '10px', color: 'rgba(10,10,10,0.4)' }}>files</div>
-                </div>
-              </div>
-              <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)', textAlign: 'center', lineHeight: '1.4' }}>
-                Square photo, 1050x1050 px — shown as a circle everywhere, incl. Place created by
-              </div>
-            </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Name</label>
               <input
