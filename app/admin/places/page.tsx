@@ -5,6 +5,22 @@ import { useEffect, useState } from 'react';
 import { categories } from '@/data/categories';
 import type { PlaceRecord } from '@/lib/places';
 
+function categoryBadgeStyle(color: string, icon: string): React.CSSProperties {
+  const uri = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">${icon}</svg>`)}`;
+  return {
+    display: 'inline-flex',
+    flexShrink: 0,
+    width: '16px',
+    height: '16px',
+    borderRadius: '999px',
+    backgroundColor: color,
+    backgroundImage: `url('${uri}')`,
+    backgroundSize: '10px 10px',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  };
+}
+
 export default function AdminPlacesPage() {
   const router = useRouter();
   const [places, setPlaces] = useState<PlaceRecord[]>([]);
@@ -98,7 +114,7 @@ export default function AdminPlacesPage() {
                         <span style={{ fontSize: '14px', fontWeight: '700', color: '#0A0A0A' }}>{place.title}</span>
                         {cat && (
                           <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#6B3FD1' }}>
-                            <span style={{ width: '8px', height: '8px', borderRadius: '999px', background: cat.color, flexShrink: 0 }} />
+                            <span style={categoryBadgeStyle(cat.color, cat.icon)} />
                             {cat.label}
                           </span>
                         )}
