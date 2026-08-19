@@ -1077,20 +1077,17 @@ export default function EditPlacePage() {
                 style={{
                   width: '100%',
                   background: '#fff',
-                  color: '#C23B3B',
+                  color: '#0A0A0A',
                   border: '1px solid rgba(10,10,10,0.12)',
                   borderRadius: '12px',
-                  padding: '12px',
-                  fontSize: '13.5px',
+                  padding: '11px',
+                  fontSize: '13px',
                   fontWeight: '600',
                   cursor: 'pointer',
                 }}
               >
-                Delete Place (soft)
+                Delete Place
               </button>
-              <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)', marginTop: '8px', textAlign: 'center' }}>
-                Permanently delete...
-              </div>
             </div>
 
             <div style={{ height: '40px' }} />

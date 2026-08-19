@@ -933,8 +933,7 @@ export default function NewPlacePage() {
           {/* Danger Zone */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(10,10,10,0.08)' }}>
             <div style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(10,10,10,0.45)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Danger Zone</div>
-            <button style={{ background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '12px', padding: '12px', fontSize: '13.5px', fontWeight: '600', cursor: 'pointer' }}>Delete Place (soft)</button>
-            <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', textAlign: 'center' }}>Permanently delete...</div>
+            <button disabled style={{ background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '12px', padding: '11px', fontSize: '13px', fontWeight: '600', opacity: 0.4, cursor: 'not-allowed' }}>Delete Place</button>
           </div>
 
           <div style={{ height: '20px' }}></div>
