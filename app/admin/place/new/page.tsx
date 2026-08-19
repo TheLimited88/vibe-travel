@@ -876,7 +876,7 @@ export default function NewPlacePage() {
                     value={link.url}
                     onChange={(e) => setVideoLinkUrl(idx, e.target.value)}
                     placeholder="Paste video link"
-                    style={{ flex: 1, border: '1px solid rgba(10,10,10,0.1)', borderRadius: '8px', padding: '8px 10px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }}
+                    style={{ flex: 1, border: '1px solid rgba(10,10,10,0.1)', borderRadius: '8px', padding: '8px 10px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A', background: '#fff' }}
                   />
                   <button onClick={() => removeVideoLink(idx)} aria-label="Remove link" style={{ width: '32px', borderRadius: '8px', background: '#fff', border: '1px solid rgba(10,10,10,0.1)', color: 'rgba(10,10,10,0.6)', cursor: 'pointer' }}>✕</button>
                 </div>
