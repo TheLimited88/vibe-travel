@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
@@ -13,6 +13,9 @@ export default function CreateAccountPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [captchaChecked, setCaptchaChecked] = useState(false);
+  const [agreedToPolicies, setAgreedToPolicies] = useState(false);
+  const [termsVersion, setTermsVersion] = useState<string | null>(null);
+  const [privacyVersion, setPrivacyVersion] = useState<string | null>(null);
   const [showVerification, setShowVerification] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,8 +26,20 @@ export default function CreateAccountPage() {
   const hasNumber = /[0-9]/.test(password);
   const isPasswordValid = has8Chars && hasUppercase && hasNumber;
 
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/admin/content?key=terms').then((r) => r.json()).catch(() => null),
+      fetch('/api/admin/content?key=privacy').then((r) => r.json()).catch(() => null),
+    ]).then(([termsData, privacyData]) => {
+      const terms = termsData?.versions?.length ? termsData.versions[termsData.versions.length - 1].version : null;
+      const privacy = privacyData?.versions?.length ? privacyData.versions[privacyData.versions.length - 1].version : null;
+      setTermsVersion(terms);
+      setPrivacyVersion(privacy);
+    });
+  }, []);
+
   const handleCreateAccount = async () => {
-    if (!isPasswordValid || !captchaChecked || !email) return;
+    if (!isPasswordValid || !captchaChecked || !email || !agreedToPolicies) return;
 
     setIsLoading(true);
     setError('');
@@ -35,15 +50,24 @@ export default function CreateAccountPage() {
       const newUserId = userCredential.user.uid;
       setUserId(newUserId);
 
+      const policyAcceptances = [
+        ...(termsVersion ? [{ page: 'terms', version: termsVersion, acceptedAt: Date.now() }] : []),
+        ...(privacyVersion ? [{ page: 'privacy', version: privacyVersion, acceptedAt: Date.now() }] : []),
+      ];
+
       // Create user document in Firestore
       await setDoc(doc(db, 'users', newUserId), {
         email,
+        name: '',
         emailVerified: false,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         savedPlaces: [],
         visitedPlaces: [],
         reviews: [],
+        status: 'active',
+        signupMethod: 'Email',
+        policyAcceptances,
       });
 
       // Send verification email
@@ -261,10 +285,25 @@ export default function CreateAccountPage() {
           </div>
         )}
 
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '14px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={agreedToPolicies}
+            onChange={(e) => setAgreedToPolicies(e.target.checked)}
+            style={{ marginTop: '2px', width: '14px', height: '14px', flexShrink: 0, cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: '10px', color: 'rgba(10,10,10,0.5)', lineHeight: '1.4' }}>
+            I agree to Vibe Travel's{' '}
+            <a href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Terms of Service</a>
+            {' '}and{' '}
+            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Privacy Policy</a>.
+          </span>
+        </label>
+
         <button
           type="button"
           onClick={handleCreateAccount}
-          disabled={!isPasswordValid || !captchaChecked || !email || isLoading}
+          disabled={!isPasswordValid || !captchaChecked || !email || !agreedToPolicies || isLoading}
           style={{
             width: '100%',
             padding: '11px',
@@ -276,15 +315,11 @@ export default function CreateAccountPage() {
             borderRadius: '12px',
             cursor: 'pointer',
             color: '#0A0A0A',
-            opacity: isPasswordValid && captchaChecked && email && !isLoading ? 1 : 0.5,
+            opacity: isPasswordValid && captchaChecked && email && agreedToPolicies && !isLoading ? 1 : 0.5,
           }}
         >
           {isLoading ? 'Creating account...' : 'Create account'}
         </button>
-
-        <div style={{ fontSize: '10px', color: 'rgba(10,10,10,0.5)', lineHeight: '1.4', textAlign: 'center' }}>
-          By creating an account you agree to Vibe Travel's <a href="#" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Terms of Service</a> and <a href="#" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Privacy Policy</a>.
-        </div>
 
         {showVerification && (
           <>
