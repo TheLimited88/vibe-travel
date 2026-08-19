@@ -63,6 +63,8 @@ export default function NewPlacePage() {
   const [draggedGalleryIdx, setDraggedGalleryIdx] = useState<number | null>(null);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
+  const [heroInfoOpen, setHeroInfoOpen] = useState(false);
+  const [galleryInfoOpen, setGalleryInfoOpen] = useState(false);
   const heroInputRef = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
   const [locationMode, setLocationMode] = useState<'address' | 'coordinates'>('address');
@@ -795,9 +797,14 @@ export default function NewPlacePage() {
 
           {/* Hero Image */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', position: 'relative' }}>
               <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Hero (square tile format, 1:1, 1080 x 1080 px)</label>
-              <button style={{ width: '16px', height: '16px', borderRadius: '999px', background: 'rgba(10,10,10,0.1)', border: 'none', color: 'rgba(10,10,10,0.6)', fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>i</button>
+              <button onClick={() => setHeroInfoOpen(!heroInfoOpen)} style={{ width: '16px', height: '16px', borderRadius: '999px', background: 'rgba(10,10,10,0.1)', border: 'none', color: 'rgba(10,10,10,0.6)', fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0', cursor: 'pointer' }}>i</button>
+              {heroInfoOpen && (
+                <div style={{ position: 'absolute', top: '20px', left: '0', zIndex: 10, background: '#0A0A0A', color: '#fff', fontSize: '11px', lineHeight: '1.4', padding: '10px 12px', borderRadius: '10px', width: '220px', boxShadow: '0 6px 16px rgba(0,0,0,0.25)' }}>
+                  Images are compressed automatically on upload. Accepts iOS and Android photo library formats (HEIC, JPEG, PNG, WebP). Portrait or square photos only — landscape uploads are rejected.
+                </div>
+              )}
             </div>
             {heroImage ? (
               <div style={{ position: 'relative', width: '150px', height: '150px', borderRadius: '12px', overflow: 'hidden' }}>
@@ -815,9 +822,14 @@ export default function NewPlacePage() {
 
           {/* Gallery */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', position: 'relative' }}>
               <label style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Gallery — photo or video, up to 6. Drag ⠿ to reorder ({galleryImages.length}/6)</label>
-              <button style={{ width: '16px', height: '16px', borderRadius: '999px', background: 'rgba(10,10,10,0.1)', border: 'none', color: 'rgba(10,10,10,0.6)', fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>i</button>
+              <button onClick={() => setGalleryInfoOpen(!galleryInfoOpen)} style={{ width: '16px', height: '16px', borderRadius: '999px', background: 'rgba(10,10,10,0.1)', border: 'none', color: 'rgba(10,10,10,0.6)', fontSize: '10px', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0', cursor: 'pointer', flexShrink: 0 }}>i</button>
+              {galleryInfoOpen && (
+                <div style={{ position: 'absolute', top: '20px', left: '0', zIndex: 10, background: '#0A0A0A', color: '#fff', fontSize: '11px', lineHeight: '1.4', padding: '10px 12px', borderRadius: '10px', width: '200px', boxShadow: '0 6px 16px rgba(0,0,0,0.25)' }}>
+                  Portrait format, 1080 x 1920 px.
+                </div>
+              )}
             </div>
             <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
               {galleryImages.map((img, idx) => (
