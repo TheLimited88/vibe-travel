@@ -3,6 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
+interface PolicyAcceptance {
+  page: 'terms' | 'privacy';
+  pageLabel: string;
+  version: string;
+  acceptedDate: string;
+}
+
 interface User {
   id: string;
   name: string;
@@ -13,6 +20,7 @@ interface User {
   visited: number;
   signupMethod: string;
   status: 'active' | 'suspended';
+  policyAcceptances: PolicyAcceptance[];
 }
 
 const mockUsers: User[] = [
@@ -26,6 +34,10 @@ const mockUsers: User[] = [
     visited: 8,
     signupMethod: 'Google',
     status: 'active',
+    policyAcceptances: [
+      { page: 'terms', pageLabel: 'Terms of Service', version: 'v1.0', acceptedDate: '3 Jan 2026' },
+      { page: 'privacy', pageLabel: 'Privacy Policy', version: 'v1.0', acceptedDate: '3 Jan 2026' },
+    ],
   },
   {
     id: '2',
@@ -37,6 +49,10 @@ const mockUsers: User[] = [
     visited: 19,
     signupMethod: 'Email',
     status: 'active',
+    policyAcceptances: [
+      { page: 'terms', pageLabel: 'Terms of Service', version: 'v1.0', acceptedDate: '18 Nov 2025' },
+      { page: 'privacy', pageLabel: 'Privacy Policy', version: 'v1.0', acceptedDate: '18 Nov 2025' },
+    ],
   },
   {
     id: '3',
@@ -48,6 +64,10 @@ const mockUsers: User[] = [
     visited: 3,
     signupMethod: 'Apple',
     status: 'active',
+    policyAcceptances: [
+      { page: 'terms', pageLabel: 'Terms of Service', version: 'v1.0', acceptedDate: '2 Sep 2025' },
+      { page: 'privacy', pageLabel: 'Privacy Policy', version: 'v1.0', acceptedDate: '2 Sep 2025' },
+    ],
   },
   {
     id: '4',
@@ -59,6 +79,11 @@ const mockUsers: User[] = [
     visited: 22,
     signupMethod: 'Google',
     status: 'suspended',
+    policyAcceptances: [
+      { page: 'terms', pageLabel: 'Terms of Service', version: 'v1.0', acceptedDate: '27 Jul 2025' },
+      { page: 'privacy', pageLabel: 'Privacy Policy', version: 'v1.0', acceptedDate: '27 Jul 2025' },
+      { page: 'privacy', pageLabel: 'Privacy Policy', version: 'v1.1', acceptedDate: '15 Feb 2026' },
+    ],
   },
 ];
 
@@ -288,9 +313,24 @@ export default function UsersPage() {
             </div>
 
             {/* Terms & Privacy Acceptance */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', padding: '12px', background: 'rgba(10,10,10,0.02)', borderRadius: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '12px', background: 'rgba(10,10,10,0.02)', borderRadius: '12px' }}>
               <div style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.7)' }}>Terms & Privacy acceptance (admin only)</div>
-              <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.5)' }}>No policy acceptance recorded yet.</div>
+              {editingUser.policyAcceptances.length === 0 ? (
+                <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.5)' }}>No policy acceptance recorded yet.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxHeight: '160px', overflowY: 'auto' }}>
+                  {editingUser.policyAcceptances.map((acceptance, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => router.push(`/admin/content?tab=${acceptance.page}&version=${encodeURIComponent(acceptance.version)}`)}
+                      style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '8px 6px', background: 'none', border: 'none', borderBottom: idx < editingUser.policyAcceptances.length - 1 ? '1px solid rgba(10,10,10,0.06)' : 'none', font: 'inherit', textAlign: 'left', cursor: 'pointer' }}
+                    >
+                      <span style={{ fontSize: '12.5px', color: 'rgba(10,10,10,0.75)' }}>{acceptance.pageLabel} · Accepted {acceptance.acceptedDate}</span>
+                      <span style={{ fontSize: '12px', fontWeight: '700', color: '#6B3FD1', flexShrink: 0 }}>{acceptance.version} ›</span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>

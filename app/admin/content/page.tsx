@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 const contentPages = [
   { key: 'about', label: 'About', title: 'About Vibe Travel' },
@@ -35,9 +35,14 @@ const DEFAULT_ABOUT_SECTIONS: Section[] = [
   { id: 2, type: 'text', content: 'Vibe Travel is a curated atlas of the city\'s overlooked corners, written and photographed by a single guide rather than crowdsourced from everyone. We believe the best travel recommendations come from someone who\'s actually been there twice.' },
 ];
 
-export default function ContentPage() {
+function ContentPageInner() {
   const router = useRouter();
-  const [selectedTab, setSelectedTab] = useState('about');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const versionParam = searchParams.get('version');
+  const [selectedTab, setSelectedTab] = useState(
+    tabParam && contentPages.some(p => p.key === tabParam) ? tabParam : 'about'
+  );
   const [isEditing, setIsEditing] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(true);
   const [sections, setSections] = useState<Section[]>([]);
@@ -46,6 +51,7 @@ export default function ContentPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
+  const appliedVersionParam = useRef(false);
 
   const currentPage = contentPages.find(p => p.key === selectedTab);
   const latestVersion = versions.length > 0 ? versions[versions.length - 1] : null;
@@ -66,6 +72,14 @@ export default function ContentPage() {
           const latest = loadedVersions.length > 0 ? loadedVersions[loadedVersions.length - 1] : null;
           setVersions(loadedVersions);
           setSections(latest ? latest.sections : selectedTab === 'about' ? DEFAULT_ABOUT_SECTIONS : []);
+
+          if (!appliedVersionParam.current && versionParam && selectedTab === tabParam) {
+            appliedVersionParam.current = true;
+            const matchIdx = loadedVersions.findIndex(v => v.version === versionParam);
+            if (matchIdx !== -1) {
+              setPreviewVersionIndex(matchIdx);
+            }
+          }
         }
       })
       .catch((error) => console.error('Failed to load content page:', error))
@@ -371,5 +385,13 @@ export default function ContentPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ContentPage() {
+  return (
+    <Suspense fallback={null}>
+      <ContentPageInner />
+    </Suspense>
   );
 }
