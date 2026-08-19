@@ -74,25 +74,29 @@ export default function ContentPage() {
   }, [selectedTab]);
 
   const addSection = (type: 'header' | 'text' | 'youtube') => {
-    const newId = Math.max(...sections.map(s => s.id), 0) + 1;
-    setSections([...sections, { id: newId, type, content: '' }]);
+    setSections((prev) => {
+      const newId = Math.max(...prev.map(s => s.id), 0) + 1;
+      return [...prev, { id: newId, type, content: '' }];
+    });
   };
 
   const removeSection = (id: number) => {
-    setSections(sections.filter(s => s.id !== id));
+    setSections((prev) => prev.filter(s => s.id !== id));
   };
 
   const moveSection = (id: number, direction: 'up' | 'down') => {
-    const index = sections.findIndex(s => s.id === id);
-    if ((direction === 'up' && index === 0) || (direction === 'down' && index === sections.length - 1)) return;
-    const newSections = [...sections];
-    const swapIndex = direction === 'up' ? index - 1 : index + 1;
-    [newSections[index], newSections[swapIndex]] = [newSections[swapIndex], newSections[index]];
-    setSections(newSections);
+    setSections((prev) => {
+      const index = prev.findIndex(s => s.id === id);
+      if ((direction === 'up' && index === 0) || (direction === 'down' && index === prev.length - 1)) return prev;
+      const newSections = [...prev];
+      const swapIndex = direction === 'up' ? index - 1 : index + 1;
+      [newSections[index], newSections[swapIndex]] = [newSections[swapIndex], newSections[index]];
+      return newSections;
+    });
   };
 
   const updateSection = (id: number, content: string) => {
-    setSections(sections.map(s => s.id === id ? { ...s, content } : s));
+    setSections((prev) => prev.map(s => s.id === id ? { ...s, content } : s));
   };
 
   const handleCancel = () => {
