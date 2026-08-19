@@ -268,16 +268,22 @@ export default function CreateAccountPage() {
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '6px', padding: '8px 10px', background: '#fafafa', marginBottom: '14px' }}>
+        <button
+          type="button"
+          onClick={() => setCaptchaChecked(!captchaChecked)}
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', border: '1px solid rgba(10,10,10,0.1)', borderRadius: '6px', padding: '8px 10px', background: '#fafafa', marginBottom: '14px', width: '100%', cursor: 'pointer', font: 'inherit' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div style={{ width: '16px', height: '16px', border: '1.5px solid rgba(10,10,10,0.3)', borderRadius: '3px', flexShrink: 0 }}></div>
+            <div style={{ width: '16px', height: '16px', border: `1.5px solid ${captchaChecked ? '#0A9B71' : 'rgba(10,10,10,0.3)'}`, borderRadius: '3px', flexShrink: 0, background: captchaChecked ? '#0A9B71' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '11px', fontWeight: '700' }}>
+              {captchaChecked ? '✓' : ''}
+            </div>
             <span style={{ fontSize: '11px', color: 'rgba(10,10,10,0.65)' }}>Verify you are human</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px' }}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="#F6821F"><path d="M17 15.5c1.4 0 2.5-1.1 2.5-2.5 0-1.3-1-2.4-2.3-2.5-.3-2.5-2.4-4.5-5-4.5-2 0-3.7 1.2-4.5 2.9-1.9.2-3.4 1.8-3.4 3.8 0 2.1 1.7 3.8 3.8 3.8H17z"/></svg>
             <span style={{ fontSize: '7px', color: 'rgba(10,10,10,0.4)', letterSpacing: '0.2px' }}>Cloudflare</span>
           </div>
-        </div>
+        </button>
 
         {error && (
           <div style={{ padding: '12px', background: 'rgba(197, 56, 85, 0.1)', borderRadius: '8px', marginBottom: '12px', fontSize: '12px', color: '#C53855' }}>
