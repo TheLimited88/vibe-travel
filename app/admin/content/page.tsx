@@ -18,14 +18,17 @@ interface Section {
   content: string;
 }
 
+interface ContentVersion {
+  version: string;
+  publishedDate: string;
+  sections: Section[];
+  createdAt: number;
+}
+
 const DEFAULT_ABOUT_SECTIONS: Section[] = [
   { id: 1, type: 'header', content: 'About Vibe Travel' },
   { id: 2, type: 'text', content: 'Vibe Travel is a curated atlas of the city\'s overlooked corners, written and photographed by a single guide rather than crowdsourced from everyone. We believe the best travel recommendations come from someone who\'s actually been there twice.' },
 ];
-
-function formatUpdatedAt(timestamp: number): string {
-  return new Date(timestamp).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
-}
 
 export default function ContentPage() {
   const router = useRouter();
@@ -33,29 +36,31 @@ export default function ContentPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(true);
   const [sections, setSections] = useState<Section[]>([]);
-  const [savedSections, setSavedSections] = useState<Section[]>([]);
+  const [versions, setVersions] = useState<ContentVersion[]>([]);
+  const [previewVersionIndex, setPreviewVersionIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
   const [toast, setToast] = useState('');
 
   const currentPage = contentPages.find(p => p.key === selectedTab);
+  const latestVersion = versions.length > 0 ? versions[versions.length - 1] : null;
+  const savedSections = latestVersion ? latestVersion.sections : (selectedTab === 'about' ? DEFAULT_ABOUT_SECTIONS : []);
+  const displaySections = previewVersionIndex !== null ? versions[previewVersionIndex].sections : sections;
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setIsEditing(false);
+    setPreviewVersionIndex(null);
     fetch(`/api/admin/content?key=${selectedTab}`)
       .then((res) => res.json())
       .then((data) => {
         if (cancelled) return;
         if (data.success) {
-          const loaded: Section[] = data.sections.length > 0
-            ? data.sections
-            : selectedTab === 'about' ? DEFAULT_ABOUT_SECTIONS : [];
-          setSections(loaded);
-          setSavedSections(loaded);
-          setUpdatedAt(data.updatedAt);
+          const loadedVersions: ContentVersion[] = data.versions || [];
+          const latest = loadedVersions.length > 0 ? loadedVersions[loadedVersions.length - 1] : null;
+          setVersions(loadedVersions);
+          setSections(latest ? latest.sections : selectedTab === 'about' ? DEFAULT_ABOUT_SECTIONS : []);
         }
       })
       .catch((error) => console.error('Failed to load content page:', error))
@@ -100,9 +105,9 @@ export default function ContentPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setSavedSections(sections);
-        setUpdatedAt(data.updatedAt);
-        setToast('Content page saved');
+        setVersions([...versions, data.version]);
+        setPreviewVersionIndex(null);
+        setToast(`Content page saved as ${data.version.version}`);
         setIsEditing(false);
       } else {
         setToast(data.error || 'Save failed');
@@ -113,6 +118,59 @@ export default function ContentPage() {
     setSaving(false);
     setTimeout(() => setToast(''), 2500);
   };
+
+  const viewVersion = (index: number) => {
+    setPreviewVersionIndex(index);
+    setIsEditing(false);
+  };
+
+  const restoreVersion = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSections(versions[index].sections);
+    setPreviewVersionIndex(null);
+    setShowVersionHistory(false);
+    setIsEditing(true);
+  };
+
+  const versionListItems = [...versions].reverse().map((v, revIdx) => {
+    const origIdx = versions.length - 1 - revIdx;
+    const isCurrent = origIdx === versions.length - 1;
+    const next = versions[origIdx + 1];
+    return {
+      origIdx,
+      version: v.version,
+      publishedDate: v.publishedDate,
+      statusLabel: isCurrent ? 'Current version' : `Superseded ${next.publishedDate} by ${next.version}`,
+      statusColor: isCurrent ? '#0A7A52' : 'rgba(10,10,10,0.5)',
+      canRestore: !isCurrent,
+    };
+  });
+
+  const VersionHistoryPanel = () => (
+    <div style={{ background: '#fff', border: '1px solid rgba(10,10,10,0.08)', borderRadius: '14px', padding: '4px', display: 'flex', flexDirection: 'column', maxHeight: '260px', overflowY: 'auto' }}>
+      {versionListItems.length === 0 ? (
+        <div style={{ padding: '14px 10px', fontSize: '12.5px', color: 'rgba(10,10,10,0.5)', textAlign: 'center' }}>Not yet saved</div>
+      ) : (
+        versionListItems.map((v) => (
+          <div
+            key={v.origIdx}
+            role="button"
+            tabIndex={0}
+            onClick={() => viewVersion(v.origIdx)}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', padding: '10px 10px', borderBottom: '1px solid rgba(10,10,10,0.06)', width: '100%', textAlign: 'left', font: 'inherit', cursor: 'pointer', background: previewVersionIndex === v.origIdx ? 'rgba(107,63,209,0.06)' : 'transparent' }}
+          >
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: '700', color: '#0A0A0A' }}>{v.version} · Published {v.publishedDate}</span>
+              <span style={{ fontSize: '11.5px', color: v.statusColor }}>{v.statusLabel}</span>
+            </div>
+            {v.canRestore && (
+              <button onClick={(e) => restoreVersion(v.origIdx, e)} style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '10px', padding: '8px 12px', fontSize: '12px', fontWeight: '700', color: '#0A0A0A', flexShrink: 0, cursor: 'pointer' }}>Restore</button>
+            )}
+          </div>
+        ))
+      )}
+    </div>
+  );
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
@@ -222,18 +280,22 @@ export default function ContentPage() {
                 </button>
               </div>
 
-              {showVersionHistory && (
-                <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', padding: '12px', background: 'rgba(10,10,10,0.03)', borderRadius: '8px' }}>
-                  {updatedAt ? `Last saved ${formatUpdatedAt(updatedAt)}` : 'Not yet saved'}<br/>Current version
-                </div>
-              )}
+              {showVersionHistory && <VersionHistoryPanel />}
             </div>
           ) : (
             <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {sections.length === 0 && (
+              {previewVersionIndex !== null && (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', background: 'rgba(107,63,209,0.08)', borderRadius: '10px', padding: '10px 12px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: '#6B3FD1' }}>
+                    Viewing {versions[previewVersionIndex].version} · Published {versions[previewVersionIndex].publishedDate}
+                  </span>
+                  <button onClick={() => setPreviewVersionIndex(null)} style={{ fontSize: '12px', fontWeight: '700', color: '#6B3FD1', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', flexShrink: 0 }}>Back to current</button>
+                </div>
+              )}
+              {displaySections.length === 0 && (
                 <div style={{ fontSize: '13px', color: 'rgba(10,10,10,0.5)', textAlign: 'center', padding: '20px 0' }}>No content yet — tap Edit to add sections.</div>
               )}
-              {sections.map((section) => (
+              {displaySections.map((section) => (
                 <div key={section.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {section.type === 'header' && (
                     <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0A0A0A', margin: 0 }}>{section.content}</h2>
@@ -246,16 +308,7 @@ export default function ContentPage() {
                   )}
                 </div>
               ))}
-              {showVersionHistory && (
-                <div style={{ background: '#fff', border: '1px solid rgba(10,10,10,0.08)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', fontWeight: '600' }}>
-                    {updatedAt ? `Last saved ${formatUpdatedAt(updatedAt)}` : 'Not yet saved'}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#0A9B71', fontWeight: '600' }}>
-                    Current version
-                  </div>
-                </div>
-              )}
+              {showVersionHistory && <VersionHistoryPanel />}
               <div style={{ display: 'flex', justifyContent: 'center', marginTop: '12px' }}>
                 <button onClick={() => setShowVersionHistory(!showVersionHistory)} style={{ fontSize: '12px', color: '#6B3FD1', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600', textDecoration: 'underline' }}>
                   {showVersionHistory ? 'Hide' : 'View'} version history

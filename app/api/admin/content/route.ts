@@ -1,4 +1,4 @@
-import { getContentPage, setContentPage, CONTENT_PAGE_KEYS, type ContentSection } from '@/lib/contentPages';
+import { getContentVersions, saveContentVersion, CONTENT_PAGE_KEYS, type ContentSection } from '@/lib/contentPages';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -13,8 +13,8 @@ export async function GET(request: Request) {
       return Response.json({ error: 'Invalid page key' }, { status: 400 });
     }
 
-    const data = await getContentPage(key);
-    return Response.json({ success: true, ...data });
+    const versions = await getContentVersions(key);
+    return Response.json({ success: true, versions });
   } catch (error) {
     console.error('Get content page error:', error);
     return Response.json({ error: 'Failed to load content page' }, { status: 500 });
@@ -34,8 +34,8 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Sections must be an array' }, { status: 400 });
     }
 
-    const updatedAt = await setContentPage(key, sections);
-    return Response.json({ success: true, updatedAt });
+    const version = await saveContentVersion(key, sections);
+    return Response.json({ success: true, version });
   } catch (error) {
     console.error('Save content page error:', error);
     return Response.json({ error: 'Failed to save content page' }, { status: 500 });
