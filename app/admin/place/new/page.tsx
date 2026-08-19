@@ -100,6 +100,13 @@ export default function NewPlacePage() {
       attributionControl: false,
     });
 
+    map.on('error', (e) => {
+      console.error('Mapbox error event:', e.error?.message || e.error || e);
+    });
+    map.on('load', () => {
+      console.log('Mapbox map loaded successfully');
+    });
+
     const marker = new mapboxgl.Marker({ color: '#7F53F3' })
       .setLngLat([mapLng, mapLat])
       .addTo(map);
