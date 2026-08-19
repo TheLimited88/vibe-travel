@@ -1058,8 +1058,8 @@ export default function EditPlacePage() {
                   fontWeight: '700',
                   cursor: saving ? 'not-allowed' : 'pointer',
                   border: 'none',
-                  background: status === 'published' ? '#0A7A52' : 'rgba(10,10,10,0.06)',
-                  color: status === 'published' ? '#fff' : '#0A0A0A',
+                  background: status === 'published' ? '#3EE8A8' : 'rgba(10,10,10,0.06)',
+                  color: '#0A0A0A',
                   opacity: saving ? 0.7 : 1,
                 }}
               >
