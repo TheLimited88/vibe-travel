@@ -29,9 +29,9 @@ interface SocialLink {
 }
 
 const SOCIAL_PLATFORMS = [
+  { key: 'youtube', label: 'YouTube' },
   { key: 'instagram', label: 'Instagram Reel' },
   { key: 'tiktok', label: 'TikTok video' },
-  { key: 'facebook', label: 'Facebook video' },
 ];
 
 export default function NewPlacePage() {
@@ -42,7 +42,6 @@ export default function NewPlacePage() {
   const [vibes, setVibes] = useState<string[]>([]);
   const [address, setAddress] = useState('');
   const [about, setAbout] = useState('');
-  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [videoLinks, setVideoLinks] = useState<SocialLink[]>([]);
   const [preview, setPreview] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
@@ -297,7 +296,6 @@ export default function NewPlacePage() {
           about,
           heroImage,
           galleryImages,
-          youtubeUrl,
           videoLinks,
           status,
           createdBy: 'Brett Williams',
@@ -782,15 +780,12 @@ export default function NewPlacePage() {
             <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleGalleryUpload} style={{ display: 'none' }} />
           </div>
 
-          {/* YouTube URL */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '13px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>YouTube URL (optional)</label>
-            <input type="text" placeholder="https://youtube.com/watch?v=..." value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '14px', fontFamily: 'inherit', color: '#0A0A0A' }} />
-          </div>
-
-          {/* Video Links */}
+          {/* Supporting Videos */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <label style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Video links (Reels/TikToks/clips of this place on other platforms)</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Supporting Videos</span>
+              <span style={{ fontSize: '11px', color: 'rgba(10,10,10,0.45)' }}>YouTube, TikTok, or Instagram — portrait format</span>
+            </div>
             {videoLinks.map((link, idx) => (
               <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(10,10,10,0.03)', borderRadius: '10px', padding: '10px' }}>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
@@ -819,7 +814,7 @@ export default function NewPlacePage() {
                 </div>
               </div>
             ))}
-            <button onClick={addVideoLink} style={{ alignSelf: 'flex-start', border: '2px dashed #6B3FD1', background: 'transparent', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer' }}>+ Add video link</button>
+            <button onClick={addVideoLink} style={{ alignSelf: 'flex-start', background: 'transparent', border: '1px dashed rgba(10,10,10,0.25)', borderRadius: '10px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer' }}>+ Add video link</button>
           </div>
 
           {/* Action Buttons */}
