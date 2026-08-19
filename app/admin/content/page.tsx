@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 const contentPages = [
@@ -12,17 +12,56 @@ const contentPages = [
   { key: 'cookies', label: 'Cookies', title: 'Cookie Policy' },
 ];
 
+interface Section {
+  id: number;
+  type: 'header' | 'text' | 'youtube';
+  content: string;
+}
+
+const DEFAULT_ABOUT_SECTIONS: Section[] = [
+  { id: 1, type: 'header', content: 'About Vibe Travel' },
+  { id: 2, type: 'text', content: 'Vibe Travel is a curated atlas of the city\'s overlooked corners, written and photographed by a single guide rather than crowdsourced from everyone. We believe the best travel recommendations come from someone who\'s actually been there twice.' },
+];
+
+function formatUpdatedAt(timestamp: number): string {
+  return new Date(timestamp).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 export default function ContentPage() {
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState('about');
   const [isEditing, setIsEditing] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(true);
-  const [sections, setSections] = useState([
-    { id: 1, type: 'header', content: 'About Vibe Travel' },
-    { id: 2, type: 'text', content: 'Vibe Travel is a curated atlas of the city\'s overlooked corners, written and photographed by a single guide rather than crowdsourced from everyone. We believe the best travel recommendations come from someone who\'s actually been there twice.' },
-  ]);
+  const [sections, setSections] = useState<Section[]>([]);
+  const [savedSections, setSavedSections] = useState<Section[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<number | null>(null);
+  const [toast, setToast] = useState('');
 
   const currentPage = contentPages.find(p => p.key === selectedTab);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setIsEditing(false);
+    fetch(`/api/admin/content?key=${selectedTab}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (cancelled) return;
+        if (data.success) {
+          const loaded: Section[] = data.sections.length > 0
+            ? data.sections
+            : selectedTab === 'about' ? DEFAULT_ABOUT_SECTIONS : [];
+          setSections(loaded);
+          setSavedSections(loaded);
+          setUpdatedAt(data.updatedAt);
+        }
+      })
+      .catch((error) => console.error('Failed to load content page:', error))
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [selectedTab]);
 
   const addSection = (type: 'header' | 'text' | 'youtube') => {
     const newId = Math.max(...sections.map(s => s.id), 0) + 1;
@@ -46,6 +85,35 @@ export default function ContentPage() {
     setSections(sections.map(s => s.id === id ? { ...s, content } : s));
   };
 
+  const handleCancel = () => {
+    setSections(savedSections);
+    setIsEditing(false);
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch('/api/admin/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: selectedTab, sections }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setSavedSections(sections);
+        setUpdatedAt(data.updatedAt);
+        setToast('Content page saved');
+        setIsEditing(false);
+      } else {
+        setToast(data.error || 'Save failed');
+      }
+    } catch (error) {
+      setToast('Network error — save failed');
+    }
+    setSaving(false);
+    setTimeout(() => setToast(''), 2500);
+  };
+
   return (
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#fff' }}>
       <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
@@ -59,7 +127,7 @@ export default function ContentPage() {
         <div style={{ padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,0,0,0.05)', zIndex: 10 }}>
           <div style={{ fontSize: '22px', fontWeight: '800', color: '#0A0A0A' }}>Content Pages</div>
           {isEditing ? (
-            <button style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <button onClick={() => setIsEditing(false)} style={{ background: 'rgba(10,10,10,0.06)', border: 'none', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '700', color: '#0A0A0A', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.8"/></svg>
               Preview
             </button>
@@ -95,7 +163,9 @@ export default function ContentPage() {
 
         {/* Content Area */}
         <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
-          {isEditing ? (
+          {loading ? (
+            <div style={{ padding: '40px 16px', textAlign: 'center', fontSize: '13px', color: 'rgba(10,10,10,0.5)' }}>Loading…</div>
+          ) : isEditing ? (
             // Edit Mode
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '20px 16px' }}>
               {sections.map((section, index) => (
@@ -154,12 +224,15 @@ export default function ContentPage() {
 
               {showVersionHistory && (
                 <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', padding: '12px', background: 'rgba(10,10,10,0.03)', borderRadius: '8px' }}>
-                  v1.0 · Published 3 Jan 2026<br/>Current version
+                  {updatedAt ? `Last saved ${formatUpdatedAt(updatedAt)}` : 'Not yet saved'}<br/>Current version
                 </div>
               )}
             </div>
           ) : (
             <div style={{ padding: '20px 16px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {sections.length === 0 && (
+                <div style={{ fontSize: '13px', color: 'rgba(10,10,10,0.5)', textAlign: 'center', padding: '20px 0' }}>No content yet — tap Edit to add sections.</div>
+              )}
               {sections.map((section) => (
                 <div key={section.id} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {section.type === 'header' && (
@@ -176,7 +249,7 @@ export default function ContentPage() {
               {showVersionHistory && (
                 <div style={{ background: '#fff', border: '1px solid rgba(10,10,10,0.08)', borderRadius: '14px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', fontWeight: '600' }}>
-                    v1.0 · Published 3 Jan 2026
+                    {updatedAt ? `Last saved ${formatUpdatedAt(updatedAt)}` : 'Not yet saved'}
                   </div>
                   <div style={{ fontSize: '12px', color: '#0A9B71', fontWeight: '600' }}>
                     Current version
@@ -195,8 +268,14 @@ export default function ContentPage() {
         {/* Action Buttons */}
         {isEditing && (
           <div style={{ display: 'flex', gap: '8px', padding: '16px', borderTop: '1px solid rgba(10,10,10,0.08)', background: '#fff', justifyContent: 'center' }}>
-            <button onClick={() => setIsEditing(false)} style={{ background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '14px', padding: '13px 26px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Cancel</button>
-            <button onClick={() => setIsEditing(false)} style={{ background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '13px 32px', fontSize: '14px', fontWeight: '700', cursor: 'pointer' }}>Save</button>
+            <button onClick={handleCancel} disabled={saving} style={{ background: '#fff', color: '#0A0A0A', border: '1px solid rgba(10,10,10,0.12)', borderRadius: '14px', padding: '13px 26px', fontSize: '14px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer' }}>Cancel</button>
+            <button onClick={handleSave} disabled={saving} style={{ background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '13px 32px', fontSize: '14px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}>{saving ? 'Saving…' : 'Save'}</button>
+          </div>
+        )}
+
+        {toast && (
+          <div style={{ position: 'fixed', bottom: '24px', left: '50%', transform: 'translateX(-50%)', background: '#0A0A0A', color: '#fff', fontSize: '13px', fontWeight: '600', padding: '12px 20px', borderRadius: '999px', boxShadow: '0 6px 20px rgba(0,0,0,0.25)', zIndex: 999 }}>
+            {toast}
           </div>
         )}
 
