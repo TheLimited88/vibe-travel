@@ -278,13 +278,14 @@ export default function NewPlacePage() {
     setVideoLinks((prev) => prev.map((l, i) => (i === index ? { ...l, url } : l)));
   };
 
-  const handleSaveChanges = async () => {
+  const handleSaveChanges = async (overrideStatus?: 'draft' | 'published') => {
     if (!title.trim()) {
       setToast('Title is required');
       setTimeout(() => setToast(''), 2500);
       return;
     }
 
+    const statusToSave = overrideStatus || status;
     setSaving(true);
     try {
       const res = await fetch('/api/admin/places', {
@@ -302,7 +303,7 @@ export default function NewPlacePage() {
           heroImage,
           galleryImages,
           videoLinks,
-          status,
+          status: statusToSave,
           createdBy: 'Brett Williams',
         }),
       });
@@ -310,7 +311,7 @@ export default function NewPlacePage() {
       const data = await res.json();
 
       if (data.success) {
-        setToast('Place saved');
+        setToast(statusToSave === 'published' ? 'Place Published' : 'Saved as Draft');
         setTimeout(() => router.push('/admin/places'), 900);
       } else {
         setToast(data.error || 'Save failed');
@@ -888,46 +889,42 @@ export default function NewPlacePage() {
           {/* Action Buttons */}
           <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
             <button
-              onClick={() => setStatus('draft')}
+              onClick={() => handleSaveChanges('draft')}
+              disabled={saving}
               style={{
                 flex: 1,
                 borderRadius: '12px',
                 padding: '11px',
                 fontSize: '13px',
                 fontWeight: '700',
-                cursor: 'pointer',
+                cursor: saving ? 'not-allowed' : 'pointer',
                 border: status === 'draft' ? '1px solid #7F53F3' : '1px solid rgba(10,10,10,0.1)',
                 background: status === 'draft' ? 'rgba(127,83,243,0.1)' : '#fff',
                 color: status === 'draft' ? '#7F53F3' : '#0A0A0A',
+                opacity: saving ? 0.7 : 1,
               }}
             >
-              Save Draft
+              {saving ? 'Saving…' : 'Save Draft'}
             </button>
             <button
-              onClick={() => setStatus('published')}
+              onClick={() => handleSaveChanges('published')}
+              disabled={saving}
               style={{
                 flex: 1,
                 borderRadius: '12px',
                 padding: '11px',
                 fontSize: '13px',
                 fontWeight: '700',
-                cursor: 'pointer',
+                cursor: saving ? 'not-allowed' : 'pointer',
                 border: 'none',
-                background: status === 'published' ? 'linear-gradient(135deg,#95048B,#7F53F3)' : 'rgba(10,10,10,0.06)',
+                background: status === 'published' ? '#0A7A52' : 'rgba(10,10,10,0.06)',
                 color: status === 'published' ? '#fff' : '#0A0A0A',
+                opacity: saving ? 0.7 : 1,
               }}
             >
-              Publish
+              {saving ? 'Saving…' : 'Publish'}
             </button>
           </div>
-
-          <button
-            onClick={handleSaveChanges}
-            disabled={saving}
-            style={{ width: '100%', background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '13px', fontSize: '14.5px', fontWeight: '700', cursor: saving ? 'not-allowed' : 'pointer', marginTop: '2px', opacity: saving ? 0.7 : 1 }}
-          >
-            {saving ? 'Saving…' : 'Save Changes'}
-          </button>
 
           {/* Danger Zone */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(10,10,10,0.08)' }}>
