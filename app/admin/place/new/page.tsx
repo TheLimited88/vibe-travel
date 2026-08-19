@@ -11,6 +11,11 @@ function isVideoUrl(url: string): boolean {
   return /\.(mp4|mov|m4v)(\?|$)/i.test(url);
 }
 
+function getYoutubeThumbUrl(url: string): string | null {
+  const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  return match ? `https://img.youtube.com/vi/${match[1]}/hqdefault.jpg` : null;
+}
+
 // Build color map from canonical categories
 const categoryColorMap = categories.reduce((map, cat) => {
   map[cat.key] = cat.color;
@@ -899,6 +904,33 @@ export default function NewPlacePage() {
                 </div>
               </div>
             ))}
+            {videoLinks.some((l) => l.url) && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {videoLinks.filter((l) => l.url).map((link, idx) => (
+                  link.platform === 'youtube' ? (
+                    getYoutubeThumbUrl(link.url) && (
+                      <div key={idx} style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', borderRadius: '8px', overflow: 'hidden', background: '#0A0A0A' }}>
+                        <img src={getYoutubeThumbUrl(link.url)!} alt="YouTube thumbnail" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="#fff" /></svg>
+                        </div>
+                        <span style={{ position: 'absolute', bottom: '4px', left: 0, right: 0, textAlign: 'center', fontSize: '9px', fontWeight: '700', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>YouTube</span>
+                      </div>
+                    )
+                  ) : (
+                    <div key={idx} style={{ position: 'relative', width: 'calc(50% - 4px)', aspectRatio: '9 / 16', borderRadius: '8px', overflow: 'hidden', background: '#0A0A0A' }}>
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.08)' }} />
+                      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="#fff" /></svg>
+                      </div>
+                      <span style={{ position: 'absolute', bottom: '4px', left: 0, right: 0, textAlign: 'center', fontSize: '9px', fontWeight: '700', color: '#fff', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        {SOCIAL_PLATFORMS.find((p) => p.key === link.platform)?.label}
+                      </span>
+                    </div>
+                  )
+                ))}
+              </div>
+            )}
             <button onClick={addVideoLink} style={{ alignSelf: 'flex-start', background: 'transparent', border: '1px dashed rgba(10,10,10,0.25)', borderRadius: '10px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer' }}>+ Add video link</button>
           </div>
 
