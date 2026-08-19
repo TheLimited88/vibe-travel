@@ -59,6 +59,7 @@ export default function NewPlacePage() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<mapboxgl.Map | null>(null);
   const markerRef = useRef<mapboxgl.Marker | null>(null);
+  const geocoderRef = useRef<any>(null);
 
   useEffect(() => {
     const photo = localStorage.getItem('adminProfilePhoto');
@@ -82,6 +83,22 @@ export default function NewPlacePage() {
   }, []);
 
   useEffect(() => {
+    geocoderRef.current = geocoder;
+  }, [geocoder]);
+
+  const reverseGeocode = (lat: number, lng: number) => {
+    if (!geocoderRef.current) return;
+    geocoderRef.current.geocode({ location: { lat, lng } }, (results: any, status: any) => {
+      if (status === 'OK' && results && results[0]) {
+        setAddress(results[0].formatted_address);
+        setGeocoded(true);
+      } else {
+        console.warn('Reverse geocoding failed:', status);
+      }
+    });
+  };
+
+  useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
@@ -100,9 +117,24 @@ export default function NewPlacePage() {
       attributionControl: false,
     });
 
-    const marker = new mapboxgl.Marker({ color: '#7F53F3' })
+    const marker = new mapboxgl.Marker({ color: '#7F53F3', draggable: true })
       .setLngLat([mapLng, mapLat])
       .addTo(map);
+
+    marker.on('dragend', () => {
+      const { lat, lng } = marker.getLngLat();
+      setMapLat(lat);
+      setMapLng(lng);
+      reverseGeocode(lat, lng);
+    });
+
+    map.on('click', (e) => {
+      const { lat, lng } = e.lngLat;
+      marker.setLngLat([lng, lat]);
+      setMapLat(lat);
+      setMapLng(lng);
+      reverseGeocode(lat, lng);
+    });
 
     mapInstanceRef.current = map;
     markerRef.current = marker;
