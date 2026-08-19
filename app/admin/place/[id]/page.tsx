@@ -1097,7 +1097,7 @@ export default function EditPlacePage() {
 
       {/* Preview Panel */}
       {showPreview && (
-        <div style={{ position: 'fixed', inset: '0', background: '#000', zIndex: 100, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div style={{ position: 'fixed', top: 0, bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '375px', background: '#000', zIndex: 100, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Image Gallery */}
           <div style={{ position: 'relative', flex: 1, background: '#000', overflow: 'hidden' }}>
             <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1a1a1a, #2d2d2d)' }} />
@@ -1222,6 +1222,7 @@ export default function EditPlacePage() {
             background: 'rgba(0,0,0,0.5)',
             display: 'flex',
             alignItems: 'flex-end',
+            justifyContent: 'center',
             zIndex: 50,
           }}
           onClick={() => setShowDeleteConfirm(false)}
@@ -1230,6 +1231,7 @@ export default function EditPlacePage() {
             onClick={(e) => e.stopPropagation()}
             style={{
               width: '100%',
+              maxWidth: '375px',
               background: '#fff',
               borderRadius: '24px 24px 0 0',
               padding: '24px 16px',
