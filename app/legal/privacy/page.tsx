@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import LegalContentBody from '@/components/LegalContentBody';
 
 export default function PrivacyPage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
 
-        <div style={{ minHeight: '400px', background: '#FFFFFF' }} />
+        <LegalContentBody contentKey="privacy" />
       </div>
     </div>
   );
