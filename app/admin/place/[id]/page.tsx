@@ -485,6 +485,7 @@ export default function EditPlacePage() {
     }
 
     const statusToSave = overrideStatus || status;
+    const wasPublished = status === 'published';
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/places?slug=${encodeURIComponent(slug)}`, {
@@ -509,7 +510,7 @@ export default function EditPlacePage() {
       const data = await res.json();
 
       if (data.success) {
-        setToast(statusToSave === 'published' ? 'Place Published' : 'Saved as Draft');
+        setToast(statusToSave === 'published' ? 'Place Published' : wasPublished ? 'Place Unpublished' : 'Saved as Draft');
         setTimeout(() => router.push('/admin/places'), 900);
       } else {
         setToast(data.error || 'Save failed');
@@ -1045,7 +1046,7 @@ export default function EditPlacePage() {
                   opacity: saving ? 0.7 : 1,
                 }}
               >
-                {saving ? 'Saving…' : 'Save Draft'}
+                {saving ? 'Saving…' : status === 'published' ? 'Unpublish' : 'Save Draft'}
               </button>
               <button
                 onClick={() => handleSaveChanges('published')}
