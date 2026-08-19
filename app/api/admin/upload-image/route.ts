@@ -26,7 +26,7 @@ export async function POST(request: Request) {
 
     // Compress image based on type
     let compressed: Buffer;
-    if (type === 'hero') {
+    if (type === 'hero' || type === 'avatar') {
       compressed = await sharp(buffer)
         .resize(1080, 1080, { fit: 'cover' })
         .jpeg({ quality: 80, progressive: true })

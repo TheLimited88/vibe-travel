@@ -79,10 +79,14 @@ export default function NewPlacePage() {
   const [mapExpanded, setMapExpanded] = useState(false);
 
   useEffect(() => {
-    const photo = localStorage.getItem('adminProfilePhoto');
-    if (photo) {
-      setAdminProfilePhoto(photo);
-    }
+    fetch('/api/admin/profile')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.photoUrl) {
+          setAdminProfilePhoto(data.photoUrl);
+        }
+      })
+      .catch((error) => console.error('Failed to load admin profile:', error));
   }, []);
 
   useEffect(() => {

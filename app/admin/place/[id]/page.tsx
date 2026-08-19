@@ -85,9 +85,21 @@ export default function EditPlacePage() {
   const markerRef = useRef<mapboxgl.Marker | null>(null);
   const geocoderRef = useRef<any>(null);
   const [mapExpanded, setMapExpanded] = useState(false);
+  const [adminProfilePhoto, setAdminProfilePhoto] = useState<string | null>(null);
 
   const seoUrl = `vibetravel.app/places/${title.toLowerCase().replace(/\s+/g, '-')}`;
   const aboutLength = about.length;
+
+  useEffect(() => {
+    fetch('/api/admin/profile')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.photoUrl) {
+          setAdminProfilePhoto(data.photoUrl);
+        }
+      })
+      .catch((error) => console.error('Failed to load admin profile:', error));
+  }, []);
 
   useEffect(() => {
     if (!slug) return;
@@ -840,8 +852,13 @@ export default function EditPlacePage() {
                     borderRadius: '50%',
                     background: '#E8D5F2',
                     flexShrink: 0,
+                    overflow: 'hidden',
                   }}
-                />
+                >
+                  {adminProfilePhoto && (
+                    <img src={adminProfilePhoto} alt="Admin profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  )}
+                </div>
                 <span style={{ fontSize: '13px', fontWeight: '600', color: '#6B3FD1' }}>Brett Williams</span>
               </div>
             </div>

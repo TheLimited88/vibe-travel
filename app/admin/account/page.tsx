@@ -6,35 +6,79 @@ import { useRouter } from 'next/navigation';
 export default function AdminAccountPage() {
   const router = useRouter();
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const [profilePhotoKey, setProfilePhotoKey] = useState<string | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const savedPhoto = localStorage.getItem('adminProfilePhoto');
-    if (savedPhoto) {
-      setProfilePhoto(savedPhoto);
-    }
+    const loadProfile = async () => {
+      try {
+        const res = await fetch('/api/admin/profile');
+        const data = await res.json();
+        if (data.success) {
+          setProfilePhoto(data.photoUrl);
+          setProfilePhotoKey(data.photoKey);
+        }
+      } catch (error) {
+        console.error('Failed to load admin profile:', error);
+      }
+    };
+    loadProfile();
   }, []);
 
   const handlePhotoClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const result = event.target?.result as string;
-        setProfilePhoto(result);
-        localStorage.setItem('adminProfilePhoto', result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setUploadingPhoto(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('type', 'avatar');
+      const uploadRes = await fetch('/api/admin/upload-image', { method: 'POST', body: formData });
+      const uploadData = await uploadRes.json();
+
+      if (uploadData.success) {
+        await fetch('/api/admin/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ photoUrl: uploadData.url, photoKey: uploadData.key }),
+        });
+        setProfilePhoto(uploadData.url);
+        setProfilePhotoKey(uploadData.key);
+      } else {
+        alert(uploadData.error || 'Upload failed');
+      }
+    } catch (error) {
+      alert('Upload failed');
     }
+    setUploadingPhoto(false);
+    e.target.value = '';
   };
 
-  const handleDeletePhoto = () => {
+  const handleDeletePhoto = async () => {
+    try {
+      if (profilePhotoKey) {
+        await fetch('/api/admin/upload-image', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: profilePhotoKey }),
+        });
+      }
+      await fetch('/api/admin/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ photoUrl: null, photoKey: null }),
+      });
+    } catch (error) {
+      alert('Delete failed');
+    }
     setProfilePhoto(null);
-    localStorage.removeItem('adminProfilePhoto');
+    setProfilePhotoKey(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -62,10 +106,12 @@ export default function AdminAccountPage() {
           {/* Profile Photo Upload Section */}
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
             <div
-              onClick={handlePhotoClick}
-              style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'transparent', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', overflow: 'hidden' }}
+              onClick={uploadingPhoto ? undefined : handlePhotoClick}
+              style={{ width: '120px', height: '120px', borderRadius: '12px', border: '2px dashed rgba(10,10,10,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: uploadingPhoto ? 'not-allowed' : 'pointer', background: 'transparent', backgroundSize: 'cover', backgroundPosition: 'center', position: 'relative', overflow: 'hidden' }}
             >
-              {profilePhoto ? (
+              {uploadingPhoto ? (
+                <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.5)' }}>Uploading...</div>
+              ) : profilePhoto ? (
                 <img
                   src={profilePhoto}
                   alt="Profile"
