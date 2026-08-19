@@ -1,5 +1,6 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
+import { convertHeicIfNeeded } from '@/lib/heicConvert';
 
 const s3Client = new S3Client({
   region: 'auto',
@@ -20,7 +21,8 @@ export async function POST(request: Request) {
       return Response.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    const rawBuffer = Buffer.from(await file.arrayBuffer());
+    const buffer = await convertHeicIfNeeded(rawBuffer);
 
     // Compress image based on type
     let compressed: Buffer;

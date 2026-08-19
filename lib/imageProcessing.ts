@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import { convertHeicIfNeeded } from '@/lib/heicConvert';
 
 export interface ProcessedImages {
   thumbnail: Buffer;
@@ -63,9 +64,11 @@ async function compressImage(
 }
 
 export async function processImage(
-  imageBuffer: Buffer
+  rawImageBuffer: Buffer
 ): Promise<ProcessedImages> {
   try {
+    const imageBuffer = await convertHeicIfNeeded(rawImageBuffer);
+
     // Get original metadata
     const metadata = await sharp(imageBuffer).metadata();
 
