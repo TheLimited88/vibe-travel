@@ -7,43 +7,6 @@ import Script from 'next/script';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
-// TEMP DEBUG: instrument Worker + fetch to diagnose why Mapbox tiles never render
-if (typeof window !== 'undefined' && !(window as any).__mapDebugPatched) {
-  (window as any).__mapDebugPatched = true;
-  (window as any).__workerLog = [];
-  (window as any).__fetchLog = [];
-  const OrigWorker = window.Worker;
-  window.Worker = new Proxy(OrigWorker, {
-    construct(target, args) {
-      (window as any).__workerLog.push({ url: String(args[0]).slice(0, 150), time: Date.now() });
-      try {
-        const w = new target(...(args as ConstructorParameters<typeof Worker>));
-        w.addEventListener('error', (e: ErrorEvent) => {
-          (window as any).__workerLog.push({ workerError: e.message, filename: e.filename, lineno: e.lineno });
-        });
-        return w;
-      } catch (e: any) {
-        (window as any).__workerLog.push({ constructError: e.message });
-        throw e;
-      }
-    },
-  });
-  const origFetch = window.fetch;
-  window.fetch = function (...args: Parameters<typeof fetch>) {
-    (window as any).__fetchLog.push({ url: String(args[0]).slice(0, 200), time: Date.now() });
-    return origFetch.apply(this, args).then(
-      (res) => {
-        (window as any).__fetchLog.push({ url: String(args[0]).slice(0, 200), status: res.status, ok: res.ok });
-        return res;
-      },
-      (err) => {
-        (window as any).__fetchLog.push({ url: String(args[0]).slice(0, 200), fetchError: err.message });
-        throw err;
-      }
-    );
-  };
-}
-
 // Build color map from canonical categories
 const categoryColorMap = categories.reduce((map, cat) => {
   map[cat.key] = cat.color;
@@ -119,53 +82,33 @@ export default function NewPlacePage() {
   }, []);
 
   useEffect(() => {
-    console.log('[MapDebug] effect start', { hasContainer: !!mapContainerRef.current, hasInstance: !!mapInstanceRef.current });
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
-    console.log('[MapDebug] token present?', !!token, token ? token.slice(0, 10) : null);
     if (!token) {
       console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set — map will not render');
       return;
     }
 
-    try {
-      mapboxgl.accessToken = token;
-      console.log('[MapDebug] creating map instance');
+    mapboxgl.accessToken = token;
 
-      const map = new mapboxgl.Map({
-        container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/streets-v12',
-        center: [mapLng, mapLat],
-        zoom: 14,
-        attributionControl: false,
-      });
-      console.log('[MapDebug] map instance created', map);
+    const map = new mapboxgl.Map({
+      container: mapContainerRef.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [mapLng, mapLat],
+      zoom: 14,
+      attributionControl: false,
+    });
 
-      map.on('error', (e: any) => {
-        console.error('[MapDebug] Mapbox error event:', e.error?.message || e.error || e);
-      });
-      map.on('load', () => {
-        console.log('[MapDebug] Mapbox map loaded successfully');
-      });
-      map.on('styledata', () => {
-        console.log('[MapDebug] styledata event fired');
-      });
+    const marker = new mapboxgl.Marker({ color: '#7F53F3' })
+      .setLngLat([mapLng, mapLat])
+      .addTo(map);
 
-      const marker = new mapboxgl.Marker({ color: '#7F53F3' })
-        .setLngLat([mapLng, mapLat])
-        .addTo(map);
-      console.log('[MapDebug] marker added');
-
-      mapInstanceRef.current = map;
-      markerRef.current = marker;
-    } catch (err) {
-      console.error('[MapDebug] SYNCHRONOUS ERROR creating map:', err);
-    }
+    mapInstanceRef.current = map;
+    markerRef.current = marker;
 
     return () => {
-      console.log('[MapDebug] cleanup called, removing map');
-      mapInstanceRef.current?.remove();
+      map.remove();
       mapInstanceRef.current = null;
       markerRef.current = null;
     };
