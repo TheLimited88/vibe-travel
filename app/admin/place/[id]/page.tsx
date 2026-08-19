@@ -62,6 +62,7 @@ export default function EditPlacePage() {
 
   const [heroImage, setHeroImage] = useState<{ url: string; key: string } | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ url: string; key: string }[]>([]);
+  const [draggedGalleryIdx, setDraggedGalleryIdx] = useState<number | null>(null);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
   const heroInputRef = useRef<HTMLInputElement>(null);
@@ -439,6 +440,26 @@ export default function EditPlacePage() {
     } catch (error) {
       alert('Delete failed');
     }
+  };
+
+  const handleGalleryDragStart = (idx: number) => (e: React.DragEvent) => {
+    setDraggedGalleryIdx(idx);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleGalleryDragOver = (idx: number) => (e: React.DragEvent) => {
+    e.preventDefault();
+    if (draggedGalleryIdx === null || draggedGalleryIdx === idx) return;
+    const reordered = [...galleryImages];
+    const [moved] = reordered.splice(draggedGalleryIdx, 1);
+    reordered.splice(idx, 0, moved);
+    setGalleryImages(reordered);
+    setDraggedGalleryIdx(idx);
+  };
+
+  const handleGalleryDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDraggedGalleryIdx(null);
   };
 
   const handleSaveChanges = async () => {
@@ -901,7 +922,15 @@ export default function EditPlacePage() {
               </div>
               <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
                 {galleryImages.map((img, idx) => (
-                  <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '88px', height: '156px', borderRadius: '10px', overflow: 'hidden' }}>
+                  <div
+                    key={idx}
+                    draggable
+                    onDragStart={handleGalleryDragStart(idx)}
+                    onDragOver={handleGalleryDragOver(idx)}
+                    onDrop={handleGalleryDrop}
+                    onDragEnd={() => setDraggedGalleryIdx(null)}
+                    style={{ position: 'relative', flexShrink: 0, width: '88px', height: '156px', borderRadius: '10px', overflow: 'hidden', cursor: 'grab', opacity: draggedGalleryIdx === idx ? 0.4 : 1 }}
+                  >
                     {isVideoUrl(img.url) ? (
                       <>
                         <video src={img.url} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -912,6 +941,7 @@ export default function EditPlacePage() {
                     ) : (
                       <img src={img.url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     )}
+                    <div style={{ position: 'absolute', top: '6px', left: '6px', width: '22px', height: '22px', borderRadius: '6px', background: 'rgba(0,0,0,0.4)', color: '#fff', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>⠿</div>
                     <button onClick={() => deleteGalleryImage(idx)} style={{ position: 'absolute', top: '2px', right: '2px', background: '#C23B3B', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 4px', fontSize: '9px', fontWeight: '700', cursor: 'pointer' }}>✕</button>
                   </div>
                 ))}
