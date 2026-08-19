@@ -13,6 +13,7 @@ export default function CreateAccountPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [captchaChecked, setCaptchaChecked] = useState(false);
   const [termsVersion, setTermsVersion] = useState<string | null>(null);
   const [privacyVersion, setPrivacyVersion] = useState<string | null>(null);
@@ -275,21 +276,57 @@ export default function CreateAccountPage() {
 
         <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginBottom: '10px' }}>
           <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Password</span>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px 10px',
-              fontSize: '13px',
-              border: '1px solid rgba(10,10,10,0.12)',
-              borderRadius: '10px',
-              boxSizing: 'border-box',
-              color: '#0A0A0A',
-            }}
-          />
+          <div style={{ position: 'relative', display: 'flex' }}>
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{
+                flex: 1,
+                width: '100%',
+                padding: '8px 34px 8px 10px',
+                fontSize: '13px',
+                border: '1px solid rgba(10,10,10,0.12)',
+                borderRadius: '10px',
+                boxSizing: 'border-box',
+                color: '#0A0A0A',
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label="Toggle password visibility"
+              style={{
+                position: 'absolute',
+                right: '4px',
+                top: 0,
+                bottom: 0,
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                width: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'rgba(10,10,10,0.45)',
+                cursor: 'pointer',
+              }}
+            >
+              {showPassword ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.6" />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.6" />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                  <line x1="3" y1="21" x2="21" y2="3" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              )}
+            </button>
+          </div>
         </label>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', marginBottom: '8px' }}>

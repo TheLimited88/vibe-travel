@@ -14,6 +14,8 @@ function ResetPasswordFormContent() {
 
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLinkExpired, setIsLinkExpired] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -276,41 +278,113 @@ function ResetPasswordFormContent() {
         {/* New Password Input */}
         <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '12px' }}>
           <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.55)' }}>New password</span>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '11px 13px',
-              fontSize: '14px',
-              border: '1px solid rgba(10,10,10,0.12)',
-              borderRadius: '10px',
-              boxSizing: 'border-box',
-              color: '#0A0A0A',
-            }}
-          />
+          <div style={{ position: 'relative', display: 'flex' }}>
+            <input
+              type={showNewPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              style={{
+                flex: 1,
+                width: '100%',
+                padding: '11px 40px 11px 13px',
+                fontSize: '14px',
+                border: '1px solid rgba(10,10,10,0.12)',
+                borderRadius: '10px',
+                boxSizing: 'border-box',
+                color: '#0A0A0A',
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowNewPassword(!showNewPassword)}
+              aria-label="Toggle password visibility"
+              style={{
+                position: 'absolute',
+                right: '6px',
+                top: 0,
+                bottom: 0,
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                width: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'rgba(10,10,10,0.45)',
+                cursor: 'pointer',
+              }}
+            >
+              {showNewPassword ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.6" />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.6" />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                  <line x1="3" y1="21" x2="21" y2="3" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              )}
+            </button>
+          </div>
         </label>
 
         {/* Confirm Password Input */}
         <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginBottom: '12px' }}>
           <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.55)' }}>Confirm new password</span>
-          <input
-            type="password"
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '11px 13px',
-              fontSize: '14px',
-              border: `1px solid ${!passwordsMatch && confirmPassword ? '#D14545' : 'rgba(10,10,10,0.12)'}`,
-              borderRadius: '10px',
-              boxSizing: 'border-box',
-              color: '#0A0A0A',
-            }}
-          />
+          <div style={{ position: 'relative', display: 'flex' }}>
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              style={{
+                flex: 1,
+                width: '100%',
+                padding: '11px 40px 11px 13px',
+                fontSize: '14px',
+                border: `1px solid ${!passwordsMatch && confirmPassword ? '#D14545' : 'rgba(10,10,10,0.12)'}`,
+                borderRadius: '10px',
+                boxSizing: 'border-box',
+                color: '#0A0A0A',
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              aria-label="Toggle password visibility"
+              style={{
+                position: 'absolute',
+                right: '6px',
+                top: 0,
+                bottom: 0,
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                width: '32px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'rgba(10,10,10,0.45)',
+                cursor: 'pointer',
+              }}
+            >
+              {showConfirmPassword ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.6" />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.6" />
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.6" />
+                  <line x1="3" y1="21" x2="21" y2="3" stroke="currentColor" strokeWidth="1.6" />
+                </svg>
+              )}
+            </button>
+          </div>
         </label>
 
         {/* Password Requirements */}
