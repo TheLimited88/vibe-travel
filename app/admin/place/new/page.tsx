@@ -82,40 +82,53 @@ export default function NewPlacePage() {
   }, []);
 
   useEffect(() => {
+    console.log('[MapDebug] effect start', { hasContainer: !!mapContainerRef.current, hasInstance: !!mapInstanceRef.current });
     if (!mapContainerRef.current || mapInstanceRef.current) return;
 
     const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    console.log('[MapDebug] token present?', !!token, token ? token.slice(0, 10) : null);
     if (!token) {
       console.warn('NEXT_PUBLIC_MAPBOX_TOKEN is not set — map will not render');
       return;
     }
 
-    mapboxgl.accessToken = token;
+    try {
+      mapboxgl.accessToken = token;
+      console.log('[MapDebug] creating map instance');
 
-    const map = new mapboxgl.Map({
-      container: mapContainerRef.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [mapLng, mapLat],
-      zoom: 14,
-      attributionControl: false,
-    });
+      const map = new mapboxgl.Map({
+        container: mapContainerRef.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [mapLng, mapLat],
+        zoom: 14,
+        attributionControl: false,
+      });
+      console.log('[MapDebug] map instance created', map);
 
-    map.on('error', (e) => {
-      console.error('Mapbox error event:', e.error?.message || e.error || e);
-    });
-    map.on('load', () => {
-      console.log('Mapbox map loaded successfully');
-    });
+      map.on('error', (e: any) => {
+        console.error('[MapDebug] Mapbox error event:', e.error?.message || e.error || e);
+      });
+      map.on('load', () => {
+        console.log('[MapDebug] Mapbox map loaded successfully');
+      });
+      map.on('styledata', () => {
+        console.log('[MapDebug] styledata event fired');
+      });
 
-    const marker = new mapboxgl.Marker({ color: '#7F53F3' })
-      .setLngLat([mapLng, mapLat])
-      .addTo(map);
+      const marker = new mapboxgl.Marker({ color: '#7F53F3' })
+        .setLngLat([mapLng, mapLat])
+        .addTo(map);
+      console.log('[MapDebug] marker added');
 
-    mapInstanceRef.current = map;
-    markerRef.current = marker;
+      mapInstanceRef.current = map;
+      markerRef.current = marker;
+    } catch (err) {
+      console.error('[MapDebug] SYNCHRONOUS ERROR creating map:', err);
+    }
 
     return () => {
-      map.remove();
+      console.log('[MapDebug] cleanup called, removing map');
+      mapInstanceRef.current?.remove();
       mapInstanceRef.current = null;
       markerRef.current = null;
     };
