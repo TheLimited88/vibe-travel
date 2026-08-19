@@ -921,7 +921,7 @@ export default function NewPlacePage() {
                 fontWeight: '700',
                 cursor: saving ? 'not-allowed' : 'pointer',
                 border: 'none',
-                background: status === 'published' ? '#3EE8A8' : 'rgba(10,10,10,0.06)',
+                background: '#3EE8A8',
                 color: '#0A0A0A',
                 opacity: saving ? 0.7 : 1,
               }}
