@@ -62,6 +62,7 @@ export default function EditPlacePage() {
 
   const [heroImage, setHeroImage] = useState<{ url: string; key: string } | null>(null);
   const [galleryImages, setGalleryImages] = useState<{ url: string; key: string }[]>([]);
+  const [placeCreatedAt, setPlaceCreatedAt] = useState<number | null>(null);
   const [draggedGalleryIdx, setDraggedGalleryIdx] = useState<number | null>(null);
   const [uploadingHero, setUploadingHero] = useState(false);
   const [uploadingGallery, setUploadingGallery] = useState(false);
@@ -88,6 +89,7 @@ export default function EditPlacePage() {
   const [adminProfilePhoto, setAdminProfilePhoto] = useState<string | null>(null);
 
   const seoUrl = `vibetravel.app/places/${title.toLowerCase().replace(/\s+/g, '-')}`;
+  const previewMedia = [...(heroImage ? [heroImage] : []), ...galleryImages];
   const aboutLength = about.length;
 
   useEffect(() => {
@@ -132,6 +134,7 @@ export default function EditPlacePage() {
         setGalleryImages(p.galleryImages || []);
         setVideoLinks(p.videoLinks || []);
         setStatus(p.status === 'published' ? 'published' : 'draft');
+        setPlaceCreatedAt(typeof p.createdAt === 'number' ? p.createdAt : null);
       } catch (error) {
         console.error('Failed to load place:', error);
         setNotFound(true);
@@ -1100,11 +1103,19 @@ export default function EditPlacePage() {
         <div style={{ position: 'fixed', top: 0, bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '375px', background: '#000', zIndex: 100, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Image Gallery */}
           <div style={{ position: 'relative', flex: 1, background: '#000', overflow: 'hidden' }}>
-            <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1a1a1a, #2d2d2d)' }} />
+            {previewMedia.length > 0 ? (
+              isVideoUrl(previewMedia[currentImageIndex % previewMedia.length].url) ? (
+                <video src={previewMedia[currentImageIndex % previewMedia.length].url} autoPlay muted loop playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                <img src={previewMedia[currentImageIndex % previewMedia.length].url} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              )
+            ) : (
+              <div style={{ width: '100%', height: '100%', background: 'linear-gradient(135deg, #1a1a1a, #2d2d2d)' }} />
+            )}
 
             {/* Progress Bars */}
             <div style={{ position: 'absolute', top: '60px', left: '14px', right: '14px', display: 'flex', gap: '5px', zIndex: 30 }}>
-              {[0, 1, 2, 3, 4, 5].map((i) => (
+              {Array.from({ length: Math.max(previewMedia.length, 1) }).map((_, i) => (
                 <div key={i} style={{ flex: 1, height: '2px', background: i <= currentImageIndex ? '#FFFFFF' : 'rgba(255,255,255,0.4)', borderRadius: '1px' }} />
               ))}
             </div>
@@ -1129,8 +1140,8 @@ export default function EditPlacePage() {
             </div>
 
             {/* Navigation Areas */}
-            <button onClick={() => setCurrentImageIndex((i) => (i > 0 ? i - 1 : 5))} style={{ position: 'absolute', top: '56px', bottom: '340px', left: '0', width: '35%', background: 'none', border: 'none', padding: '0', cursor: 'pointer', zIndex: 10 }} />
-            <button onClick={() => setCurrentImageIndex((i) => (i < 5 ? i + 1 : 0))} style={{ position: 'absolute', top: '56px', bottom: '340px', right: '0', width: '65%', background: 'none', border: 'none', padding: '0', cursor: 'pointer', zIndex: 10 }} />
+            <button onClick={() => setCurrentImageIndex((i) => (i > 0 ? i - 1 : Math.max(previewMedia.length - 1, 0)))} style={{ position: 'absolute', top: '56px', bottom: '340px', left: '0', width: '35%', background: 'none', border: 'none', padding: '0', cursor: 'pointer', zIndex: 10 }} />
+            <button onClick={() => setCurrentImageIndex((i) => (i < previewMedia.length - 1 ? i + 1 : 0))} style={{ position: 'absolute', top: '56px', bottom: '340px', right: '0', width: '65%', background: 'none', border: 'none', padding: '0', cursor: 'pointer', zIndex: 10 }} />
           </div>
 
           {/* Bottom Sheet */}
@@ -1155,7 +1166,9 @@ export default function EditPlacePage() {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}><path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#2E7FE8" strokeWidth="2" /><circle cx="12" cy="9.5" r="2.3" stroke="#2E7FE8" strokeWidth="2" /></svg>
                   {address}
                 </div>
-                <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)' }}>Added 12 February 2026</div>
+                <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)' }}>
+                  Added {placeCreatedAt ? new Date(placeCreatedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
+                </div>
               </div>
 
               {/* Stats */}
@@ -1202,7 +1215,11 @@ export default function EditPlacePage() {
                   <div>
                     <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A', marginBottom: '8px' }}>Place created by</div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: '#E8D5F2', flexShrink: 0 }} />
+                      <div style={{ width: '52px', height: '52px', borderRadius: '50%', background: '#E8D5F2', flexShrink: 0, overflow: 'hidden' }}>
+                        {adminProfilePhoto && (
+                          <img src={adminProfilePhoto} alt="Admin profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        )}
+                      </div>
                       <span style={{ fontSize: '14px', fontWeight: '600', color: '#0A0A0A' }}>Brett Williams</span>
                     </div>
                   </div>
