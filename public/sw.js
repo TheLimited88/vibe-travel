@@ -1,6 +1,5 @@
-const CACHE_NAME = 'vibe-travel-v2';
+const CACHE_NAME = 'vibe-travel-v3';
 const ASSETS_TO_CACHE = [
-  '/',
   '/manifest.json',
   '/favicon.ico',
 ];
@@ -35,32 +34,44 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
   // Never cache API responses — they're dynamic data, not static assets.
-  // Caching these made every GET forever return whatever was first fetched
-  // for that exact URL, regardless of what actually changed server-side.
   if (url.pathname.startsWith('/api/')) {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) {
-        return response;
-      }
+  // Content-hashed static assets (filename changes when content changes) —
+  // safe to cache-first aggressively.
+  const isHashedAsset = url.pathname.startsWith('/_next/static/');
 
-      return fetch(event.request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
+  if (isHashedAsset) {
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((response) => {
+          if (response && response.status === 200 && response.type === 'basic') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
           return response;
-        }
-
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
         });
+      })
+    );
+    return;
+  }
 
+  // Everything else — HTML pages, RSC payloads — network-first, so a signed-in
+  // admin (or any user) always gets the latest deployed code. Cache is only a
+  // fallback for offline use, not the primary source.
+  event.respondWith(
+    fetch(event.request)
+      .then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+        }
         return response;
-      }).catch(() => {
-        return caches.match('/');
-      });
-    })
+      })
+      .catch(() => {
+        return caches.match(event.request).then((cached) => cached || caches.match('/'));
+      })
   );
 });
