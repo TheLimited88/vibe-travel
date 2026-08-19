@@ -5,6 +5,11 @@ export interface PlaceImage {
   key: string;
 }
 
+export interface SocialLink {
+  platform: string;
+  url: string;
+}
+
 export interface PlaceRecord {
   slug: string;
   title: string;
@@ -18,6 +23,7 @@ export interface PlaceRecord {
   heroImage: PlaceImage | null;
   galleryImages: PlaceImage[];
   youtubeUrl: string;
+  videoLinks: SocialLink[];
   status: 'draft' | 'published';
   createdBy: string;
   createdAt: number;

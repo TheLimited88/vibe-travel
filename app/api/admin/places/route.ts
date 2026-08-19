@@ -45,6 +45,7 @@ export async function POST(request: Request) {
       heroImage: body.heroImage || null,
       galleryImages: Array.isArray(body.galleryImages) ? body.galleryImages : [],
       youtubeUrl: body.youtubeUrl || '',
+      videoLinks: Array.isArray(body.videoLinks) ? body.videoLinks : [],
       status: body.status === 'published' ? 'published' : 'draft',
       createdBy: body.createdBy || 'Admin',
       slug: body.slug ? slugify(body.slug) : undefined,

@@ -23,6 +23,17 @@ const VIBE_TAGS = [
   'Seasonal', 'Festive', 'Rainy Day',
 ];
 
+interface SocialLink {
+  platform: string;
+  url: string;
+}
+
+const SOCIAL_PLATFORMS = [
+  { key: 'instagram', label: 'Instagram Reel' },
+  { key: 'tiktok', label: 'TikTok video' },
+  { key: 'facebook', label: 'Facebook video' },
+];
+
 export default function NewPlacePage() {
   const router = useRouter();
   const [title, setTitle] = useState('');
@@ -32,6 +43,7 @@ export default function NewPlacePage() {
   const [address, setAddress] = useState('');
   const [about, setAbout] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [videoLinks, setVideoLinks] = useState<SocialLink[]>([]);
   const [preview, setPreview] = useState(false);
   const [sheetExpanded, setSheetExpanded] = useState(false);
   const [adminProfilePhoto, setAdminProfilePhoto] = useState<string | null>(null);
@@ -235,6 +247,22 @@ export default function NewPlacePage() {
     setVibes((prev) => prev.filter((x) => x !== v));
   };
 
+  const addVideoLink = () => {
+    setVideoLinks((prev) => [...prev, { platform: 'instagram', url: '' }]);
+  };
+
+  const removeVideoLink = (index: number) => {
+    setVideoLinks((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const setVideoLinkPlatform = (index: number, platform: string) => {
+    setVideoLinks((prev) => prev.map((l, i) => (i === index ? { ...l, platform } : l)));
+  };
+
+  const setVideoLinkUrl = (index: number, url: string) => {
+    setVideoLinks((prev) => prev.map((l, i) => (i === index ? { ...l, url } : l)));
+  };
+
   const handleSaveChanges = async () => {
     if (!title.trim()) {
       setToast('Title is required');
@@ -259,6 +287,7 @@ export default function NewPlacePage() {
           heroImage,
           galleryImages,
           youtubeUrl,
+          videoLinks,
           status,
           createdBy: 'Brett Williams',
         }),
@@ -709,9 +738,37 @@ export default function NewPlacePage() {
           </div>
 
           {/* Video Links */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <label style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Video links (Reels/TikToks/clips of this place on other platforms)</label>
-            <button style={{ border: '2px dashed #6B3FD1', background: 'transparent', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer' }}>+ Add video link</button>
+            {videoLinks.map((link, idx) => (
+              <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '6px', background: 'rgba(10,10,10,0.03)', borderRadius: '10px', padding: '10px' }}>
+                <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                  {SOCIAL_PLATFORMS.map((p) => {
+                    const active = link.platform === p.key;
+                    return (
+                      <button
+                        key={p.key}
+                        onClick={() => setVideoLinkPlatform(idx, p.key)}
+                        style={{ display: 'flex', alignItems: 'center', gap: '6px', whiteSpace: 'nowrap', borderRadius: '999px', padding: '8px 14px', fontSize: '12.5px', fontWeight: '600', border: active ? '1px solid #7F53F3' : '1px solid rgba(10,10,10,0.1)', background: active ? '#7F53F3' : '#fff', color: active ? '#fff' : '#0A0A0A', cursor: 'pointer' }}
+                      >
+                        {p.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <input
+                    type="text"
+                    value={link.url}
+                    onChange={(e) => setVideoLinkUrl(idx, e.target.value)}
+                    placeholder="Paste video link"
+                    style={{ flex: 1, border: '1px solid rgba(10,10,10,0.1)', borderRadius: '8px', padding: '8px 10px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }}
+                  />
+                  <button onClick={() => removeVideoLink(idx)} aria-label="Remove link" style={{ width: '32px', borderRadius: '8px', background: '#fff', border: '1px solid rgba(10,10,10,0.1)', color: 'rgba(10,10,10,0.6)', cursor: 'pointer' }}>✕</button>
+                </div>
+              </div>
+            ))}
+            <button onClick={addVideoLink} style={{ alignSelf: 'flex-start', border: '2px dashed #6B3FD1', background: 'transparent', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer' }}>+ Add video link</button>
           </div>
 
           {/* Action Buttons */}
