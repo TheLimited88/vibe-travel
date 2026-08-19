@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { ensureUserDoc } from '@/lib/ensureUserDoc';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -66,14 +69,46 @@ export default function SignInPage() {
         return;
       }
 
-      // Success - redirect to home
+      // Success — the API route already verified credentials/rate limits;
+      // sign in client-side too so a real Firebase Auth session is established
+      // (this is what the rest of the app actually reads via onAuthStateChanged).
       if (data.success) {
-        // Store user info (use a proper auth state management in production)
-        localStorage.setItem('user', JSON.stringify(data.user));
+        await signInWithEmailAndPassword(auth, email, password);
         router.push('/');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      await ensureUserDoc(result.user, 'Google');
+      router.push('/');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setIsLoading(true);
+    setError('');
+    try {
+      const provider = new OAuthProvider('apple.com');
+      provider.addScope('email');
+      provider.addScope('name');
+      const result = await signInWithPopup(auth, provider);
+      await ensureUserDoc(result.user, 'Apple');
+      router.push('/');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Apple sign-in failed';
+      setError(errorMessage);
       setIsLoading(false);
     }
   };
@@ -129,6 +164,9 @@ export default function SignInPage() {
         </div>
 
         <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
           style={{
             width: '100%',
             padding: '10px',
@@ -138,8 +176,9 @@ export default function SignInPage() {
             border: '1px solid rgba(10,10,10,0.12)',
             background: '#FFFFFF',
             borderRadius: '10px',
-            cursor: 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             color: '#0A0A0A',
+            opacity: isLoading ? 0.5 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -156,6 +195,9 @@ export default function SignInPage() {
         </button>
 
         <button
+          type="button"
+          onClick={handleAppleSignIn}
+          disabled={isLoading}
           style={{
             width: '100%',
             padding: '10px',
@@ -165,8 +207,9 @@ export default function SignInPage() {
             border: 'none',
             background: '#000000',
             borderRadius: '10px',
-            cursor: 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             color: '#FFFFFF',
+            opacity: isLoading ? 0.5 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

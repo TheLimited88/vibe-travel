@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { sendVerificationEmail } from '@/lib/auth';
+import { ensureUserDoc } from '@/lib/ensureUserDoc';
 
 export default function CreateAccountPage() {
   const router = useRouter();
@@ -86,6 +87,39 @@ export default function CreateAccountPage() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    if (!agreedToPolicies) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      await ensureUserDoc(result.user, 'Google');
+      router.push('/');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    if (!agreedToPolicies) return;
+    setIsLoading(true);
+    setError('');
+    try {
+      const provider = new OAuthProvider('apple.com');
+      provider.addScope('email');
+      provider.addScope('name');
+      const result = await signInWithPopup(auth, provider);
+      await ensureUserDoc(result.user, 'Apple');
+      router.push('/');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Apple sign-in failed';
+      setError(errorMessage);
+      setIsLoading(false);
+    }
+  };
+
   const handleVerify = (e: React.FormEvent) => {
     e.preventDefault();
     // User will be redirected via email link to verify-email page
@@ -158,7 +192,25 @@ export default function CreateAccountPage() {
           </div>
         </div>
 
+        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '14px', cursor: 'pointer' }}>
+          <input
+            type="checkbox"
+            checked={agreedToPolicies}
+            onChange={(e) => setAgreedToPolicies(e.target.checked)}
+            style={{ marginTop: '2px', width: '14px', height: '14px', flexShrink: 0, cursor: 'pointer' }}
+          />
+          <span style={{ fontSize: '10px', color: 'rgba(10,10,10,0.5)', lineHeight: '1.4' }}>
+            I agree to Vibe Travel's{' '}
+            <a href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Terms of Service</a>
+            {' '}and{' '}
+            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Privacy Policy</a>.
+          </span>
+        </label>
+
         <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={!agreedToPolicies || isLoading}
           style={{
             width: '100%',
             padding: '10px',
@@ -168,8 +220,9 @@ export default function CreateAccountPage() {
             border: '1px solid rgba(10,10,10,0.12)',
             background: '#FFFFFF',
             borderRadius: '10px',
-            cursor: 'pointer',
+            cursor: !agreedToPolicies || isLoading ? 'not-allowed' : 'pointer',
             color: '#0A0A0A',
+            opacity: !agreedToPolicies || isLoading ? 0.5 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -186,6 +239,9 @@ export default function CreateAccountPage() {
         </button>
 
         <button
+          type="button"
+          onClick={handleAppleSignIn}
+          disabled={!agreedToPolicies || isLoading}
           style={{
             width: '100%',
             padding: '10px',
@@ -195,8 +251,9 @@ export default function CreateAccountPage() {
             border: 'none',
             background: '#000000',
             borderRadius: '10px',
-            cursor: 'pointer',
+            cursor: !agreedToPolicies || isLoading ? 'not-allowed' : 'pointer',
             color: '#FFFFFF',
+            opacity: !agreedToPolicies || isLoading ? 0.5 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -290,21 +347,6 @@ export default function CreateAccountPage() {
             {error}
           </div>
         )}
-
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '14px', cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={agreedToPolicies}
-            onChange={(e) => setAgreedToPolicies(e.target.checked)}
-            style={{ marginTop: '2px', width: '14px', height: '14px', flexShrink: 0, cursor: 'pointer' }}
-          />
-          <span style={{ fontSize: '10px', color: 'rgba(10,10,10,0.5)', lineHeight: '1.4' }}>
-            I agree to Vibe Travel's{' '}
-            <a href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Terms of Service</a>
-            {' '}and{' '}
-            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Privacy Policy</a>.
-          </span>
-        </label>
 
         <button
           type="button"
