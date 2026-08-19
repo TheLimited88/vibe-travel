@@ -290,7 +290,7 @@ export default function PlacePage() {
               <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.75 }}>Visited</span>
             </div>
             <button style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px', background: '#6B3FD1', border: 'none', borderRadius: '14px', padding: '9px 6px', color: '#fff', cursor: 'pointer' }}>
-              <span style={{ fontSize: '16px', lineHeight: '1' }}>⭐</span>
+              <span style={{ fontSize: '16px', lineHeight: '1' }}>★</span>
               <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>1401</span>
               <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.85 }}>Saved</span>
             </button>
