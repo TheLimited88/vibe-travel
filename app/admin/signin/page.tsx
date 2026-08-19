@@ -141,6 +141,7 @@ export default function AdminSignInPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
+                autoComplete="username"
                 style={{
                   width: '100%',
                   border: '1px solid rgba(10,10,10,0.12)',
@@ -148,7 +149,9 @@ export default function AdminSignInPage() {
                   padding: '12px 14px',
                   fontSize: '14px',
                   fontFamily: "'Inter',sans-serif",
+                  color: '#0A0A0A',
                   boxSizing: 'border-box',
+                  textAlign: 'left',
                 }}
               />
             </div>
@@ -163,40 +166,50 @@ export default function AdminSignInPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
                   style={{
                     width: '100%',
                     border: '1px solid rgba(10,10,10,0.12)',
                     borderRadius: '12px',
-                    padding: '12px 40px 12px 0',
+                    padding: '12px 44px 12px 14px',
                     fontSize: '14px',
                     fontFamily: "'Inter',sans-serif",
+                    color: '#0A0A0A',
                     boxSizing: 'border-box',
-                    textIndent: '0',
-                    paddingLeft: '0',
+                    textAlign: 'left',
                   }}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                   style={{
                     position: 'absolute',
-                    right: '12px',
+                    right: '10px',
                     top: '50%',
                     transform: 'translateY(-50%)',
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: '16px',
-                    color: 'rgba(10,10,10,0.4)',
-                    padding: '0',
-                    width: '20px',
-                    height: '20px',
+                    color: 'rgba(10,10,10,0.45)',
+                    padding: '4px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  {showPassword ? '◉' : '○'}
+                  {showPassword ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 3l18 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                      <path d="M10.6 5.2c.45-.07.92-.1 1.4-.1 6.4 0 10 7 10 7a17.4 17.4 0 01-3.3 4.3M6.5 6.6C3.7 8.5 2 12 2 12s3.6 7 10 7c1.4 0 2.6-.2 3.7-.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M9.5 10.5a3 3 0 004 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  )}
                 </button>
               </div>
             </div>
