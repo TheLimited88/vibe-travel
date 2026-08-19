@@ -339,8 +339,8 @@ export default function SignInPage() {
           {isLoading ? 'Signing in...' : 'Sign in'}
         </button>
 
-        <div style={{ fontSize: '10px', color: 'rgba(10,10,10,0.5)', lineHeight: '1.4', textAlign: 'center' }}>
-          By signing in you agree to Vibe Travel's <a href="#" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Terms of Service</a> and <a href="#" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Privacy Policy</a>.
+        <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.45)', lineHeight: '1.5', textAlign: 'center' }}>
+          By signing in you agree to Vibe Travel's <a href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Terms of Service</a> and <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Privacy Policy</a>.
         </div>
       </div>
     </div>

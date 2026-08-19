@@ -14,7 +14,6 @@ export default function CreateAccountPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [captchaChecked, setCaptchaChecked] = useState(false);
-  const [agreedToPolicies, setAgreedToPolicies] = useState(false);
   const [termsVersion, setTermsVersion] = useState<string | null>(null);
   const [privacyVersion, setPrivacyVersion] = useState<string | null>(null);
   const [showVerification, setShowVerification] = useState(false);
@@ -40,7 +39,7 @@ export default function CreateAccountPage() {
   }, []);
 
   const handleCreateAccount = async () => {
-    if (!isPasswordValid || !captchaChecked || !email || !agreedToPolicies) return;
+    if (!isPasswordValid || !captchaChecked || !email) return;
 
     setIsLoading(true);
     setError('');
@@ -88,7 +87,6 @@ export default function CreateAccountPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!agreedToPolicies) return;
     setIsLoading(true);
     setError('');
     try {
@@ -103,7 +101,6 @@ export default function CreateAccountPage() {
   };
 
   const handleAppleSignIn = async () => {
-    if (!agreedToPolicies) return;
     setIsLoading(true);
     setError('');
     try {
@@ -192,25 +189,10 @@ export default function CreateAccountPage() {
           </div>
         </div>
 
-        <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', marginBottom: '14px', cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={agreedToPolicies}
-            onChange={(e) => setAgreedToPolicies(e.target.checked)}
-            style={{ marginTop: '2px', width: '14px', height: '14px', flexShrink: 0, cursor: 'pointer' }}
-          />
-          <span style={{ fontSize: '10px', color: 'rgba(10,10,10,0.5)', lineHeight: '1.4' }}>
-            I agree to Vibe Travel's{' '}
-            <a href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Terms of Service</a>
-            {' '}and{' '}
-            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Privacy Policy</a>.
-          </span>
-        </label>
-
         <button
           type="button"
           onClick={handleGoogleSignIn}
-          disabled={!agreedToPolicies || isLoading}
+          disabled={isLoading}
           style={{
             width: '100%',
             padding: '10px',
@@ -220,9 +202,9 @@ export default function CreateAccountPage() {
             border: '1px solid rgba(10,10,10,0.12)',
             background: '#FFFFFF',
             borderRadius: '10px',
-            cursor: !agreedToPolicies || isLoading ? 'not-allowed' : 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             color: '#0A0A0A',
-            opacity: !agreedToPolicies || isLoading ? 0.5 : 1,
+            opacity: isLoading ? 0.5 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -241,7 +223,7 @@ export default function CreateAccountPage() {
         <button
           type="button"
           onClick={handleAppleSignIn}
-          disabled={!agreedToPolicies || isLoading}
+          disabled={isLoading}
           style={{
             width: '100%',
             padding: '10px',
@@ -251,9 +233,9 @@ export default function CreateAccountPage() {
             border: 'none',
             background: '#000000',
             borderRadius: '10px',
-            cursor: !agreedToPolicies || isLoading ? 'not-allowed' : 'pointer',
+            cursor: isLoading ? 'not-allowed' : 'pointer',
             color: '#FFFFFF',
-            opacity: !agreedToPolicies || isLoading ? 0.5 : 1,
+            opacity: isLoading ? 0.5 : 1,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -351,7 +333,7 @@ export default function CreateAccountPage() {
         <button
           type="button"
           onClick={handleCreateAccount}
-          disabled={!isPasswordValid || !captchaChecked || !email || !agreedToPolicies || isLoading}
+          disabled={!isPasswordValid || !captchaChecked || !email || isLoading}
           style={{
             width: '100%',
             padding: '11px',
@@ -363,11 +345,15 @@ export default function CreateAccountPage() {
             borderRadius: '12px',
             cursor: 'pointer',
             color: '#0A0A0A',
-            opacity: isPasswordValid && captchaChecked && email && agreedToPolicies && !isLoading ? 1 : 0.5,
+            opacity: isPasswordValid && captchaChecked && email && !isLoading ? 1 : 0.5,
           }}
         >
           {isLoading ? 'Creating account...' : 'Create account'}
         </button>
+
+        <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.45)', lineHeight: '1.5', textAlign: 'center' }}>
+          By creating an account you agree to Vibe Travel's <a href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Terms of Service</a> and <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#6B3FD1', textDecoration: 'none' }}>Privacy Policy</a>.
+        </div>
 
         {showVerification && (
           <>
