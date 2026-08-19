@@ -7,6 +7,43 @@ import Script from 'next/script';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
+// TEMP DEBUG: instrument Worker + fetch to diagnose why Mapbox tiles never render
+if (typeof window !== 'undefined' && !(window as any).__mapDebugPatched) {
+  (window as any).__mapDebugPatched = true;
+  (window as any).__workerLog = [];
+  (window as any).__fetchLog = [];
+  const OrigWorker = window.Worker;
+  window.Worker = new Proxy(OrigWorker, {
+    construct(target, args) {
+      (window as any).__workerLog.push({ url: String(args[0]).slice(0, 150), time: Date.now() });
+      try {
+        const w = new target(...(args as ConstructorParameters<typeof Worker>));
+        w.addEventListener('error', (e: ErrorEvent) => {
+          (window as any).__workerLog.push({ workerError: e.message, filename: e.filename, lineno: e.lineno });
+        });
+        return w;
+      } catch (e: any) {
+        (window as any).__workerLog.push({ constructError: e.message });
+        throw e;
+      }
+    },
+  });
+  const origFetch = window.fetch;
+  window.fetch = function (...args: Parameters<typeof fetch>) {
+    (window as any).__fetchLog.push({ url: String(args[0]).slice(0, 200), time: Date.now() });
+    return origFetch.apply(this, args).then(
+      (res) => {
+        (window as any).__fetchLog.push({ url: String(args[0]).slice(0, 200), status: res.status, ok: res.ok });
+        return res;
+      },
+      (err) => {
+        (window as any).__fetchLog.push({ url: String(args[0]).slice(0, 200), fetchError: err.message });
+        throw err;
+      }
+    );
+  };
+}
+
 // Build color map from canonical categories
 const categoryColorMap = categories.reduce((map, cat) => {
   map[cat.key] = cat.color;
