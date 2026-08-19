@@ -9,6 +9,10 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 
 const GOOGLE_MAPS_API_KEY = 'AIzaSyASw89W0DUvoLSCkDHcdl2d-KEuosJ9Nvg';
 
+function isVideoUrl(url: string): boolean {
+  return /\.(mp4|mov|m4v)(\?|$)/i.test(url);
+}
+
 const VIBE_TAGS = [
   'Bucket List', 'Must See', 'Iconic', 'Tourist Favourite', 'Local Favourite', 'Hidden Gem', 'Local Secret',
   'Off the Beaten Path', 'Odd but Interesting', 'Quirky', 'Unique', 'Ancient', 'Historic', 'Military History',
@@ -368,20 +372,45 @@ export default function EditPlacePage() {
     if (!file || galleryImages.length >= 6) return;
 
     setUploadingGallery(true);
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', 'gallery');
-
     try {
-      const res = await fetch('/api/admin/upload-image', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (data.success) {
-        setGalleryImages([...galleryImages, { url: data.url, key: data.key }]);
+      if (file.type.startsWith('video/')) {
+        const urlRes = await fetch('/api/admin/upload-video-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contentType: file.type, size: file.size }),
+        });
+        const urlData = await urlRes.json();
+        if (!urlData.success) {
+          alert(urlData.error || 'Video upload failed');
+        } else {
+          const putRes = await fetch(urlData.uploadUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': file.type },
+            body: file,
+          });
+          if (putRes.ok) {
+            setGalleryImages([...galleryImages, { url: urlData.publicUrl, key: urlData.key }]);
+          } else {
+            alert('Video upload failed');
+          }
+        }
+      } else {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('type', 'gallery');
+        const res = await fetch('/api/admin/upload-image', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+          setGalleryImages([...galleryImages, { url: data.url, key: data.key }]);
+        } else {
+          alert(data.error || 'Upload failed');
+        }
       }
     } catch (error) {
       alert('Upload failed');
     }
     setUploadingGallery(false);
+    e.target.value = '';
   };
 
   const deleteHero = async () => {
@@ -873,7 +902,16 @@ export default function EditPlacePage() {
               <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
                 {galleryImages.map((img, idx) => (
                   <div key={idx} style={{ position: 'relative', flexShrink: 0, width: '88px', height: '156px', borderRadius: '10px', overflow: 'hidden' }}>
-                    <img src={img.url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {isVideoUrl(img.url) ? (
+                      <>
+                        <video src={img.url} muted playsInline style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.15)', pointerEvents: 'none' }}>
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8 5v14l11-7z" fill="#fff" /></svg>
+                        </div>
+                      </>
+                    ) : (
+                      <img src={img.url} alt={`Gallery ${idx}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    )}
                     <button onClick={() => deleteGalleryImage(idx)} style={{ position: 'absolute', top: '2px', right: '2px', background: '#C23B3B', color: '#fff', border: 'none', borderRadius: '4px', padding: '2px 4px', fontSize: '9px', fontWeight: '700', cursor: 'pointer' }}>✕</button>
                   </div>
                 ))}
@@ -883,7 +921,7 @@ export default function EditPlacePage() {
                   </button>
                 )}
               </div>
-              <input ref={galleryInputRef} type="file" accept="image/*" onChange={handleGalleryUpload} style={{ display: 'none' }} />
+              <input ref={galleryInputRef} type="file" accept="image/*,video/mp4,video/quicktime,video/x-m4v" onChange={handleGalleryUpload} style={{ display: 'none' }} />
             </div>
 
             {/* Supporting Videos */}
