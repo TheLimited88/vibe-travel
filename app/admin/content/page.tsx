@@ -166,7 +166,7 @@ export default function ContentPage() {
                     <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#0A0A0A', margin: 0 }}>{section.content}</h2>
                   )}
                   {section.type === 'text' && (
-                    <p style={{ fontSize: '14px', color: 'rgba(10,10,10,0.7)', margin: 0, lineHeight: '1.6' }}>{section.content}</p>
+                    <p style={{ fontSize: '14px', color: 'rgba(10,10,10,0.7)', margin: 0, lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{section.content}</p>
                   )}
                   {section.type === 'youtube' && section.content && (
                     <div style={{ width: '100%', height: '200px', borderRadius: '12px', background: '#f0f0f0', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: 'rgba(10,10,10,0.6)' }}>▶ YouTube Video</div>
