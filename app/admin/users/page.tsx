@@ -260,7 +260,7 @@ export default function UsersPage() {
 
       {/* Edit User Modal */}
       {editingUser && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,10,10,0.45)', display: 'flex', alignItems: 'flex-end', zIndex: 50 }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(10,10,10,0.45)', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', zIndex: 50 }}>
           <div style={{ background: '#fff', borderRadius: '24px 24px 0 0', width: '100%', maxWidth: '375px', padding: '24px 16px 32px', display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ fontSize: '18px', fontWeight: '700', color: '#0A0A0A' }}>Edit user</div>
 
