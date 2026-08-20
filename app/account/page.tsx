@@ -3,17 +3,26 @@
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import Link from 'next/link';
+import { signOut } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { useAuth } from '@/components/AuthProvider';
 
 export default function AccountPage() {
   const router = useRouter();
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const { user, loading } = useAuth();
+  const isSignedIn = !!user;
   const [distanceUnit, setDistanceUnit] = useState('mi');
   const [newPlacesNearby, setNewPlacesNearby] = useState(true);
   const [geofencePrompts, setGeofencePrompts] = useState(false);
 
   const userInfo = {
-    name: 'Jordan Lee',
-    email: 'jordan.lee@example.com',
+    name: user?.displayName || 'there',
+    email: user?.email || '',
+  };
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    router.push('/');
   };
 
   return (
@@ -44,7 +53,7 @@ export default function AccountPage() {
           </div>
 
           {/* Signed Out State */}
-          {!isSignedIn && (
+          {!loading && !isSignedIn && (
             <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '14px', flex: 1 }}>
               <div style={{
                 background: '#fff',
@@ -61,7 +70,7 @@ export default function AccountPage() {
                   Sign in to manage your account, saved places, and visited places.
                 </div>
                 <button
-                  onClick={() => router.push('/auth/signup')}
+                  onClick={() => router.push('/auth/create-account')}
                   style={{
                     background: '#3EE8A8',
                     color: '#0A0A0A',
@@ -232,10 +241,7 @@ export default function AccountPage() {
               {/* Actions Section */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingTop: '24px', borderTop: '1px solid rgba(10,10,10,0.06)' }}>
                 <button
-                  onClick={() => {
-                    setIsSignedIn(false);
-                    router.push('/');
-                  }}
+                  onClick={handleSignOut}
                   style={{
                     padding: '12px 0',
                     background: 'none',
