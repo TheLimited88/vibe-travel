@@ -1,8 +1,12 @@
-const imgVibeTravel = "https://www.figma.com/api/mcp/asset/1f68b835-50df-46db-9a5c-cbedf58de9f6.png";
-const imgMapIcon = "https://www.figma.com/api/mcp/asset/dfe3dee6-4513-482d-9fab-a5c5754c79e4.svg";
-const imgAccountIcon = "https://www.figma.com/api/mcp/asset/9ac3fa6d-5060-46a0-99f0-c58858fbb192.svg";
+'use client';
+
+import { useRouter } from 'next/navigation';
+
+const imgVibeTravel = "/vibe-travel-logo-v2-cropped.png";
 
 export default function Header() {
+  const router = useRouter();
+
   return (
     <header
       style={{
@@ -58,6 +62,8 @@ export default function Header() {
             </svg>
           </button>
           <button
+            onClick={() => router.push('/account')}
+            aria-label="Account"
             style={{
               width: '44px',
               height: '44px',

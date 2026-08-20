@@ -37,7 +37,7 @@ export default function Home() {
   const trending = sortedByPopularity.slice(0, 3);
 
   return (
-    <div style={{ background: '#F9F8F6', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: '#F9F8F6', minHeight: '100vh', display: 'flex', justifyContent: 'center' }}>
       <BeforeExploreModal />
       <TermsPoliciesModal />
       <PWAInstallPrompt />
@@ -59,7 +59,7 @@ export default function Home() {
       <div
         style={{
           width: '100%',
-          maxWidth: '100vw',
+          maxWidth: '375px',
           minHeight: '100vh',
           background: '#F2F2F7',
           display: 'flex',
