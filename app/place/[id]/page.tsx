@@ -76,7 +76,7 @@ export default function PlacePage() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#0A0A0A' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#F9F8F6' }}>
         <div style={{ width: '100%', maxWidth: '375px', height: '812px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
           <span style={{ fontSize: '14px', color: 'rgba(10,10,10,0.5)' }}>Loading...</span>
         </div>
@@ -86,7 +86,7 @@ export default function PlacePage() {
 
   if (!place) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#0A0A0A' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#F9F8F6' }}>
         <div style={{ width: '100%', maxWidth: '375px', height: '812px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', background: '#fff', padding: '20px' }}>
           <span style={{ fontSize: '16px', fontWeight: 700, color: '#0A0A0A' }}>Place not found</span>
           <button
@@ -101,7 +101,7 @@ export default function PlacePage() {
   }
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#0A0A0A' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#F9F8F6' }}>
     <div style={{ width: '100%', maxWidth: '375px', height: '812px', position: 'relative', background: '#000', overflow: 'hidden' }}>
       {/* Full-bleed Media Gallery */}
       <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', overflow: 'hidden' }}>
