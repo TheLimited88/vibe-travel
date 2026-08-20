@@ -67,7 +67,7 @@ export default function Home() {
           overflow: 'hidden',
         }}
       >
-        <div style={{ background: '#F4F2F8', flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden', paddingBottom: '72px', paddingTop: '32px' }}>
+        <div style={{ background: '#F4F2F8', flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', overflowX: 'hidden' }}>
           <Header />
 
           <main style={{ flex: 1, overflowY: 'auto', padding: '0 16px' }}>

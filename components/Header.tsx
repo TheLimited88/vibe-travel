@@ -10,7 +10,7 @@ export default function Header() {
   return (
     <header
       style={{
-        padding: '58px 16px 10px',
+        padding: '20px 16px 10px',
         flexShrink: 0,
       }}
     >
