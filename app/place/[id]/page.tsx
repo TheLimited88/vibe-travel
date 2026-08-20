@@ -76,28 +76,33 @@ export default function PlacePage() {
 
   if (loading) {
     return (
-      <div style={{ width: '100%', maxWidth: '375px', height: '812px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', background: '#fff' }}>
-        <span style={{ fontSize: '14px', color: 'rgba(10,10,10,0.5)' }}>Loading...</span>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#0A0A0A' }}>
+        <div style={{ width: '100%', maxWidth: '375px', height: '812px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#fff' }}>
+          <span style={{ fontSize: '14px', color: 'rgba(10,10,10,0.5)' }}>Loading...</span>
+        </div>
       </div>
     );
   }
 
   if (!place) {
     return (
-      <div style={{ width: '100%', maxWidth: '375px', height: '812px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', margin: '0 auto', background: '#fff', padding: '20px' }}>
-        <span style={{ fontSize: '16px', fontWeight: 700, color: '#0A0A0A' }}>Place not found</span>
-        <button
-          onClick={() => router.push('/')}
-          style={{ background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '11px 20px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
-        >
-          Back to home
-        </button>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#0A0A0A' }}>
+        <div style={{ width: '100%', maxWidth: '375px', height: '812px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', background: '#fff', padding: '20px' }}>
+          <span style={{ fontSize: '16px', fontWeight: 700, color: '#0A0A0A' }}>Place not found</span>
+          <button
+            onClick={() => router.push('/')}
+            style={{ background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '11px 20px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
+          >
+            Back to home
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ width: '100%', maxWidth: '375px', height: '812px', position: 'relative', background: '#000', margin: '0 auto', overflow: 'hidden' }}>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', background: '#0A0A0A' }}>
+    <div style={{ width: '100%', maxWidth: '375px', height: '812px', position: 'relative', background: '#000', overflow: 'hidden' }}>
       {/* Full-bleed Media Gallery */}
       <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', overflow: 'hidden' }}>
         {/* Segmented Progress Bars */}
@@ -322,28 +327,25 @@ export default function PlacePage() {
           </svg>
         </button>
 
-        {/* Title and Category - Fixed at top */}
-        <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}>
-          <span style={{ fontSize: '20px', fontWeight: '800', color: '#0A0A0A' }}>{place.title}</span>
-          <span style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', background: 'rgba(127,83,243,0.1)', borderRadius: '999px', padding: '3px 10px 3px 4px' }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: '#6B3FD1' }}>
-              <g dangerouslySetInnerHTML={{ __html: category.icon }} />
-            </svg>
-            {category.label}
-          </span>
-        </div>
-
         {/* Scrollable Content */}
         <div style={{ flex: 1, overflow: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* Vibe chips and details */}
-          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {place.vibes.map((vibe) => (
-              <span key={vibe} style={{ fontSize: '11px', fontWeight: '600', color: '#0A9B71', background: 'rgba(10,155,113,0.1)', borderRadius: '999px', padding: '3px 10px' }}>
-                {vibe}
-              </span>
-            ))}
-          </div>
           <button onClick={() => setIsExpanded(true)} style={{ display: 'flex', flexDirection: 'column', gap: '5px', width: '100%', background: 'none', border: 'none', font: 'inherit', textAlign: 'left', padding: '0', margin: '0', cursor: 'pointer', minWidth: 0 }}>
+            <span style={{ fontSize: '20px', fontWeight: '800', color: '#0A0A0A' }}>{place.title}</span>
+            <span style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', background: 'rgba(127,83,243,0.1)', borderRadius: '999px', padding: '3px 10px 3px 4px' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: '#6B3FD1' }}>
+                <g dangerouslySetInnerHTML={{ __html: category.icon }} />
+              </svg>
+              {category.label}
+            </span>
+            {place.vibes.length > 0 && (
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                {place.vibes.map((vibe) => (
+                  <span key={vibe} style={{ fontSize: '11px', fontWeight: '600', color: '#0A9B71', background: 'rgba(10,155,113,0.1)', borderRadius: '999px', padding: '3px 10px' }}>
+                    {vibe}
+                  </span>
+                ))}
+              </div>
+            )}
             <span style={{ fontSize: '13.5px', color: 'rgba(10,10,10,0.6)' }}>
               {place.subtitle}
             </span>
@@ -529,6 +531,7 @@ export default function PlacePage() {
           )}
         </div>
       </div>
+    </div>
     </div>
   );
 }
