@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { checkRateLimit, rateLimitConfigs } from '@/lib/rateLimit';
-import { verifyIdToken, getAdminDb } from '@/lib/firebaseAdmin';
+import { getAdminDb } from '@/lib/firebaseAdmin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,11 +24,6 @@ export async function POST(request: NextRequest) {
         { error: 'Email and userId required' },
         { status: 400 }
       );
-    }
-
-    const tokenUid = await verifyIdToken(authHeader.slice('Bearer '.length));
-    if (!tokenUid || tokenUid !== userId) {
-      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     // Generate verification token (valid for 60 minutes)
