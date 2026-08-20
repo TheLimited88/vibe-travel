@@ -1,10 +1,25 @@
 'use client';
 
 import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { categories } from '@/data/categories';
 import PlaceDirections from '@/components/PlaceDirections';
 import PlaceLocationMap from '@/components/PlaceLocationMap';
+import { useAuth } from '@/components/AuthProvider';
+
+interface ReviewSummary {
+  reviewCount: number;
+  upCount: number;
+  downCount: number;
+  vibeTagCounts: Record<string, number>;
+}
+
+interface ReviewStatus {
+  signedIn: boolean;
+  hasArrived: boolean;
+  review: { thumbsUp: boolean; vibeTags: string[] } | null;
+  summary: ReviewSummary;
+}
 
 interface PlaceMedia {
   url: string;
@@ -42,8 +57,11 @@ export default function PlacePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [vibeVoteExpanded, setVibeVoteExpanded] = useState(false);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
-  const [placeVerdict, setPlaceVerdict] = useState<'up' | 'down' | null>(null);
   const [adminPhotoUrl, setAdminPhotoUrl] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewError, setReviewError] = useState('');
 
   useEffect(() => {
     if (!slug) return;
@@ -60,8 +78,61 @@ export default function PlacePage() {
       .catch(() => setAdminPhotoUrl(null));
   }, []);
 
+  const refreshReviewStatus = useCallback(async () => {
+    if (!slug) return;
+    const headers: HeadersInit = {};
+    if (user) {
+      const token = await user.getIdToken();
+      headers.Authorization = `Bearer ${token}`;
+    }
+    const res = await fetch(`/api/places/${encodeURIComponent(slug)}/review`, { headers });
+    const data = await res.json();
+    setReviewStatus(data);
+  }, [slug, user]);
+
+  useEffect(() => {
+    refreshReviewStatus();
+  }, [refreshReviewStatus]);
+
+  useEffect(() => {
+    if (reviewStatus?.review) {
+      setSelectedVibes(reviewStatus.review.vibeTags);
+    }
+  }, [reviewStatus]);
+
+  const submitReview = async (thumbsUp: boolean) => {
+    if (!user || submittingReview) return;
+    setSubmittingReview(true);
+    setReviewError('');
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`/api/places/${encodeURIComponent(slug)}/review`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ thumbsUp, vibeTags: selectedVibes }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setReviewError(data.error || 'Failed to submit review');
+        return;
+      }
+      await refreshReviewStatus();
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   const category = categories.find((c) => c.key === place?.category) || categories[0];
   const media = place ? [place.heroImage, ...place.galleryImages].filter((m): m is PlaceMedia => !!m) : [];
+
+  const summary = reviewStatus?.summary || { reviewCount: 0, upCount: 0, downCount: 0, vibeTagCounts: {} };
+  const verdictIsUp = summary.upCount >= summary.downCount;
+  const attendeePct = summary.reviewCount > 0
+    ? Math.round(100 * (verdictIsUp ? summary.upCount : summary.downCount) / summary.reviewCount)
+    : 0;
+  const alreadyReviewed = !!reviewStatus?.review;
+  const canReview = !!reviewStatus?.signedIn && !!reviewStatus?.hasArrived && !alreadyReviewed;
+  const activeVerdict = reviewStatus?.review ? (reviewStatus.review.thumbsUp ? 'up' : 'down') : null;
 
   const vibeOptions = [
     'Peaceful',
@@ -408,6 +479,7 @@ export default function PlacePage() {
               lng: place.lng ?? 0,
               address: place.address,
             }}
+            onArrived={refreshReviewStatus}
           />
 
           {/* Expanded Content */}
@@ -459,8 +531,12 @@ export default function PlacePage() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A' }}>Reviews (0) · 👍 · 0% &apos;Worth it&apos;</div>
-                  <div style={{ fontSize: '12.5px', color: 'rgba(10,10,10,0.65)' }}>👍 Worth the trip (0) · 👎 Not worth it (0)</div>
+                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A' }}>
+                    Reviews ({summary.reviewCount}) · {verdictIsUp ? '👍' : '👎'} · {attendeePct}% &apos;{verdictIsUp ? 'Worth it' : 'Not worth it'}&apos;
+                  </div>
+                  <div style={{ fontSize: '12.5px', color: 'rgba(10,10,10,0.65)' }}>
+                    👍 Worth the trip ({summary.upCount}) · 👎 Not worth it ({summary.downCount})
+                  </div>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -478,7 +554,8 @@ export default function PlacePage() {
                   <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Rate this Place</span>
                   <div style={{ display: 'flex', gap: '10px' }}>
                     <button
-                      onClick={() => setPlaceVerdict(placeVerdict === 'up' ? null : 'up')}
+                      onClick={() => canReview && submitReview(true)}
+                      disabled={!canReview || submittingReview}
                       style={{
                         flex: 1,
                         display: 'flex',
@@ -489,16 +566,18 @@ export default function PlacePage() {
                         padding: '11px',
                         fontSize: '13px',
                         fontWeight: '700',
-                        cursor: 'pointer',
-                        border: `1px solid ${placeVerdict === 'up' ? '#7F53F3' : 'rgba(10,10,10,0.08)'}`,
-                        background: placeVerdict === 'up' ? 'rgba(127,83,243,0.1)' : '#fff',
-                        color: placeVerdict === 'up' ? '#7F53F3' : '#0A0A0A',
+                        cursor: canReview && !submittingReview ? 'pointer' : 'not-allowed',
+                        opacity: !reviewStatus?.signedIn || (reviewStatus?.signedIn && !reviewStatus?.hasArrived) ? 0.5 : 1,
+                        border: `1px solid ${activeVerdict === 'up' ? '#7F53F3' : 'rgba(10,10,10,0.08)'}`,
+                        background: activeVerdict === 'up' ? 'rgba(127,83,243,0.1)' : '#fff',
+                        color: activeVerdict === 'up' ? '#7F53F3' : '#0A0A0A',
                       }}
                     >
                       👍 Worth the trip
                     </button>
                     <button
-                      onClick={() => setPlaceVerdict(placeVerdict === 'down' ? null : 'down')}
+                      onClick={() => canReview && submitReview(false)}
+                      disabled={!canReview || submittingReview}
                       style={{
                         flex: 1,
                         display: 'flex',
@@ -509,15 +588,26 @@ export default function PlacePage() {
                         padding: '11px',
                         fontSize: '13px',
                         fontWeight: '700',
-                        cursor: 'pointer',
-                        border: `1px solid ${placeVerdict === 'down' ? '#7F53F3' : 'rgba(10,10,10,0.08)'}`,
-                        background: placeVerdict === 'down' ? 'rgba(127,83,243,0.1)' : '#fff',
-                        color: placeVerdict === 'down' ? '#7F53F3' : '#0A0A0A',
+                        cursor: canReview && !submittingReview ? 'pointer' : 'not-allowed',
+                        opacity: !reviewStatus?.signedIn || (reviewStatus?.signedIn && !reviewStatus?.hasArrived) ? 0.5 : 1,
+                        border: `1px solid ${activeVerdict === 'down' ? '#7F53F3' : 'rgba(10,10,10,0.08)'}`,
+                        background: activeVerdict === 'down' ? 'rgba(127,83,243,0.1)' : '#fff',
+                        color: activeVerdict === 'down' ? '#7F53F3' : '#0A0A0A',
                       }}
                     >
                       👎 Not worth it
                     </button>
                   </div>
+                  {!alreadyReviewed && (
+                    <span style={{ fontSize: '11px', color: 'rgba(10,10,10,0.45)' }}>
+                      {!reviewStatus?.signedIn
+                        ? 'Sign in and visit this place to rate it'
+                        : !reviewStatus?.hasArrived
+                          ? 'Visit this place to unlock rating'
+                          : ''}
+                    </span>
+                  )}
+                  {reviewError && <span style={{ fontSize: '11px', color: '#E85D75' }}>{reviewError}</span>}
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
@@ -556,13 +646,14 @@ export default function PlacePage() {
                           <button
                             key={vibe}
                             onClick={() => {
+                              if (alreadyReviewed) return;
                               if (selectedVibes.includes(vibe)) {
                                 setSelectedVibes(selectedVibes.filter((v) => v !== vibe));
                               } else if (selectedVibes.length < 2) {
                                 setSelectedVibes([...selectedVibes, vibe]);
                               }
                             }}
-                            disabled={selectedVibes.length >= 2 && !selectedVibes.includes(vibe)}
+                            disabled={alreadyReviewed || (selectedVibes.length >= 2 && !selectedVibes.includes(vibe))}
                             style={{
                               padding: '8px 12px',
                               borderRadius: '999px',
@@ -571,8 +662,8 @@ export default function PlacePage() {
                               color: selectedVibes.includes(vibe) ? '#fff' : '#0A0A0A',
                               fontSize: '12px',
                               fontWeight: '600',
-                              cursor: selectedVibes.length >= 2 && !selectedVibes.includes(vibe) ? 'not-allowed' : 'pointer',
-                              opacity: selectedVibes.length >= 2 && !selectedVibes.includes(vibe) ? 0.5 : 1,
+                              cursor: alreadyReviewed || (selectedVibes.length >= 2 && !selectedVibes.includes(vibe)) ? 'not-allowed' : 'pointer',
+                              opacity: alreadyReviewed && !selectedVibes.includes(vibe) ? 0.4 : selectedVibes.length >= 2 && !selectedVibes.includes(vibe) ? 0.5 : 1,
                             }}
                           >
                             {vibe}

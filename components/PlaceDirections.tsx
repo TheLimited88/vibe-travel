@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useGeofence } from '@/hooks/useGeofence';
+import { useAuth } from '@/components/AuthProvider';
 
 interface Place {
   id: string;
@@ -18,26 +19,41 @@ interface Place {
 
 interface PlaceDirectionsProps {
   place: Place;
+  onArrived?: () => void;
 }
 
-export default function PlaceDirections({ place }: PlaceDirectionsProps) {
+export default function PlaceDirections({ place, onArrived }: PlaceDirectionsProps) {
   const { startMonitoring, checkArrivalOnReturn, status } = useGeofence();
+  const { user } = useAuth();
   const [chooserOpen, setChooserOpen] = useState(false);
   const [arrivalToast, setArrivalToast] = useState('');
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isMonitoringRef = useRef(status.isMonitoring);
   isMonitoringRef.current = status.isMonitoring;
+  const userRef = useRef(user);
+  userRef.current = user;
 
   useEffect(() => {
     const onVisibilityChange = () => {
       if (document.visibilityState !== 'visible' || !isMonitoringRef.current) return;
 
-      checkArrivalOnReturn().then((arrived) => {
+      checkArrivalOnReturn().then(async (arrived) => {
         if (!arrived) return;
+
         setArrivalToast(`You've arrived at ${place.name}`);
         if (toastTimer.current) clearTimeout(toastTimer.current);
         toastTimer.current = setTimeout(() => setArrivalToast(''), 2200);
+
+        const currentUser = userRef.current;
+        if (currentUser) {
+          const token = await currentUser.getIdToken();
+          await fetch(`/api/places/${encodeURIComponent(place.id)}/arrival`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          onArrived?.();
+        }
       });
     };
 
@@ -46,7 +62,7 @@ export default function PlaceDirections({ place }: PlaceDirectionsProps) {
       document.removeEventListener('visibilitychange', onVisibilityChange);
       if (toastTimer.current) clearTimeout(toastTimer.current);
     };
-  }, [checkArrivalOnReturn, place.name]);
+  }, [checkArrivalOnReturn, place.name, place.id, onArrived]);
 
   const openNavApp = (url: string) => {
     window.open(url, '_blank');
