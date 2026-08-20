@@ -53,7 +53,7 @@ export default function PlaceDirections({ place }: PlaceDirectionsProps) {
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
         <path d="M12 2L4.5 20l7.5-4 7.5 4L12 2z" fill="#0A0A0A" />
       </svg>
-      Get Directions
+      Open in Maps
     </button>
   );
 }
