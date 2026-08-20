@@ -43,17 +43,7 @@ export async function POST(request: NextRequest) {
     const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${token}`;
 
     // Send email via SendGrid
-    const sgMailResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email }] }],
-        from: { email: process.env.SENDGRID_FROM_EMAIL },
-        subject: 'Verify Your Email',
-        html: `
+    const emailHtml = `
           <!DOCTYPE html>
           <html>
             <head>
@@ -91,7 +81,22 @@ export async function POST(request: NextRequest) {
               </div>
             </body>
           </html>
-        `,
+        `;
+
+    const sgMailResponse = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.SENDGRID_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email }] }],
+        from: { email: process.env.SENDGRID_FROM_EMAIL },
+        subject: 'Verify Your Email',
+        content: [
+          { type: 'text/plain', value: `Verify your email by visiting: ${verifyLink}` },
+          { type: 'text/html', value: emailHtml },
+        ],
       }),
     });
 
