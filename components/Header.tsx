@@ -1,16 +1,16 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-
-const imgVibeTravel = "/vibe-travel-logo-v2-cropped.png";
+import { useAuth } from '@/components/AuthProvider';
 
 export default function Header() {
   const router = useRouter();
+  const { user } = useAuth();
 
   return (
     <header
       style={{
-        padding: '12px 18px',
+        padding: '58px 16px 10px',
         flexShrink: 0,
       }}
     >
@@ -22,18 +22,15 @@ export default function Header() {
           gap: '12px',
         }}
       >
-        <div
-          style={{
-            height: '28px',
-            aspectRatio: '150.95/28',
-            backgroundImage: `url('${imgVibeTravel}')`,
-            backgroundSize: 'contain',
-            backgroundRepeat: 'no-repeat',
-            backgroundPosition: 'left center',
-          }}
+        <img
+          src="/vibe-travel-logo-v2-cropped.png"
+          alt="Vibe Travel"
+          style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
+            onClick={() => router.push('/map')}
+            aria-label="Map view"
             style={{
               width: '44px',
               height: '44px',
@@ -68,7 +65,7 @@ export default function Header() {
               width: '44px',
               height: '44px',
               borderRadius: '999px',
-              background: '#7F53F3',
+              background: user ? '#7F53F3' : 'rgba(10,10,10,0.6)',
               border: 'none',
               display: 'flex',
               alignItems: 'center',
