@@ -285,7 +285,7 @@ export default function PlacePage() {
           flexDirection: 'column',
           transition: 'height 0.25s ease',
           overflow: 'hidden',
-          height: isExpanded ? '86%' : '378px',
+          height: isExpanded ? '86%' : '364px',
         }}
       >
         {/* Chevron Button */}
@@ -333,7 +333,7 @@ export default function PlacePage() {
         </div>
 
         {/* Scrollable Content */}
-        <div style={{ flex: 1, overflow: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div style={{ flex: 1, overflow: 'auto', padding: '0 16px 10px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {/* Vibe chips and details */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
             {place.vibes.map((vibe) => (
