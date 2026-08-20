@@ -397,6 +397,7 @@ export default function PlacePage() {
               name: place.title,
               lat: place.lat ?? 0,
               lng: place.lng ?? 0,
+              address: place.address,
             }}
           />
 
