@@ -169,7 +169,7 @@ export default function PlacePage() {
           style={{
             position: 'absolute',
             top: '74px',
-            right: '56px',
+            right: '66px',
             width: '44px',
             height: '44px',
             borderRadius: '999px',
@@ -217,7 +217,7 @@ export default function PlacePage() {
         {/* Distance Badge */}
         <div style={{
           position: 'absolute',
-          top: '118px',
+          top: '132px',
           left: '14px',
           display: 'flex',
           alignItems: 'center',
@@ -285,7 +285,7 @@ export default function PlacePage() {
           flexDirection: 'column',
           transition: 'height 0.25s ease',
           overflow: 'hidden',
-          height: isExpanded ? '86%' : '330px',
+          height: isExpanded ? '86%' : '400px',
         }}
       >
         {/* Chevron Button */}
