@@ -285,7 +285,7 @@ export default function PlacePage() {
           flexDirection: 'column',
           transition: 'height 0.25s ease',
           overflow: 'hidden',
-          height: isExpanded ? '86%' : '400px',
+          height: isExpanded ? '86%' : '378px',
         }}
       >
         {/* Chevron Button */}
