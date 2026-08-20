@@ -64,6 +64,33 @@ export function useGeofence() {
   }, []);
 
   /**
+   * One-shot arrival check, e.g. when the app regains focus after
+   * the user returns from a maps app. Resolves true/false; false if
+   * there's no active session or location can't be read.
+   */
+  const checkArrivalOnReturn = useCallback((): Promise<boolean> => {
+    return new Promise((resolve) => {
+      if (!geofenceService.getSessionStatus().isActive || !('geolocation' in navigator)) {
+        resolve(false);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const arrived = geofenceService.checkArrival(
+            position.coords.latitude,
+            position.coords.longitude,
+            position.coords.accuracy
+          );
+          resolve(arrived);
+        },
+        () => resolve(false),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    });
+  }, []);
+
+  /**
    * Update geofence service with FCM token
    */
   useEffect(() => {
@@ -103,6 +130,7 @@ export function useGeofence() {
   return {
     startMonitoring,
     stopMonitoring,
+    checkArrivalOnReturn,
     status,
   };
 }

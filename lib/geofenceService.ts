@@ -262,6 +262,23 @@ export class GeofenceService {
   }
 
   /**
+   * One-shot check: is this location within the active session's geofence?
+   * Used when the app regains focus (e.g. returning from a maps app).
+   */
+  checkArrival(lat: number, lng: number, accuracy: number): boolean {
+    if (!this.directionSession) return false;
+
+    const distance = this.calculateDistance(
+      lat,
+      lng,
+      this.directionSession.placeCoords.lat,
+      this.directionSession.placeCoords.lng
+    );
+
+    return this.checkDistanceZone(distance, accuracy);
+  }
+
+  /**
    * Trigger push notification via Firebase
    */
   triggerNotification(fcmTokens?: string[]) {

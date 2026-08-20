@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGeofence } from '@/hooks/useGeofence';
 
 interface Place {
@@ -21,8 +21,32 @@ interface PlaceDirectionsProps {
 }
 
 export default function PlaceDirections({ place }: PlaceDirectionsProps) {
-  const { startMonitoring } = useGeofence();
+  const { startMonitoring, checkArrivalOnReturn, status } = useGeofence();
   const [chooserOpen, setChooserOpen] = useState(false);
+  const [arrivalToast, setArrivalToast] = useState('');
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const isMonitoringRef = useRef(status.isMonitoring);
+  isMonitoringRef.current = status.isMonitoring;
+
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (document.visibilityState !== 'visible' || !isMonitoringRef.current) return;
+
+      checkArrivalOnReturn().then((arrived) => {
+        if (!arrived) return;
+        setArrivalToast(`You've arrived at ${place.name}`);
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(() => setArrivalToast(''), 2200);
+      });
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, [checkArrivalOnReturn, place.name]);
 
   const openNavApp = (url: string) => {
     window.open(url, '_blank');
@@ -158,6 +182,26 @@ export default function PlaceDirections({ place }: PlaceDirectionsProps) {
               Cancel
             </button>
           </div>
+        </div>
+      )}
+
+      {arrivalToast && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '24px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#0A0A0A',
+            color: '#fff',
+            padding: '10px 18px',
+            borderRadius: '999px',
+            fontSize: '13px',
+            fontWeight: 600,
+            zIndex: 1020,
+          }}
+        >
+          {arrivalToast}
         </div>
       )}
     </>
