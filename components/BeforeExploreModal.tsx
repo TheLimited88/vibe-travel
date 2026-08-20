@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 'use client';
 
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, ReactNode, CSSProperties } from 'react';
 
 interface PermissionItem {
   id: string;
@@ -13,6 +13,9 @@ interface PermissionItem {
 export default function BeforeExploreModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [choices, setChoices] = useState<Record<string, 'allow' | 'deny'>>({});
+  const [installGuideOpen, setInstallGuideOpen] = useState(false);
+  const [installGuideDevice, setInstallGuideDevice] = useState<'ios' | 'android'>('ios');
+  const [toast, setToast] = useState('');
 
   const permissions: PermissionItem[] = [
     {
@@ -63,6 +66,10 @@ export default function BeforeExploreModal() {
         setIsOpen(true);
       }
     }
+
+    if (/android/i.test(navigator.userAgent)) {
+      setInstallGuideDevice('android');
+    }
   }, []);
 
   const handleDeny = (permissionId: string) => {
@@ -76,8 +83,18 @@ export default function BeforeExploreModal() {
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();
       }
+    } else if (permissionId === 'install') {
+      setInstallGuideOpen(true);
+      return;
     }
     setChoices(prev => ({ ...prev, [permissionId]: 'allow' }));
+  };
+
+  const finishInstallGuide = () => {
+    setInstallGuideOpen(false);
+    setChoices(prev => ({ ...prev, install: 'allow' }));
+    setToast('Installing Vibe Travel…');
+    setTimeout(() => setToast(''), 2500);
   };
 
   const allResolved = permissions.every(p => choices[p.id]);
@@ -90,7 +107,43 @@ export default function BeforeExploreModal() {
 
   if (!isOpen) return null;
 
+  const tabStyle = (active: boolean): CSSProperties => ({
+    flex: 1,
+    padding: '10px',
+    borderRadius: '10px',
+    border: 'none',
+    fontSize: '12.5px',
+    fontWeight: 700,
+    cursor: 'pointer',
+    background: active ? '#0A0A0A' : 'rgba(10,10,10,0.06)',
+    color: active ? '#fff' : '#0A0A0A',
+  });
+
+  const stepRow = (n: number, content: ReactNode) => (
+    <div key={n} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start' }}>
+      <div
+        style={{
+          width: '28px',
+          height: '28px',
+          borderRadius: '999px',
+          background: 'rgba(127,83,243,0.12)',
+          color: '#6B3FD1',
+          fontWeight: 800,
+          fontSize: '13px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {n}
+      </div>
+      <div style={{ fontSize: '14px', color: '#0A0A0A', lineHeight: '1.5' }}>{content}</div>
+    </div>
+  );
+
   return (
+    <>
     <div
       style={{
         position: 'fixed',
@@ -254,5 +307,159 @@ export default function BeforeExploreModal() {
         )}
       </div>
     </div>
+
+    {installGuideOpen && (
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(10,10,10,0.45)',
+          zIndex: 1010,
+          display: 'flex',
+          alignItems: 'flex-end',
+        }}
+      >
+        <div
+          style={{
+            background: '#fff',
+            borderRadius: '24px 24px 0 0',
+            width: '100%',
+            padding: '22px 20px 28px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            maxHeight: '82vh',
+            overflowY: 'auto',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ fontSize: '16px', fontWeight: 800, color: '#0A0A0A' }}>Install Vibe Travel</div>
+            <button
+              onClick={() => setInstallGuideOpen(false)}
+              aria-label="Close"
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '999px',
+                background: 'rgba(10,10,10,0.06)',
+                border: 'none',
+                color: 'rgba(10,10,10,0.6)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+                cursor: 'pointer',
+              }}
+            >
+              ✕
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button onClick={() => setInstallGuideDevice('ios')} style={tabStyle(installGuideDevice === 'ios')}>
+              iPhone (Safari)
+            </button>
+            <button onClick={() => setInstallGuideDevice('android')} style={tabStyle(installGuideDevice === 'android')}>
+              Android (Chrome)
+            </button>
+          </div>
+
+          {installGuideDevice === 'ios' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {stepRow(
+                1,
+                <>
+                  Tap the menu{' '}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ verticalAlign: '-2px' }}>
+                    <path d="M12 3v13M7 8l5-5 5 5" stroke="#7F53F3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    <rect x="4" y="17" width="16" height="4" rx="1" stroke="#7F53F3" strokeWidth="2" />
+                  </svg>{' '}
+                  Share icon in the bottom toolbar.
+                </>
+              )}
+              {stepRow(
+                2,
+                <>
+                  Scroll down and tap <strong>&quot;Add to Home Screen&quot;</strong>.
+                </>
+              )}
+              {stepRow(
+                3,
+                <>
+                  Tap <strong style={{ color: '#6B3FD1' }}>Add</strong> in the top right corner.
+                </>
+              )}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {stepRow(
+                1,
+                <>
+                  Tap the{' '}
+                  <svg width="4" height="14" viewBox="0 0 4 14" fill="none" style={{ verticalAlign: '-2px' }}>
+                    <circle cx="2" cy="2" r="2" fill="#7F53F3" />
+                    <circle cx="2" cy="7" r="2" fill="#7F53F3" />
+                    <circle cx="2" cy="12" r="2" fill="#7F53F3" />
+                  </svg>{' '}
+                  3-dot menu at the top right.
+                </>
+              )}
+              {stepRow(
+                2,
+                <>
+                  Select <strong>&quot;Add to Home Screen&quot;</strong> or <strong>&quot;Install App&quot;</strong>.
+                </>
+              )}
+              {stepRow(
+                3,
+                <>
+                  Confirm by tapping <strong style={{ color: '#6B3FD1' }}>Install</strong> or <strong style={{ color: '#6B3FD1' }}>Add</strong>.
+                </>
+              )}
+            </div>
+          )}
+
+          <button
+            onClick={finishInstallGuide}
+            style={{
+              background: '#3EE8A8',
+              color: '#0A0A0A',
+              border: 'none',
+              borderRadius: '14px',
+              padding: '13px',
+              fontSize: '14px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+          >
+            Got it
+          </button>
+        </div>
+      </div>
+    )}
+
+    {toast && (
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: '#0A0A0A',
+          color: '#fff',
+          padding: '10px 18px',
+          borderRadius: '999px',
+          fontSize: '13px',
+          fontWeight: 600,
+          zIndex: 1020,
+        }}
+      >
+        {toast}
+      </div>
+    )}
+    </>
   );
 }
