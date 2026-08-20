@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithRedirect, getRedirectResult, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
 import { sendVerificationEmail } from '@/lib/auth';
@@ -37,6 +37,22 @@ export default function CreateAccountPage() {
       setTermsVersion(terms);
       setPrivacyVersion(privacy);
     });
+  }, []);
+
+  useEffect(() => {
+    getRedirectResult(auth)
+      .then(async (result) => {
+        if (!result) return;
+        setIsLoading(true);
+        const providerId = result.user.providerData[0]?.providerId;
+        await ensureUserDoc(result.user, providerId === 'apple.com' ? 'Apple' : 'Google');
+        router.push('/');
+      })
+      .catch((err) => {
+        const errorMessage = err instanceof Error ? err.message : 'Sign-in failed';
+        setError(errorMessage);
+        setIsLoading(false);
+      });
   }, []);
 
   const handleCreateAccount = async () => {
@@ -91,9 +107,7 @@ export default function CreateAccountPage() {
     setIsLoading(true);
     setError('');
     try {
-      const result = await signInWithPopup(auth, new GoogleAuthProvider());
-      await ensureUserDoc(result.user, 'Google');
-      router.push('/');
+      await signInWithRedirect(auth, new GoogleAuthProvider());
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
       setError(errorMessage);
@@ -108,9 +122,7 @@ export default function CreateAccountPage() {
       const provider = new OAuthProvider('apple.com');
       provider.addScope('email');
       provider.addScope('name');
-      const result = await signInWithPopup(auth, provider);
-      await ensureUserDoc(result.user, 'Apple');
-      router.push('/');
+      await signInWithRedirect(auth, provider);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Apple sign-in failed';
       setError(errorMessage);
