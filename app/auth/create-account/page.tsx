@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
+import { createUserWithEmailAndPassword, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { setDoc, doc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
-import { sendVerificationEmail } from '@/lib/auth';
+import { sendVerificationEmail, signInWithPopupRetry } from '@/lib/auth';
 import { ensureUserDoc } from '@/lib/ensureUserDoc';
 
 export default function CreateAccountPage() {
@@ -91,7 +91,7 @@ export default function CreateAccountPage() {
     setIsLoading(true);
     setError('');
     try {
-      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      const result = await signInWithPopupRetry(new GoogleAuthProvider());
       await ensureUserDoc(result.user, 'Google');
       router.push('/');
     } catch (err) {
@@ -108,7 +108,7 @@ export default function CreateAccountPage() {
       const provider = new OAuthProvider('apple.com');
       provider.addScope('email');
       provider.addScope('name');
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopupRetry(provider);
       await ensureUserDoc(result.user, 'Apple');
       router.push('/');
     } catch (err) {

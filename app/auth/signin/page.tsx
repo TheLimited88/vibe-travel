@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { ensureUserDoc } from '@/lib/ensureUserDoc';
+import { signInWithPopupRetry } from '@/lib/auth';
 
 export default function SignInPage() {
   const router = useRouter();
@@ -88,7 +89,7 @@ export default function SignInPage() {
     setIsLoading(true);
     setError('');
     try {
-      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      const result = await signInWithPopupRetry(new GoogleAuthProvider());
       await ensureUserDoc(result.user, 'Google');
       router.push('/');
     } catch (err) {
@@ -105,7 +106,7 @@ export default function SignInPage() {
       const provider = new OAuthProvider('apple.com');
       provider.addScope('email');
       provider.addScope('name');
-      const result = await signInWithPopup(auth, provider);
+      const result = await signInWithPopupRetry(provider);
       await ensureUserDoc(result.user, 'Apple');
       router.push('/');
     } catch (err) {

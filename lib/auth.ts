@@ -1,5 +1,21 @@
 import { db, auth } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { signInWithPopup, type AuthProvider, type UserCredential } from 'firebase/auth';
+
+// Firebase Auth's IndexedDB persistence layer occasionally throws "Database is
+// closing/hidden" on the first signInWithPopup attempt — a known SDK race tied
+// to the popup momentarily changing document.visibilityState. Retrying once
+// resolves it in practice, since persistence has already re-initialized.
+export async function signInWithPopupRetry(provider: AuthProvider): Promise<UserCredential> {
+  try {
+    return await signInWithPopup(auth, provider);
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('Database is closing/hidden')) {
+      return await signInWithPopup(auth, provider);
+    }
+    throw err;
+  }
+}
 
 export async function checkEmailVerified(userId: string): Promise<boolean> {
   try {
