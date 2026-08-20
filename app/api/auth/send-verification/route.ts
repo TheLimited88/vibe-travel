@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, setDoc, getDoc } from 'firebase/firestore';
 import crypto from 'crypto';
 import { checkRateLimit, rateLimitConfigs } from '@/lib/rateLimit';
+import { verifyIdToken, getAdminDb } from '@/lib/firebaseAdmin';
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,21 +26,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const tokenUid = await verifyIdToken(authHeader.slice('Bearer '.length));
+    if (!tokenUid || tokenUid !== userId) {
+      return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
+    }
+
     // Generate verification token (valid for 60 minutes)
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = Date.now() + 60 * 60 * 1000; // 60 minutes
 
     // Store token in Firestore
-    await setDoc(
-      doc(db, 'verification_tokens', token),
-      {
-        userId,
-        email,
-        createdAt: Date.now(),
-        expiresAt,
-        used: false,
-      }
-    );
+    await getAdminDb().collection('verification_tokens').doc(token).set({
+      userId,
+      email,
+      createdAt: Date.now(),
+      expiresAt,
+      used: false,
+    });
 
     // Build verification link
     const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${token}`;

@@ -1,4 +1,4 @@
-import { db } from './firebase';
+import { db, auth } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 export async function checkEmailVerified(userId: string): Promise<boolean> {
@@ -19,9 +19,18 @@ export async function checkEmailVerified(userId: string): Promise<boolean> {
 
 export async function sendVerificationEmail(email: string, userId: string): Promise<boolean> {
   try {
+    const idToken = await auth.currentUser?.getIdToken();
+    if (!idToken) {
+      console.error('Error sending verification email: no signed-in user');
+      return false;
+    }
+
     const response = await fetch('/api/auth/send-verification', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${idToken}`,
+      },
       body: JSON.stringify({ email, userId }),
     });
 

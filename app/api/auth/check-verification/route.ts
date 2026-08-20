@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { getAdminDb } from '@/lib/firebaseAdmin';
 import { checkRateLimit, rateLimitConfigs } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
@@ -23,14 +22,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'userId required' }, { status: 400 });
     }
 
-    const userRef = doc(db, 'users', userId);
-    const userSnap = await getDoc(userRef);
+    const userSnap = await getAdminDb().collection('users').doc(userId).get();
 
-    if (!userSnap.exists()) {
+    if (!userSnap.exists) {
       return NextResponse.json({ verified: false }, { status: 200 });
     }
 
-    const userData = userSnap.data();
+    const userData = userSnap.data()!;
     return NextResponse.json(
       { verified: userData.emailVerified === true },
       { status: 200 }

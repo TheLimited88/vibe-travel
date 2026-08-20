@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { getAdminDb } from '@/lib/firebaseAdmin';
 import { checkRateLimit, rateLimitConfigs } from '@/lib/rateLimit';
 
 export async function POST(request: NextRequest) {
@@ -18,14 +17,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Get token document from Firestore
-    const tokenRef = doc(db, 'verification_tokens', token);
-    const tokenSnap = await getDoc(tokenRef);
+    const adminDb = getAdminDb();
+    const tokenRef = adminDb.collection('verification_tokens').doc(token);
+    const tokenSnap = await tokenRef.get();
 
-    if (!tokenSnap.exists()) {
+    if (!tokenSnap.exists) {
       return NextResponse.json({ error: 'Invalid token' }, { status: 400 });
     }
 
-    const tokenData = tokenSnap.data();
+    const tokenData = tokenSnap.data()!;
 
     // Check if token expired
     if (Date.now() > tokenData.expiresAt) {
@@ -38,11 +38,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Mark token as used
-    await updateDoc(tokenRef, { used: true, usedAt: Date.now() });
+    await tokenRef.update({ used: true, usedAt: Date.now() });
 
     // Update user document to mark email as verified
-    const userRef = doc(db, 'users', tokenData.userId);
-    await updateDoc(userRef, {
+    await adminDb.collection('users').doc(tokenData.userId).update({
       emailVerified: true,
       emailVerifiedAt: Date.now(),
     });

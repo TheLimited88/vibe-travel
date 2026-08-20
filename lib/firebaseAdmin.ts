@@ -1,7 +1,9 @@
 import { initializeApp, getApps, cert, type App } from 'firebase-admin/app';
 import { getFirestore, type Firestore } from 'firebase-admin/firestore';
+import { getAuth, type Auth } from 'firebase-admin/auth';
 
 let dbInstance: Firestore | null = null;
+let authInstance: Auth | null = null;
 
 function getAdminApp(): App {
   const apps = getApps();
@@ -31,4 +33,21 @@ export function getAdminDb(): Firestore {
     dbInstance.settings({ preferRest: true });
   }
   return dbInstance;
+}
+
+export function getAdminAuth(): Auth {
+  if (!authInstance) {
+    authInstance = getAuth(getAdminApp());
+  }
+  return authInstance;
+}
+
+// Verifies a Firebase ID token and returns the decoded token's uid, or null if invalid/expired.
+export async function verifyIdToken(idToken: string): Promise<string | null> {
+  try {
+    const decoded = await getAdminAuth().verifyIdToken(idToken);
+    return decoded.uid;
+  } catch {
+    return null;
+  }
 }
