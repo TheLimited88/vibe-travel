@@ -29,15 +29,20 @@ export default function SignInPage() {
   }, []);
 
   useEffect(() => {
+    console.log('[VT-DEBUG] checking for redirect result...');
     getRedirectResult(auth)
       .then(async (result) => {
+        console.log('[VT-DEBUG] getRedirectResult resolved:', result ? `user=${result.user.uid}` : 'null (no pending result)');
         if (!result) return;
         setIsLoading(true);
         const providerId = result.user.providerData[0]?.providerId;
+        console.log('[VT-DEBUG] calling ensureUserDoc, providerId=', providerId);
         await ensureUserDoc(result.user, providerId === 'apple.com' ? 'Apple' : 'Google');
+        console.log('[VT-DEBUG] ensureUserDoc done, navigating to /');
         router.push('/');
       })
       .catch((err) => {
+        console.error('[VT-DEBUG] getRedirectResult threw:', err);
         const errorMessage = err instanceof Error ? err.message : 'Sign-in failed';
         setError(errorMessage);
         setIsLoading(false);
@@ -103,8 +108,11 @@ export default function SignInPage() {
     setIsLoading(true);
     setError('');
     try {
+      console.log('[VT-DEBUG] calling signInWithRedirect for Google');
       await signInWithRedirect(auth, new GoogleAuthProvider());
+      console.log('[VT-DEBUG] signInWithRedirect returned (should have navigated away already)');
     } catch (err) {
+      console.error('[VT-DEBUG] signInWithRedirect (Google) threw:', err);
       const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
       setError(errorMessage);
       setIsLoading(false);
