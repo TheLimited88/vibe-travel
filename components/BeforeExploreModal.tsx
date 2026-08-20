@@ -12,7 +12,7 @@ interface PermissionItem {
 
 export default function BeforeExploreModal() {
   const [isOpen, setIsOpen] = useState(false);
-  const [deniedPermissions, setDeniedPermissions] = useState<Set<string>>(new Set());
+  const [choices, setChoices] = useState<Record<string, 'allow' | 'deny'>>({});
 
   const permissions: PermissionItem[] = [
     {
@@ -66,7 +66,7 @@ export default function BeforeExploreModal() {
   }, []);
 
   const handleDeny = (permissionId: string) => {
-    setDeniedPermissions(prev => new Set(prev).add(permissionId));
+    setChoices(prev => ({ ...prev, [permissionId]: 'deny' }));
   };
 
   const handleAllow = (permissionId: string) => {
@@ -77,14 +77,13 @@ export default function BeforeExploreModal() {
         Notification.requestPermission();
       }
     }
-    setDeniedPermissions(prev => {
-      const updated = new Set(prev);
-      updated.delete(permissionId);
-      return updated;
-    });
+    setChoices(prev => ({ ...prev, [permissionId]: 'allow' }));
   };
 
+  const allResolved = permissions.every(p => choices[p.id]);
+
   const handleContinue = () => {
+    if (!allResolved) return;
     localStorage.setItem('beforeExploreModalSeen', 'true');
     setIsOpen(false);
   };
@@ -190,11 +189,11 @@ export default function BeforeExploreModal() {
                     padding: '6px 12px',
                     fontSize: '12px',
                     fontWeight: 600,
-                    border: '1px solid rgba(10, 10, 10, 0.1)',
-                    background: '#FFFFFF',
+                    border: choices[permission.id] === 'deny' ? '1px solid #0A0A0A' : '1px solid rgba(10, 10, 10, 0.1)',
+                    background: choices[permission.id] === 'deny' ? '#0A0A0A' : '#FFFFFF',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    color: '#0A0A0A',
+                    color: choices[permission.id] === 'deny' ? '#FFFFFF' : '#0A0A0A',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -207,11 +206,12 @@ export default function BeforeExploreModal() {
                     fontSize: '12px',
                     fontWeight: 600,
                     border: 'none',
-                    background: '#7F53F3',
+                    background: choices[permission.id] === 'allow' ? '#5E33D6' : '#7F53F3',
                     borderRadius: '6px',
                     cursor: 'pointer',
                     color: '#FFFFFF',
                     whiteSpace: 'nowrap',
+                    boxShadow: choices[permission.id] === 'allow' ? 'inset 0 0 0 2px rgba(255,255,255,0.6)' : 'none',
                   }}
                 >
                   {permission.id === 'install' ? 'Install' : 'Allow'}
@@ -224,6 +224,7 @@ export default function BeforeExploreModal() {
         {/* Continue Button */}
         <button
           onClick={handleContinue}
+          disabled={!allResolved}
           style={{
             width: '100%',
             padding: '14px',
@@ -232,12 +233,25 @@ export default function BeforeExploreModal() {
             border: 'none',
             background: '#25EFB8',
             borderRadius: '10px',
-            cursor: 'pointer',
+            cursor: allResolved ? 'pointer' : 'not-allowed',
             color: '#0A0A0A',
+            opacity: allResolved ? 1 : 0.4,
           }}
         >
           Continue
         </button>
+        {!allResolved && (
+          <p
+            style={{
+              textAlign: 'center',
+              fontSize: '12px',
+              color: 'rgba(10, 10, 10, 0.45)',
+              margin: '10px 0 0',
+            }}
+          >
+            Choose Allow or Deny for each option to continue.
+          </p>
+        )}
       </div>
     </div>
   );
