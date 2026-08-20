@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signInWithEmailAndPassword, signInWithRedirect, getRedirectResult, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, OAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { ensureUserDoc } from '@/lib/ensureUserDoc';
 
@@ -28,26 +28,6 @@ export default function SignInPage() {
     document.head.appendChild(script);
   }, []);
 
-  useEffect(() => {
-    console.log('[VT-DEBUG] checking for redirect result...');
-    getRedirectResult(auth)
-      .then(async (result) => {
-        console.log('[VT-DEBUG] getRedirectResult resolved:', result ? `user=${result.user.uid}` : 'null (no pending result)');
-        if (!result) return;
-        setIsLoading(true);
-        const providerId = result.user.providerData[0]?.providerId;
-        console.log('[VT-DEBUG] calling ensureUserDoc, providerId=', providerId);
-        await ensureUserDoc(result.user, providerId === 'apple.com' ? 'Apple' : 'Google');
-        console.log('[VT-DEBUG] ensureUserDoc done, navigating to /');
-        router.push('/');
-      })
-      .catch((err) => {
-        console.error('[VT-DEBUG] getRedirectResult threw:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Sign-in failed';
-        setError(errorMessage);
-        setIsLoading(false);
-      });
-  }, []);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,11 +88,10 @@ export default function SignInPage() {
     setIsLoading(true);
     setError('');
     try {
-      console.log('[VT-DEBUG] calling signInWithRedirect for Google');
-      await signInWithRedirect(auth, new GoogleAuthProvider());
-      console.log('[VT-DEBUG] signInWithRedirect returned (should have navigated away already)');
+      const result = await signInWithPopup(auth, new GoogleAuthProvider());
+      await ensureUserDoc(result.user, 'Google');
+      router.push('/');
     } catch (err) {
-      console.error('[VT-DEBUG] signInWithRedirect (Google) threw:', err);
       const errorMessage = err instanceof Error ? err.message : 'Google sign-in failed';
       setError(errorMessage);
       setIsLoading(false);
@@ -126,7 +105,9 @@ export default function SignInPage() {
       const provider = new OAuthProvider('apple.com');
       provider.addScope('email');
       provider.addScope('name');
-      await signInWithRedirect(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      await ensureUserDoc(result.user, 'Apple');
+      router.push('/');
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Apple sign-in failed';
       setError(errorMessage);
