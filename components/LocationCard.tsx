@@ -34,58 +34,53 @@ export default function LocationCard({ location, layout, showDistance = false, f
           border: 'none',
         }}
       >
-        <div
-          style={{
-            width: '100%',
-            height: '100px',
-            background: 'rgba(127, 127, 127, 0.12)',
-            overflow: 'hidden',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: '1px dashed rgba(10, 10, 10, 0.2)',
-            flexDirection: 'column',
-            gap: '2px',
-            padding: '8px',
-          }}
-        >
-          <p
+        {location.image ? (
+          <img
+            src={location.image}
+            alt={location.name}
+            style={{ width: '100%', height: '100px', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <div
             style={{
-              fontSize: '10px',
-              fontWeight: 500,
-              color: 'rgba(10, 10, 10, 0.5)',
-              textAlign: 'center',
-              margin: 0,
-              lineHeight: '1.2',
+              width: '100%',
+              height: '100px',
+              background: 'rgba(127, 127, 127, 0.12)',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: '1px dashed rgba(10, 10, 10, 0.2)',
+              flexDirection: 'column',
+              gap: '2px',
+              padding: '8px',
             }}
           >
-            {location.name}
-          </p>
-          <p
-            style={{
-              fontSize: '10px',
-              fontWeight: 500,
-              color: 'rgba(10, 10, 10, 0.4)',
-              textAlign: 'center',
-              margin: 0,
-            }}
-          >
-            photo
-          </p>
-          <a
-            href="#"
-            onClick={(e) => e.preventDefault()}
-            style={{
-              fontSize: '9px',
-              fontWeight: 400,
-              color: 'rgba(10, 10, 10, 0.3)',
-              textDecoration: 'underline',
-              cursor: 'pointer',
-            }}
-          >
-            or browse files
-          </a>
-        </div>
+            <p
+              style={{
+                fontSize: '10px',
+                fontWeight: 500,
+                color: 'rgba(10, 10, 10, 0.5)',
+                textAlign: 'center',
+                margin: 0,
+                lineHeight: '1.2',
+              }}
+            >
+              {location.name}
+            </p>
+            <p
+              style={{
+                fontSize: '10px',
+                fontWeight: 500,
+                color: 'rgba(10, 10, 10, 0.4)',
+                textAlign: 'center',
+                margin: 0,
+              }}
+            >
+              photo
+            </p>
+          </div>
+        )}
 
         <div style={{ padding: '8px 9px 10px', display: 'flex', flexDirection: 'column', gap: '3px', textAlign: 'left' }}>
           <div

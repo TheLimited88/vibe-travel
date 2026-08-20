@@ -37,7 +37,7 @@ export type LocationCategory =
 export interface Location {
   id: string;
   name: string;
-  category: LocationCategory;
+  category: string;
   distance: number;
   visits: number;
   image: string;

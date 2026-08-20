@@ -1,18 +1,57 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import { categories } from '@/data/categories';
 import PlaceDirections from '@/components/PlaceDirections';
 
+interface PlaceMedia {
+  url: string;
+  key: string;
+}
+
+interface PlaceData {
+  slug: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  vibes: string[];
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  about: string;
+  heroImage: PlaceMedia | null;
+  galleryImages: PlaceMedia[];
+  createdBy: string;
+  createdAt: number;
+}
+
+function isVideoUrl(url: string): boolean {
+  return /\.(mp4|mov|webm)$/i.test(url);
+}
+
 export default function PlacePage() {
   const router = useRouter();
+  const params = useParams();
+  const slug = params?.id as string;
+
+  const [place, setPlace] = useState<PlaceData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [vibeVoteExpanded, setVibeVoteExpanded] = useState(false);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
 
-  const category = categories.find((c) => c.key === 'photography_location') || categories[0];
+  useEffect(() => {
+    if (!slug) return;
+    fetch(`/api/admin/places?slug=${encodeURIComponent(slug)}`)
+      .then((r) => r.json())
+      .then((data) => setPlace(data.place || null))
+      .finally(() => setLoading(false));
+  }, [slug]);
+
+  const category = categories.find((c) => c.key === place?.category) || categories[0];
+  const media = place ? [place.heroImage, ...place.galleryImages].filter((m): m is PlaceMedia => !!m) : [];
 
   const vibeOptions = [
     'Peaceful',
@@ -35,13 +74,35 @@ export default function PlacePage() {
     { tag: 'Sunset', count: 88, color: '#FFF5E5', textColor: '#F5A623' },
   ];
 
+  if (loading) {
+    return (
+      <div style={{ width: '100%', maxWidth: '375px', height: '812px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', background: '#fff' }}>
+        <span style={{ fontSize: '14px', color: 'rgba(10,10,10,0.5)' }}>Loading...</span>
+      </div>
+    );
+  }
+
+  if (!place) {
+    return (
+      <div style={{ width: '100%', maxWidth: '375px', height: '812px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '12px', margin: '0 auto', background: '#fff', padding: '20px' }}>
+        <span style={{ fontSize: '16px', fontWeight: 700, color: '#0A0A0A' }}>Place not found</span>
+        <button
+          onClick={() => router.push('/')}
+          style={{ background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '14px', padding: '11px 20px', fontSize: '14px', fontWeight: 700, cursor: 'pointer' }}
+        >
+          Back to home
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div style={{ width: '100%', maxWidth: '375px', height: '812px', position: 'relative', background: '#000', margin: '0 auto', overflow: 'hidden' }}>
       {/* Full-bleed Media Gallery */}
       <div style={{ position: 'relative', width: '100%', height: '100%', background: '#000', overflow: 'hidden' }}>
         {/* Segmented Progress Bars */}
         <div style={{ position: 'absolute', top: '60px', left: '14px', right: '14px', display: 'flex', gap: '5px', zIndex: 30 }}>
-          {[0, 1, 2, 3, 4, 5].map((i) => (
+          {media.map((_, i) => (
             <div
               key={i}
               style={{
@@ -54,6 +115,28 @@ export default function PlacePage() {
             />
           ))}
         </div>
+
+        {/* Current media */}
+        {media.length > 0 && (
+          isVideoUrl(media[currentImageIndex].url) ? (
+            <video
+              key={media[currentImageIndex].url}
+              src={media[currentImageIndex].url}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          ) : (
+            <img
+              key={media[currentImageIndex].url}
+              src={media[currentImageIndex].url}
+              alt={place.title}
+              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          )
+        )}
 
         {/* Back Button */}
         <button
@@ -154,7 +237,7 @@ export default function PlacePage() {
 
         {/* Navigation areas */}
         <button
-          onClick={() => setCurrentImageIndex((i) => (i > 0 ? i - 1 : 5))}
+          onClick={() => setCurrentImageIndex((i) => (i > 0 ? i - 1 : media.length - 1))}
           aria-label="Previous photo"
           style={{
             position: 'absolute',
@@ -170,7 +253,7 @@ export default function PlacePage() {
           }}
         />
         <button
-          onClick={() => setCurrentImageIndex((i) => (i < 5 ? i + 1 : 0))}
+          onClick={() => setCurrentImageIndex((i) => (i < media.length - 1 ? i + 1 : 0))}
           aria-label="Next photo"
           style={{
             position: 'absolute',
@@ -240,7 +323,7 @@ export default function PlacePage() {
 
         {/* Title and Category - Fixed at top */}
         <div style={{ padding: '0 16px', display: 'flex', flexDirection: 'column', gap: '5px', flexShrink: 0 }}>
-          <span style={{ fontSize: '20px', fontWeight: '800', color: '#0A0A0A' }}>Gantry Plaza State Park</span>
+          <span style={{ fontSize: '20px', fontWeight: '800', color: '#0A0A0A' }}>{place.title}</span>
           <span style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', background: 'rgba(127,83,243,0.1)', borderRadius: '999px', padding: '3px 10px 3px 4px' }}>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: '#6B3FD1' }}>
               <g dangerouslySetInnerHTML={{ __html: category.icon }} />
@@ -253,7 +336,7 @@ export default function PlacePage() {
         <div style={{ flex: 1, overflow: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           {/* Vibe chips and details */}
           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-            {['Scenic', 'Photography'].map((vibe) => (
+            {place.vibes.map((vibe) => (
               <span key={vibe} style={{ fontSize: '11px', fontWeight: '600', color: '#0A9B71', background: 'rgba(10,155,113,0.1)', borderRadius: '999px', padding: '3px 10px' }}>
                 {vibe}
               </span>
@@ -261,21 +344,21 @@ export default function PlacePage() {
           </div>
           <button onClick={() => setIsExpanded(true)} style={{ display: 'flex', flexDirection: 'column', gap: '5px', width: '100%', background: 'none', border: 'none', font: 'inherit', textAlign: 'left', padding: '0', margin: '0', cursor: 'pointer', minWidth: 0 }}>
             <span style={{ fontSize: '13.5px', color: 'rgba(10,10,10,0.6)' }}>
-              The best skyline photo you can take without a lens permit
+              {place.subtitle}
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12.5px', color: 'rgba(10,10,10,0.5)' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                 <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#2E7FE8" strokeWidth="2" />
                 <circle cx="12" cy="9.5" r="2.3" stroke="#2E7FE8" strokeWidth="2" />
               </svg>
-              4-09 47th Rd, Long Island City, NY
+              {place.address}
             </span>
             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'rgba(10,10,10,0.5)' }}>
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
                 <rect x="3" y="4" width="18" height="17" rx="2" stroke="rgba(10,10,10,0.5)" strokeWidth="1.8" />
                 <path d="M3 9h18M8 2v4M16 2v4" stroke="rgba(10,10,10,0.5)" strokeWidth="1.8" strokeLinecap="round" />
               </svg>
-              Added 22 April 2026
+              Added {new Date(place.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'long', year: 'numeric' })}
             </span>
           </button>
 
@@ -286,19 +369,19 @@ export default function PlacePage() {
                 <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="currentColor" strokeWidth="1.8" />
                 <path d="M9 9.5l2 2 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>8920</span>
+              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>0</span>
               <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.75 }}>Visited</span>
             </div>
             <button style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px', background: '#6B3FD1', border: 'none', borderRadius: '14px', padding: '9px 6px', color: '#fff', cursor: 'pointer' }}>
               <span style={{ fontSize: '16px', lineHeight: '1' }}>★</span>
-              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>1401</span>
+              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>0</span>
               <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.85 }}>Saved</span>
             </button>
             <button style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px', background: 'linear-gradient(135deg, rgba(149,4,139,0.1), rgba(127,83,243,0.1))', border: '1px solid rgba(149,4,139,0.25)', borderRadius: '14px', padding: '9px 6px', color: '#95048B', cursor: 'pointer' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M7 22V11M2 13v7a2 2 0 002 2h12.5a2 2 0 002-1.6l1.5-7A2 2 0 0018 11h-5V6a2.5 2.5 0 00-5 0v1.5L5 11H4a2 2 0 00-2 2z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
               </svg>
-              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>100%</span>
+              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>—</span>
               <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.85 }}>Worth it</span>
             </button>
           </div>
@@ -306,10 +389,10 @@ export default function PlacePage() {
           {/* Geofence Directions Component */}
           <PlaceDirections
             place={{
-              id: 'gantry-plaza',
-              name: 'Gantry Plaza State Park',
-              lat: 40.7489,
-              lng: -73.9680,
+              id: place.slug,
+              name: place.title,
+              lat: place.lat ?? 0,
+              lng: place.lng ?? 0,
             }}
           />
 
@@ -319,7 +402,7 @@ export default function PlacePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A' }}>About</div>
                 <div style={{ fontSize: '14px', color: 'rgba(10,10,10,0.75)', lineHeight: '1.55' }}>
-                  Two restored 1920s gantry cranes frame a dead-straight shot of the Manhattan skyline across the East River, with Adirondack chairs planted right at the water's edge for the golden hour crowd. Arrive 45 minutes before sunset in summer to get a seat; arrive whenever in winter and have the place to yourself.
+                  {place.about}
                 </div>
               </div>
 
@@ -338,7 +421,7 @@ export default function PlacePage() {
                 <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A' }}>Place created by</div>
                 <button style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', background: 'none', border: 'none', font: 'inherit', textAlign: 'left', padding: '0', margin: '0', cursor: 'pointer' }}>
                   <div style={{ width: '52px', height: '52px', borderRadius: '999px', background: '#E0E0E0', flexShrink: 0 }} />
-                  <span style={{ fontSize: '14px', fontWeight: '600', color: '#0A0A0A' }}>Brett Williams</span>
+                  <span style={{ fontSize: '14px', fontWeight: '600', color: '#0A0A0A' }}>{place.createdBy}</span>
                 </button>
               </div>
 

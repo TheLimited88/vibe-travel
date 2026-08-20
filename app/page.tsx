@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import SearchBar from '@/components/SearchBar';
 import CategoryChips from '@/components/CategoryChips';
@@ -9,32 +9,63 @@ import BottomNav from '@/components/BottomNav';
 import BeforeExploreModal from '@/components/BeforeExploreModal';
 import TermsPoliciesModal from '@/components/TermsPoliciesModal';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
-import { mockLocations } from '@/data/mockLocations';
-import type { LocationCategory } from '@/types';
+import type { Location } from '@/types';
 
-type Category = 'All' | LocationCategory;
+interface PlaceApiRecord {
+  slug: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  heroImage: { url: string } | null;
+  status: string;
+}
+
+function placeToLocation(place: PlaceApiRecord): Location {
+  return {
+    id: place.slug,
+    name: place.title,
+    category: place.category,
+    distance: 0,
+    visits: 0,
+    likes: 0,
+    image: place.heroImage?.url || '',
+    description: place.subtitle,
+    lat: place.lat ?? undefined,
+    lng: place.lng ?? undefined,
+  };
+}
 
 export default function Home() {
-  const [selectedCategory, setSelectedCategory] = useState<Category>('All');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [locations, setLocations] = useState<Location[]>([]);
+
+  useEffect(() => {
+    fetch('/api/admin/places')
+      .then((r) => r.json())
+      .then((data) => {
+        const published = (data.places || []).filter((p: PlaceApiRecord) => p.status === 'published');
+        setLocations(published.map(placeToLocation));
+      })
+      .catch(() => setLocations([]));
+  }, []);
 
   const handleSelectCategory = (categoryId: string) => {
-    const category = categoryId === 'all' ? 'All' : (categoryId as Category);
-    setSelectedCategory(category);
+    setSelectedCategory(categoryId);
   };
 
-  const filteredLocations = mockLocations.filter((location) => {
-    const matchesCategory = selectedCategory === 'All' || location.category === selectedCategory;
+  const filteredLocations = locations.filter((location) => {
+    const matchesCategory = selectedCategory === 'all' || location.category === selectedCategory;
     const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
-  const sortedByDistance = [...filteredLocations].sort((a, b) => a.distance - b.distance);
-  const sortedByPopularity = [...filteredLocations].sort((a, b) => b.visits - a.visits);
-
-  const nearYou = sortedByDistance.slice(0, 1);
-  const popular = sortedByPopularity.slice(0, 2);
-  const trending = sortedByPopularity.slice(0, 3);
+  const nearYou = filteredLocations.slice(0, 1);
+  const popular = filteredLocations.slice(0, 2);
+  const trending = filteredLocations.slice(0, 4);
 
   return (
     <div style={{ background: '#F9F8F6', height: '100vh', display: 'flex', justifyContent: 'center' }}>
@@ -75,7 +106,7 @@ export default function Home() {
               <SearchBar value={searchQuery} onChange={setSearchQuery} />
             </div>
 
-            <CategoryChips selectedCategory={selectedCategory === 'All' ? 'all' : selectedCategory} onSelectCategory={handleSelectCategory} />
+            <CategoryChips selectedCategory={selectedCategory} onSelectCategory={handleSelectCategory} />
 
             {/* Near you */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '6px 0 4px', marginBottom: '0' }}>
