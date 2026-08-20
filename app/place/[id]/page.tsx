@@ -4,6 +4,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { categories } from '@/data/categories';
 import PlaceDirections from '@/components/PlaceDirections';
+import PlaceLocationMap from '@/components/PlaceLocationMap';
 
 interface PlaceMedia {
   url: string;
@@ -411,12 +412,22 @@ export default function PlacePage() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A' }}>Location</div>
-                <div style={{ position: 'relative', height: '130px', borderRadius: '14px', overflow: 'hidden' }}>
-                  <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(0deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 26px),repeating-linear-gradient(90deg, rgba(10,10,10,0.035) 0 1px, transparent 1px 26px), #eef0ea' }} />
-                  <div style={{ position: 'absolute', left: '50%', top: '40%', width: '26px', height: '26px', borderRadius: '999px 999px 999px 0', background: '#6B3FD1', transform: 'translate(-50%,-100%) rotate(-45deg)', boxShadow: '0 2px 6px rgba(0,0,0,0.25)' }} />
-                  <button style={{ position: 'absolute', bottom: '8px', right: '8px', background: '#fff', border: 'none', borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', cursor: 'pointer' }}>
+                <div style={{ position: 'relative', height: '200px', borderRadius: '14px', overflow: 'hidden' }}>
+                  {place.lat != null && place.lng != null ? (
+                    <PlaceLocationMap lat={place.lat} lng={place.lng} markerColor={category.color} markerIcon={category.icon} />
+                  ) : (
+                    <div style={{ position: 'absolute', inset: 0, background: '#eef0ea', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: 'rgba(10,10,10,0.4)' }}>
+                      No coordinates set for this place
+                    </div>
+                  )}
+                  <a
+                    href={`https://maps.apple.com/?daddr=${place.lat},${place.lng}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ position: 'absolute', bottom: '8px', right: '8px', background: '#fff', border: 'none', borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', cursor: 'pointer', textDecoration: 'none', zIndex: 20 }}
+                  >
                     Open in Maps
-                  </button>
+                  </a>
                 </div>
               </div>
 
