@@ -458,7 +458,10 @@ export default function PlacePage() {
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A' }}>Reviews · 👍 Worth the trip · 100% (4)</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A' }}>Reviews (0) · 👍 · 0% &apos;Worth it&apos;</div>
+                  <div style={{ fontSize: '12.5px', color: 'rgba(10,10,10,0.65)' }}>👍 Worth the trip (0) · 👎 Not worth it (0)</div>
+                </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '700', color: '#0A0A0A' }}>Vibe</div>
