@@ -1,15 +1,29 @@
 import { db, auth } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
-import { signInWithPopup, type AuthProvider, type UserCredential } from 'firebase/auth';
+import {
+  signInWithPopup,
+  setPersistence,
+  browserSessionPersistence,
+  browserLocalPersistence,
+  type AuthProvider,
+  type UserCredential,
+} from 'firebase/auth';
 
-// Firebase Auth's IndexedDB persistence layer occasionally throws "Database is
-// closing/hidden" on the first signInWithPopup attempt — a known SDK race tied
-// to the popup momentarily changing document.visibilityState. Retrying once
-// resolves it in practice, since persistence has already re-initialized.
+// Firebase Auth's IndexedDB-backed persistence throws "Database is
+// closing/hidden" during signInWithPopup on this environment — its internal
+// pending-event bookkeeping reacts badly to a document.visibilitychange while
+// the popup is open. Switching to sessionStorage-backed persistence just for
+// the popup call avoids that code path entirely, since the bug is specific to
+// the IndexedDB implementation. Restored to local (durable) persistence right
+// after, so the resulting session still survives a browser restart.
 export async function signInWithPopupRetry(provider: AuthProvider): Promise<UserCredential> {
+  await setPersistence(auth, browserSessionPersistence);
   try {
-    return await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth, provider);
+    await setPersistence(auth, browserLocalPersistence);
+    return result;
   } catch (err) {
+    await setPersistence(auth, browserLocalPersistence);
     if (err instanceof Error && err.message.includes('Database is closing/hidden')) {
       return await signInWithPopup(auth, provider);
     }
