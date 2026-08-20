@@ -77,16 +77,26 @@ export default function BeforeExploreModal() {
   };
 
   const handleAllow = (permissionId: string) => {
+    console.log('[VT-DEBUG] handleAllow called for', permissionId);
     if (permissionId === 'location') {
       navigator.geolocation.getCurrentPosition(() => {}, () => {});
     } else if (permissionId === 'notifications') {
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
+      try {
+        console.log('[VT-DEBUG] Notification in window:', 'Notification' in window, 'permission:', typeof Notification !== 'undefined' ? Notification.permission : 'n/a');
+        if ('Notification' in window && Notification.permission === 'default') {
+          Notification.requestPermission().then(
+            (result) => console.log('[VT-DEBUG] requestPermission resolved:', result),
+            (err) => console.error('[VT-DEBUG] requestPermission rejected:', err)
+          );
+        }
+      } catch (err) {
+        console.error('[VT-DEBUG] Notification call threw:', err);
       }
     } else if (permissionId === 'install') {
       setInstallGuideOpen(true);
       return;
     }
+    console.log('[VT-DEBUG] setting choice for', permissionId, 'to allow');
     setChoices(prev => ({ ...prev, [permissionId]: 'allow' }));
   };
 
