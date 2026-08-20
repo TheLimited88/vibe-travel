@@ -3,17 +3,22 @@ import { verifyRequestAuth } from '@/lib/firebaseAdminAuth';
 import { createReviewOnce, getReview, getReviewSummary, hasArrived } from '@/lib/placeReviews';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const summary = await getReviewSummary(slug);
+  try {
+    const { slug } = await params;
+    const summary = await getReviewSummary(slug);
 
-  const decoded = await verifyRequestAuth(request);
-  if (!decoded) {
-    return NextResponse.json({ signedIn: false, hasArrived: false, review: null, summary });
+    const decoded = await verifyRequestAuth(request);
+    if (!decoded) {
+      return NextResponse.json({ signedIn: false, hasArrived: false, review: null, summary });
+    }
+
+    const [arrived, review] = await Promise.all([hasArrived(decoded.uid, slug), getReview(decoded.uid, slug)]);
+
+    return NextResponse.json({ signedIn: true, hasArrived: arrived, review, summary });
+  } catch (error) {
+    console.error('GET review status error:', error);
+    return NextResponse.json({ error: 'debug', message: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
-
-  const [arrived, review] = await Promise.all([hasArrived(decoded.uid, slug), getReview(decoded.uid, slug)]);
-
-  return NextResponse.json({ signedIn: true, hasArrived: arrived, review, summary });
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
