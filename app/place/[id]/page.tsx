@@ -42,6 +42,7 @@ export default function PlacePage() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [vibeVoteExpanded, setVibeVoteExpanded] = useState(false);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
+  const [placeVerdict, setPlaceVerdict] = useState<'up' | 'down' | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -457,10 +458,44 @@ export default function PlacePage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <span style={{ fontSize: '11px', fontWeight: '600', color: 'rgba(10,10,10,0.6)' }}>Rate this Place</span>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button style={{ flex: 1, background: '#FFD699', border: 'none', borderRadius: '14px', padding: '12px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', color: '#0A0A0A' }}>
+                    <button
+                      onClick={() => setPlaceVerdict(placeVerdict === 'up' ? null : 'up')}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        borderRadius: '14px',
+                        padding: '11px',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        border: `1px solid ${placeVerdict === 'up' ? '#7F53F3' : 'rgba(10,10,10,0.08)'}`,
+                        background: placeVerdict === 'up' ? 'rgba(127,83,243,0.1)' : '#fff',
+                        color: placeVerdict === 'up' ? '#7F53F3' : '#0A0A0A',
+                      }}
+                    >
                       👍 Worth the trip
                     </button>
-                    <button style={{ flex: 1, background: '#E8E8E8', border: 'none', borderRadius: '14px', padding: '12px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', color: '#666' }}>
+                    <button
+                      onClick={() => setPlaceVerdict(placeVerdict === 'down' ? null : 'down')}
+                      style={{
+                        flex: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        borderRadius: '14px',
+                        padding: '11px',
+                        fontSize: '13px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        border: `1px solid ${placeVerdict === 'down' ? '#7F53F3' : 'rgba(10,10,10,0.08)'}`,
+                        background: placeVerdict === 'down' ? 'rgba(127,83,243,0.1)' : '#fff',
+                        color: placeVerdict === 'down' ? '#7F53F3' : '#0A0A0A',
+                      }}
+                    >
                       👎 Not worth it
                     </button>
                   </div>
