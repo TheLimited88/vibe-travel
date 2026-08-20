@@ -1,5 +1,4 @@
 import { listUsers, updateUser } from '@/lib/adminUsers';
-import { getAdminDb } from '@/lib/firebaseAdmin';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -32,26 +31,5 @@ export async function PATCH(request: Request) {
   } catch (error) {
     console.error('Update user error:', error);
     return Response.json({ error: 'Failed to update user' }, { status: 500 });
-  }
-}
-
-// TEMPORARY: scoped to a hardcoded allowlist of known test-account UIDs so this
-// can't be used to delete a real user's data. Remove once test cleanup is done.
-const TEMP_DELETE_ALLOWLIST = ['6ROTeC33sWTFdpfR6WBm4NqfS5f1', 'yatSVJGDWyfFgYMFMPniR5gsCzR2'];
-
-export async function DELETE(request: Request) {
-  try {
-    const body = await request.json();
-    const id = body.id as string;
-
-    if (!id || !TEMP_DELETE_ALLOWLIST.includes(id)) {
-      return Response.json({ error: 'Not allowed' }, { status: 403 });
-    }
-
-    await getAdminDb().collection('users').doc(id).delete();
-    return Response.json({ success: true });
-  } catch (error) {
-    console.error('Delete user error:', error);
-    return Response.json({ error: 'Failed to delete user' }, { status: 500 });
   }
 }
