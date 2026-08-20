@@ -424,7 +424,7 @@ export default function PlacePage() {
                     href={`https://maps.apple.com/?daddr=${place.lat},${place.lng}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    style={{ position: 'absolute', bottom: '8px', right: '8px', background: '#fff', border: 'none', borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', cursor: 'pointer', textDecoration: 'none', zIndex: 20 }}
+                    style={{ position: 'absolute', top: '8px', left: '8px', background: '#fff', border: 'none', borderRadius: '999px', padding: '6px 12px', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', boxShadow: '0 2px 6px rgba(0,0,0,0.12)', cursor: 'pointer', textDecoration: 'none', zIndex: 20 }}
                   >
                     Open in Maps
                   </a>
