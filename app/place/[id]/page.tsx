@@ -43,6 +43,7 @@ export default function PlacePage() {
   const [vibeVoteExpanded, setVibeVoteExpanded] = useState(false);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [placeVerdict, setPlaceVerdict] = useState<'up' | 'down' | null>(null);
+  const [adminPhotoUrl, setAdminPhotoUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!slug) return;
@@ -51,6 +52,13 @@ export default function PlacePage() {
       .then((data) => setPlace(data.place || null))
       .finally(() => setLoading(false));
   }, [slug]);
+
+  useEffect(() => {
+    fetch('/api/admin/profile')
+      .then((r) => r.json())
+      .then((data) => setAdminPhotoUrl(data.photoUrl || null))
+      .catch(() => setAdminPhotoUrl(null));
+  }, []);
 
   const category = categories.find((c) => c.key === place?.category) || categories[0];
   const media = place ? [place.heroImage, ...place.galleryImages].filter((m): m is PlaceMedia => !!m) : [];
@@ -436,7 +444,15 @@ export default function PlacePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <div style={{ fontSize: '15px', fontWeight: '700', color: '#0A0A0A' }}>Place created by</div>
                 <button style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', background: 'none', border: 'none', font: 'inherit', textAlign: 'left', padding: '0', margin: '0', cursor: 'pointer' }}>
-                  <div style={{ width: '52px', height: '52px', borderRadius: '999px', background: '#E0E0E0', flexShrink: 0 }} />
+                  {adminPhotoUrl ? (
+                    <img
+                      src={adminPhotoUrl}
+                      alt={place.createdBy}
+                      style={{ width: '52px', height: '52px', borderRadius: '999px', objectFit: 'cover', flexShrink: 0 }}
+                    />
+                  ) : (
+                    <div style={{ width: '52px', height: '52px', borderRadius: '999px', background: '#E0E0E0', flexShrink: 0 }} />
+                  )}
                   <span style={{ fontSize: '14px', fontWeight: '600', color: '#0A0A0A' }}>{place.createdBy}</span>
                 </button>
               </div>
