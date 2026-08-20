@@ -1,3 +1,6 @@
+'use client';
+
+import { useRouter } from 'next/navigation';
 import { Location } from '@/types';
 
 interface LocationCardProps {
@@ -8,9 +11,13 @@ interface LocationCardProps {
 }
 
 export default function LocationCard({ location, layout, showDistance = false, flexGrow = true }: LocationCardProps) {
+  const router = useRouter();
+  const goToPlace = () => router.push(`/place/${location.id}`);
+
   if (layout === 'scroll') {
     return (
       <button
+        onClick={goToPlace}
         style={{
           width: '140px',
           flexShrink: 0,
@@ -107,6 +114,7 @@ export default function LocationCard({ location, layout, showDistance = false, f
   if (layout === 'list') {
     return (
       <div
+        onClick={goToPlace}
         style={{
           background: 'var(--color-surface)',
           borderRadius: 'var(--radius-card)',
@@ -115,6 +123,7 @@ export default function LocationCard({ location, layout, showDistance = false, f
           padding: '12px',
           display: 'flex',
           gap: '12px',
+          cursor: 'pointer',
         }}
       >
         <div
@@ -175,11 +184,13 @@ export default function LocationCard({ location, layout, showDistance = false, f
   // Grid layout
   return (
     <div
+      onClick={goToPlace}
       style={{
         background: 'var(--color-surface)',
         borderRadius: 'var(--radius-card)',
         overflow: 'hidden',
         boxShadow: 'var(--shadow-card)',
+        cursor: 'pointer',
       }}
     >
       <div
