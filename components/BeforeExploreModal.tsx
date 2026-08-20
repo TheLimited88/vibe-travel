@@ -154,12 +154,14 @@ export default function BeforeExploreModal() {
         background: 'rgba(0, 0, 0, 0.5)',
         display: 'flex',
         alignItems: 'flex-end',
+        justifyContent: 'center',
         zIndex: 1000,
       }}
     >
       <div
         style={{
           width: '100%',
+          maxWidth: '375px',
           background: '#FFFFFF',
           borderRadius: '20px 20px 0 0',
           padding: '28px 20px 20px',
@@ -320,6 +322,7 @@ export default function BeforeExploreModal() {
           zIndex: 1010,
           display: 'flex',
           alignItems: 'flex-end',
+          justifyContent: 'center',
         }}
       >
         <div
@@ -327,6 +330,7 @@ export default function BeforeExploreModal() {
             background: '#fff',
             borderRadius: '24px 24px 0 0',
             width: '100%',
+            maxWidth: '375px',
             padding: '22px 20px 28px',
             display: 'flex',
             flexDirection: 'column',
