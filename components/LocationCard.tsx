@@ -81,7 +81,19 @@ export default function LocationCard({ location, layout, showDistance = false, f
         </div>
 
         <div style={{ padding: '8px 9px 10px', display: 'flex', flexDirection: 'column', gap: '3px', textAlign: 'left' }}>
-          <div style={{ fontSize: '13px', fontWeight: 700, color: '#0A0A0A', lineHeight: '1.25' }}>
+          <div
+            style={{
+              fontSize: '13px',
+              fontWeight: 700,
+              color: '#0A0A0A',
+              lineHeight: '1.25',
+              minHeight: '32.5px',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
             {location.name}
           </div>
           <div style={{ fontSize: '10.5px', color: showDistance ? '#7F53F3' : 'rgba(10, 10, 10, 0.6)', fontWeight: showDistance ? 600 : 400 }}>
