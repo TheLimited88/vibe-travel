@@ -18,6 +18,33 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [hasPreciseLocation, setHasPreciseLocation] = useState(false);
+  const DEFAULT_CENTER: [number, number] = [-73.9857, 40.7484];
+  const userCoords = useRef<[number, number]>(DEFAULT_CENTER);
+  const stylesLoaded = useRef(false);
+
+  const recenterRadiusCircles = (lng: number, lat: number) => {
+    userCoords.current = [lng, lat];
+    if (!stylesLoaded.current || !map.current) return;
+    const radiusFeatures = buildRadiusFeatures(lng, lat);
+    (map.current.getSource('radius-075') as mapboxgl.GeoJSONSource)?.setData(radiusFeatures as any);
+    (map.current.getSource('radius-2mi') as mapboxgl.GeoJSONSource)?.setData(radiusFeatures as any);
+  };
+
+  const buildRadiusFeatures = (lng: number, lat: number) => ({
+    type: 'FeatureCollection' as const,
+    features: [
+      {
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [lng, lat] },
+        properties: { radius: 750 },
+      },
+      {
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [lng, lat] },
+        properties: { radius: 3219 },
+      },
+    ],
+  });
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -26,7 +53,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [-73.9857, 40.7484],
+      center: DEFAULT_CENTER,
       zoom: 12,
       pitch: 0,
       bearing: 0,
@@ -34,29 +61,11 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
 
     map.current.on('load', () => {
       if (!map.current) return;
+      stylesLoaded.current = true;
 
-      // Add radius circles (distance indicators)
-      const radiusFeatures = {
-        type: 'FeatureCollection' as const,
-        features: [
-          {
-            type: 'Feature' as const,
-            geometry: {
-              type: 'Point' as const,
-              coordinates: [-73.9857, 40.7484],
-            },
-            properties: { radius: 750 },
-          },
-          {
-            type: 'Feature' as const,
-            geometry: {
-              type: 'Point' as const,
-              coordinates: [-73.9857, 40.7484],
-            },
-            properties: { radius: 3219 },
-          },
-        ],
-      };
+      // Radius circles (distance indicators), centered on the user's real
+      // location once known — falls back to the default center until then.
+      const radiusFeatures = buildRadiusFeatures(userCoords.current[0], userCoords.current[1]);
 
       // Add radius layer for 0.75 mi (purple)
       map.current!.addSource('radius-075', {
@@ -286,7 +295,10 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
       showAccuracyCircle: true,
     });
     map.current.addControl(geolocateControl.current);
-    geolocateControl.current.on('geolocate', () => setHasPreciseLocation(true));
+    geolocateControl.current.on('geolocate', (e: any) => {
+      setHasPreciseLocation(true);
+      recenterRadiusCircles(e.coords.longitude, e.coords.latitude);
+    });
     geolocateControl.current.on('error', () => setHasPreciseLocation(false));
 
     // Auto-trigger it (no prompt appears if permission is already granted;
