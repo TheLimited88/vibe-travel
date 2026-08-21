@@ -371,6 +371,40 @@ export default function PlacePage() {
           </svg>
         </button>
 
+        {/* Favorite/Save Button */}
+        <button
+          onClick={toggleSave}
+          disabled={savingToggle}
+          aria-label={saveStatus?.saved ? 'Remove from saved places' : 'Save this place'}
+          aria-pressed={!!saveStatus?.saved}
+          style={{
+            position: 'absolute',
+            top: '128px',
+            right: '18px',
+            width: '44px',
+            height: '44px',
+            border: 'none',
+            background: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 30,
+            cursor: savingToggle ? 'default' : 'pointer',
+            opacity: savingToggle ? 0.7 : 1,
+            padding: 0,
+          }}
+        >
+          {saveStatus?.saved ? (
+            <svg width="28" height="28" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.35))' }}>
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF6B6B" />
+            </svg>
+          ) : (
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.35))' }}>
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+
         {/* Distance Badge */}
         <div style={{
           position: 'absolute',
