@@ -70,8 +70,6 @@ export default function Home() {
   }, []);
 
   const showPermissionToast = (msg: string) => {
-    (window as any).__debugToast = (window as any).__debugToast || [];
-    (window as any).__debugToast.push('showPermissionToast called with: ' + msg);
     setPermissionToast(msg);
     setTimeout(() => setPermissionToast(''), 3000);
   };
@@ -92,8 +90,6 @@ export default function Home() {
   };
 
   const handleNotificationClick = async () => {
-    (window as any).__debugToast = (window as any).__debugToast || [];
-    (window as any).__debugToast.push('handleNotificationClick called, current state: ' + notificationPermission);
     if (notificationPermission === 'granted') {
       showPermissionToast('Notifications are already on');
     } else if (notificationPermission === 'denied') {
