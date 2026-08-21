@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
     }
 
-    const { email, userId, __testShortExpiry } = await request.json();
+    const { email, userId } = await request.json();
 
     if (!email || !userId) {
       return NextResponse.json(
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     // Generate verification token (valid for 60 minutes)
     const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = __testShortExpiry ? Date.now() + 3000 : Date.now() + 60 * 60 * 1000; // TEMP: testing expiry enforcement
+    const expiresAt = Date.now() + 60 * 60 * 1000; // 60 minutes
 
     // Store token in Firestore
     await getAdminDb().collection('verification_tokens').doc(token).set({
@@ -108,10 +108,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(
-      { success: true, message: 'Verification email sent', ...(__testShortExpiry ? { token } : {}) },
-      { status: 200 }
-    );
+    return NextResponse.json({ success: true, message: 'Verification email sent' }, { status: 200 });
   } catch (error) {
     console.error('Send verification error:', error);
     return NextResponse.json(
