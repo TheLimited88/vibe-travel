@@ -24,11 +24,18 @@ export default function Header() {
           gap: '12px',
         }}
       >
-        <img
-          src="/vibe-travel-logo-v2-cropped.png"
-          alt="Vibe Travel"
-          style={{ height: '28px', width: 'auto', objectFit: 'contain' }}
-        />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <img
+            src="/vibe-travel-logo-v2-cropped.png"
+            alt="Vibe Travel"
+            style={{ height: '28px', width: 'auto', objectFit: 'contain', alignSelf: 'flex-start' }}
+          />
+          {!isMapPage && (
+            <span style={{ fontSize: '11px', fontWeight: 500, color: '#9F6BE8', paddingLeft: '3px', marginTop: '1px', display: 'block', letterSpacing: '1.05px', whiteSpace: 'nowrap' }}>
+              Find your kind of place
+            </span>
+          )}
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
             onClick={() => router.push(isMapPage ? '/' : '/map')}
