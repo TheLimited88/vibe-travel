@@ -1,11 +1,13 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 
 export default function Header() {
   const router = useRouter();
+  const pathname = usePathname();
   const { user } = useAuth();
+  const isMapPage = pathname === '/map';
 
   return (
     <header
@@ -29,8 +31,8 @@ export default function Header() {
         />
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button
-            onClick={() => router.push('/map')}
-            aria-label="Map view"
+            onClick={() => router.push(isMapPage ? '/' : '/map')}
+            aria-label={isMapPage ? 'Tile view' : 'Map view'}
             style={{
               width: '44px',
               height: '44px',
@@ -45,18 +47,27 @@ export default function Header() {
               padding: '0',
             }}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#0A0A0A"
-              strokeWidth="1.6"
-              strokeLinejoin="round"
-            >
-              <path d="M9 3L3 5v16l6-2 6 2 6-2V3l-6 2-6-2z" />
-              <path d="M9 3v16M15 5v16" strokeWidth="1.6" />
-            </svg>
+            {isMapPage ? (
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="1.8">
+                <rect x="3" y="3" width="8" height="8" rx="1.5" />
+                <rect x="13" y="3" width="8" height="8" rx="1.5" />
+                <rect x="3" y="13" width="8" height="8" rx="1.5" />
+                <rect x="13" y="13" width="8" height="8" rx="1.5" />
+              </svg>
+            ) : (
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#0A0A0A"
+                strokeWidth="1.6"
+                strokeLinejoin="round"
+              >
+                <path d="M9 3L3 5v16l6-2 6 2 6-2V3l-6 2-6-2z" />
+                <path d="M9 3v16M15 5v16" strokeWidth="1.6" />
+              </svg>
+            )}
           </button>
           <button
             onClick={() => router.push('/account')}
