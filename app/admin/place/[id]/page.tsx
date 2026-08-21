@@ -1169,6 +1169,13 @@ export default function EditPlacePage() {
               <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>0.6 mi</span>
             </div>
 
+            {/* Favorite/Save Button (preview only — not interactive) */}
+            <div style={{ position: 'absolute', top: '114px', right: '18px', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.35))' }}>
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" />
+              </svg>
+            </div>
+
             {/* Navigation Areas */}
             <button onClick={() => setCurrentImageIndex((i) => (i > 0 ? i - 1 : Math.max(previewMedia.length - 1, 0)))} style={{ position: 'absolute', top: '56px', bottom: '340px', left: '0', width: '35%', background: 'none', border: 'none', padding: '0', cursor: 'pointer', zIndex: 10 }} />
             <button onClick={() => setCurrentImageIndex((i) => (i < previewMedia.length - 1 ? i + 1 : 0))} style={{ position: 'absolute', top: '56px', bottom: '340px', right: '0', width: '65%', background: 'none', border: 'none', padding: '0', cursor: 'pointer', zIndex: 10 }} />

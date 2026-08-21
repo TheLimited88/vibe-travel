@@ -512,6 +512,13 @@ export default function NewPlacePage() {
               <span style={{ fontSize: '12px', fontWeight: '600', color: '#fff' }}>8.2 mi</span>
             </div>
 
+            {/* Favorite/Save Button (preview only — not interactive) */}
+            <div style={{ position: 'absolute', top: '114px', right: '18px', width: '44px', height: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3 }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ filter: 'drop-shadow(0 1px 4px rgba(0,0,0,0.35))' }}>
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" />
+              </svg>
+            </div>
+
             {/* Bottom Sheet - Absolutely Positioned */}
             <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: '#fff', borderRadius: '24px 24px 0 0', height: '52%', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 -4px 20px rgba(0,0,0,0.15)', zIndex: 4 }}>
               {/* Sheet Handle & Chevron */}
