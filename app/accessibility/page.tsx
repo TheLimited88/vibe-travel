@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import LegalContentBody from '@/components/LegalContentBody';
 
-export default function AboutPage() {
+export default function AccessibilityPage() {
   const router = useRouter();
 
   return (
@@ -32,10 +32,10 @@ export default function AboutPage() {
         </button>
 
         <h1 style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 28px', textAlign: 'left', color: '#0A0A0A' }}>
-          About Vibe Travel
+          Accessibility
         </h1>
 
-        <LegalContentBody contentKey="about" />
+        <LegalContentBody contentKey="accessibility" />
       </div>
     </div>
   );

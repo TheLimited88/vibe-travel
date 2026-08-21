@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import Header from '@/components/Header';
 import SearchBar from '@/components/SearchBar';
 import CategoryChips from '@/components/CategoryChips';
@@ -42,6 +43,9 @@ export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [locations, setLocations] = useState<Location[]>([]);
+  const [locationPermission, setLocationPermission] = useState<PermissionState | 'unsupported'>('unsupported');
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
+  const [permissionToast, setPermissionToast] = useState('');
 
   useEffect(() => {
     fetch('/api/admin/places')
@@ -52,6 +56,51 @@ export default function Home() {
       })
       .catch(() => setLocations([]));
   }, []);
+
+  useEffect(() => {
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission);
+    }
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'geolocation' }).then((status) => {
+        setLocationPermission(status.state);
+        status.onchange = () => setLocationPermission(status.state);
+      }).catch(() => {});
+    }
+  }, []);
+
+  const showPermissionToast = (msg: string) => {
+    setPermissionToast(msg);
+    setTimeout(() => setPermissionToast(''), 3000);
+  };
+
+  const handleLocationClick = () => {
+    if (locationPermission === 'granted') {
+      showPermissionToast('Location access is already on');
+    } else if (locationPermission === 'denied') {
+      showPermissionToast('Location is blocked — enable it for this site in your browser settings');
+    } else if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        () => setLocationPermission('granted'),
+        () => setLocationPermission('denied')
+      );
+    } else {
+      showPermissionToast('Location is not supported on this device');
+    }
+  };
+
+  const handleNotificationClick = async () => {
+    if (notificationPermission === 'granted') {
+      showPermissionToast('Notifications are already on');
+    } else if (notificationPermission === 'denied') {
+      showPermissionToast('Notifications are blocked — enable them for this site in your browser settings');
+    } else if ('Notification' in window) {
+      const result = await Notification.requestPermission();
+      setNotificationPermission(result);
+    } else {
+      showPermissionToast('Notifications are not supported on this device');
+    }
+  };
 
   const handleSelectCategory = (categoryId: string) => {
     setSelectedCategory(categoryId);
@@ -157,21 +206,53 @@ export default function Home() {
             {/* Footer */}
             <footer style={{ borderTop: '1px solid rgba(10, 10, 10, 0.08)', paddingTop: '24px', marginTop: '32px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px', fontSize: '11px', color: 'rgba(10, 10, 10, 0.5)', fontWeight: 500 }}>
-                <a href="#" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>About</a>
-                <a href="#" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Help</a>
-                <a href="#" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Terms of Service</a>
+                <Link href="/about" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>About</Link>
+                <Link href="/help" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Help</Link>
+                <Link href="/legal/terms" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Terms of Service</Link>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px', fontSize: '11px', color: 'rgba(10, 10, 10, 0.5)', fontWeight: 500 }}>
-                <a href="#" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Privacy Policy</a>
-                <a href="#" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Acceptable Use</a>
-                <a href="#" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Cookie Policy</a>
+                <Link href="/legal/privacy" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Privacy Policy</Link>
+                <Link href="/legal/acceptable-use" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Acceptable Use</Link>
+                <Link href="/legal/cookies" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Cookie Policy</Link>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', fontSize: '11px', color: 'rgba(10, 10, 10, 0.5)', fontWeight: 500 }}>
-                <span>Location: Off</span>
-                <span>Notifications: Off</span>
-                <a href="#" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Accessibility</a>
+                <button
+                  onClick={handleLocationClick}
+                  style={{ background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', textAlign: 'left', color: 'rgba(10, 10, 10, 0.5)', cursor: 'pointer' }}
+                >
+                  Location: {locationPermission === 'granted' ? 'On' : 'Off'}
+                </button>
+                <button
+                  onClick={handleNotificationClick}
+                  style={{ background: 'none', border: 'none', padding: 0, margin: 0, font: 'inherit', textAlign: 'left', color: 'rgba(10, 10, 10, 0.5)', cursor: 'pointer' }}
+                >
+                  Notifications: {notificationPermission === 'granted' ? 'On' : 'Off'}
+                </button>
+                <Link href="/accessibility" style={{ color: 'rgba(10, 10, 10, 0.5)', textDecoration: 'none' }}>Accessibility</Link>
               </div>
             </footer>
+
+            {permissionToast && (
+              <div
+                style={{
+                  position: 'fixed',
+                  bottom: '80px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: '#0A0A0A',
+                  color: '#fff',
+                  padding: '10px 18px',
+                  borderRadius: '999px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  zIndex: 1020,
+                  maxWidth: '90%',
+                  textAlign: 'center',
+                }}
+              >
+                {permissionToast}
+              </div>
+            )}
           </main>
         </div>
 

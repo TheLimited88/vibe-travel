@@ -10,6 +10,7 @@ const contentPages = [
   { key: 'privacy', label: 'Privacy', title: 'Privacy Policy' },
   { key: 'acceptable_use', label: 'Acceptable Use', title: 'Acceptable Use' },
   { key: 'cookies', label: 'Cookies', title: 'Cookie Policy' },
+  { key: 'accessibility', label: 'Accessibility', title: 'Accessibility' },
 ];
 
 interface Section {
