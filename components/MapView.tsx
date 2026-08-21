@@ -449,14 +449,23 @@ export default function MapView({ onMarkerClick, searchQuery = '' }: MapViewProp
     const q = searchQuery.trim();
     if (!q) return;
 
-    const withCoords = filteredPlaces.filter((p) => p.lat != null && p.lng != null);
-    if (withCoords.length === 1) {
-      map.current.flyTo({ center: [withCoords[0].lng as number, withCoords[0].lat as number], zoom: 15, essential: true });
-    } else if (withCoords.length > 1) {
-      const bounds = new mapboxgl.LngLatBounds();
-      withCoords.forEach((p) => bounds.extend([p.lng as number, p.lat as number]));
-      map.current.fitBounds(bounds, { padding: 60, maxZoom: 15 });
-    }
+    // Debounce the camera move — without this, every keystroke interrupts
+    // the previous flyTo/fitBounds mid-flight, which reads as the map
+    // constantly zooming out then back in, and never gives Mapbox's tile
+    // loading a chance to settle (which was also why the matching marker
+    // never actually finished rendering).
+    const timer = setTimeout(() => {
+      const withCoords = filteredPlaces.filter((p) => p.lat != null && p.lng != null);
+      if (withCoords.length === 1) {
+        map.current!.flyTo({ center: [withCoords[0].lng as number, withCoords[0].lat as number], zoom: 15, essential: true });
+      } else if (withCoords.length > 1) {
+        const bounds = new mapboxgl.LngLatBounds();
+        withCoords.forEach((p) => bounds.extend([p.lng as number, p.lat as number]));
+        map.current!.fitBounds(bounds, { padding: 60, maxZoom: 15 });
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, [filteredPlaces, searchQuery]);
 
   const selectedCategory = selectedPlace ? categories.find(c => c.key === selectedPlace.category) || categories[0] : null;
