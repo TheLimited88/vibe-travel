@@ -14,12 +14,12 @@ export default function MapPage() {
   };
 
   return (
-    <div style={{ background: '#F9F8F6', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div style={{ background: '#F9F8F6', height: '100vh', display: 'flex', justifyContent: 'center' }}>
       <div
         style={{
           width: '100%',
-          maxWidth: '100vw',
-          minHeight: '100vh',
+          maxWidth: '375px',
+          height: '100vh',
           background: '#F2F2F7',
           display: 'flex',
           flexDirection: 'column',
