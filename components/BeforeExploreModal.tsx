@@ -244,11 +244,11 @@ export default function BeforeExploreModal() {
                     padding: '6px 12px',
                     fontSize: '12px',
                     fontWeight: 600,
-                    border: choices[permission.id] === 'deny' ? '1px solid #0A0A0A' : '1px solid rgba(10, 10, 10, 0.1)',
-                    background: choices[permission.id] === 'deny' ? '#0A0A0A' : '#FFFFFF',
+                    border: choices[permission.id] === 'deny' ? 'none' : '1px solid rgba(10, 10, 10, 0.1)',
+                    background: choices[permission.id] === 'deny' ? '#3EE8A8' : '#FFFFFF',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    color: choices[permission.id] === 'deny' ? '#FFFFFF' : '#0A0A0A',
+                    color: '#0A0A0A',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -261,12 +261,11 @@ export default function BeforeExploreModal() {
                     fontSize: '12px',
                     fontWeight: 600,
                     border: 'none',
-                    background: choices[permission.id] === 'allow' ? '#5E33D6' : '#7F53F3',
+                    background: choices[permission.id] === 'allow' ? '#3EE8A8' : '#7F53F3',
                     borderRadius: '6px',
                     cursor: 'pointer',
-                    color: '#FFFFFF',
+                    color: choices[permission.id] === 'allow' ? '#0A0A0A' : '#FFFFFF',
                     whiteSpace: 'nowrap',
-                    boxShadow: choices[permission.id] === 'allow' ? 'inset 0 0 0 2px rgba(255,255,255,0.6)' : 'none',
                   }}
                 >
                   {permission.id === 'install' ? 'Install' : 'Allow'}
