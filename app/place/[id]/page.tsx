@@ -418,9 +418,9 @@ export default function PlacePage() {
         <div style={{ flex: 1, overflow: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <button onClick={() => setIsExpanded(true)} style={{ display: 'flex', flexDirection: 'column', gap: '5px', width: '100%', background: 'none', border: 'none', font: 'inherit', textAlign: 'left', padding: '0', margin: '0', cursor: 'pointer', minWidth: 0 }}>
             <span style={{ fontSize: '20px', fontWeight: '800', color: '#0A0A0A' }}>{place.title}</span>
-            <span style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700', color: '#6B3FD1', background: 'rgba(127,83,243,0.1)', borderRadius: '999px', padding: '3px 10px 3px 4px' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: '#6B3FD1' }}>
-                <g dangerouslySetInnerHTML={{ __html: category.icon }} />
+            <span style={{ alignSelf: 'flex-start', display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: '700', color: category.color, background: `${category.color}1A`, borderRadius: '999px', padding: '3px 10px 3px 4px' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ color: category.color }}>
+                <g dangerouslySetInnerHTML={{ __html: category.icon.replace(/#fff/g, category.color) }} />
               </svg>
               {category.label}
             </span>

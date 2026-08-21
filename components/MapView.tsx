@@ -480,8 +480,8 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
                 ✕
               </button>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#6B3FD1' }}>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><g dangerouslySetInnerHTML={{ __html: selectedCategory.icon.replace(/#fff/g, '#6B3FD1') }} /></svg>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: selectedCategory.color }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><g dangerouslySetInnerHTML={{ __html: selectedCategory.icon.replace(/#fff/g, selectedCategory.color) }} /></svg>
               {selectedCategory.label}
             </div>
             <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
