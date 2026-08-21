@@ -84,9 +84,11 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
       bearing: 0,
     });
 
+    (window as any).__debugMapView = { placesCount: places.length, loadFired: false };
     map.current.on('load', () => {
       if (!map.current) return;
       stylesLoaded.current = true;
+      (window as any).__debugMapView.loadFired = true;
 
       // Radius circles (distance indicators), centered on the user's real
       // location once known — falls back to the default center until then.
@@ -212,6 +214,10 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
 
         markersRef.current.push(marker);
       });
+
+      (window as any).__debugMapView.markersCreated = markersRef.current.length;
+      (window as any).__debugMapView.zoom = map.current.getZoom();
+      (window as any).__debugMapViewMap = map.current;
 
       // Add click handler for clusters to zoom in
       map.current!.on('click', 'clusters', (e: any) => {
