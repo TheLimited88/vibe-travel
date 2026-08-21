@@ -8,7 +8,7 @@ import { categories } from '@/data/categories';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
 
-interface PlaceApiRecord {
+export interface PlaceApiRecord {
   slug: string;
   title: string;
   subtitle: string;
@@ -23,9 +23,13 @@ interface PlaceApiRecord {
 interface MapViewProps {
   onMarkerClick?: (placeSlug: string) => void;
   searchQuery?: string;
+  // Optional externally-provided place list (e.g. only visited or only
+  // saved places). When omitted, the map fetches and shows all published
+  // places itself, same as the main /map page.
+  places?: PlaceApiRecord[];
 }
 
-export default function MapView({ onMarkerClick, searchQuery = '' }: MapViewProps) {
+export default function MapView({ onMarkerClick, searchQuery = '', places: externalPlaces }: MapViewProps) {
   const router = useRouter();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -33,7 +37,7 @@ export default function MapView({ onMarkerClick, searchQuery = '' }: MapViewProp
   const markersById = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const [hasPreciseLocation, setHasPreciseLocation] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [places, setPlaces] = useState<PlaceApiRecord[] | null>(null);
+  const [fetchedPlaces, setFetchedPlaces] = useState<PlaceApiRecord[] | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<PlaceApiRecord | null>(null);
   const [selectedImgError, setSelectedImgError] = useState(false);
   const DEFAULT_CENTER: [number, number] = [-73.9857, 40.7484];
@@ -41,6 +45,8 @@ export default function MapView({ onMarkerClick, searchQuery = '' }: MapViewProp
   const stylesLoaded = useRef(false);
   const isSatellite = useRef(false);
   const filteredPlacesRef = useRef<PlaceApiRecord[]>([]);
+
+  const places = externalPlaces ?? fetchedPlaces;
 
   const filteredPlaces = useMemo(() => {
     if (!places) return null;
@@ -58,14 +64,15 @@ export default function MapView({ onMarkerClick, searchQuery = '' }: MapViewProp
   filteredPlacesRef.current = filteredPlaces || [];
 
   useEffect(() => {
+    if (externalPlaces) return;
     fetch('/api/admin/places')
       .then((r) => r.json())
       .then((data) => {
         const published = (data.places || []).filter((p: PlaceApiRecord) => p.status === 'published' && p.lat != null && p.lng != null);
-        setPlaces(published);
+        setFetchedPlaces(published);
       })
-      .catch(() => setPlaces([]));
-  }, []);
+      .catch(() => setFetchedPlaces([]));
+  }, [externalPlaces]);
 
   const recenterRadiusCircles = (lng: number, lat: number) => {
     userCoords.current = [lng, lat];
