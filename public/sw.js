@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vibe-travel-v3';
+const CACHE_NAME = 'vibe-travel-v4';
 const ASSETS_TO_CACHE = [
   '/manifest.json',
   '/favicon.ico',
