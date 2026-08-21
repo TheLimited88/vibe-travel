@@ -39,8 +39,9 @@ export async function POST(request: NextRequest) {
       used: false,
     });
 
-    // Build verification link
-    const verifyLink = `${process.env.NEXT_PUBLIC_APP_URL}/auth/verify-email?token=${token}`;
+    // Build verification link from the actual request origin, not an env var
+    // that can be unset/misconfigured in production
+    const verifyLink = `${request.nextUrl.origin}/auth/verify-email?token=${token}`;
 
     // Send email via SendGrid
     const emailHtml = `

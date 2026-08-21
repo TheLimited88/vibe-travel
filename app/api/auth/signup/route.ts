@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       // ===== SECURITY LAYER 5: Send Verification Email =====
       try {
         // Trigger verification email (using existing endpoint)
-        await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/auth/send-verification`, {
+        await fetch(`${request.nextUrl.origin}/api/auth/send-verification`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

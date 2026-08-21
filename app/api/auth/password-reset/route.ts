@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Always return success message
     try {
       await sendPasswordResetEmail(auth, email, {
-        url: `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password-form`,
+        url: `${request.nextUrl.origin}/auth/reset-password-form`,
       });
 
       console.log(`Password reset email sent to: ${email} from IP: ${clientIP}`);
