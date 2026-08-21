@@ -19,6 +19,13 @@ interface ReviewStatus {
   hasArrived: boolean;
   review: { thumbsUp: boolean; vibeTags: string[] } | null;
   summary: ReviewSummary;
+  arrivalCount: number;
+}
+
+interface SaveStatus {
+  signedIn: boolean;
+  saved: boolean;
+  count: number;
 }
 
 interface PlaceMedia {
@@ -84,6 +91,8 @@ export default function PlacePage() {
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewError, setReviewError] = useState('');
+  const [saveStatus, setSaveStatus] = useState<SaveStatus | null>(null);
+  const [savingToggle, setSavingToggle] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -121,6 +130,44 @@ export default function PlacePage() {
       setSelectedVibes(reviewStatus.review.vibeTags);
     }
   }, [reviewStatus]);
+
+  const refreshSaveStatus = useCallback(async () => {
+    if (!slug) return;
+    const headers: HeadersInit = {};
+    if (user) {
+      const token = await user.getIdToken();
+      headers.Authorization = `Bearer ${token}`;
+    }
+    const res = await fetch(`/api/places/${encodeURIComponent(slug)}/save`, { headers });
+    const data = await res.json();
+    setSaveStatus(data);
+  }, [slug, user]);
+
+  useEffect(() => {
+    refreshSaveStatus();
+  }, [refreshSaveStatus]);
+
+  const toggleSave = async () => {
+    if (!user) {
+      router.push('/auth/signin');
+      return;
+    }
+    if (savingToggle) return;
+    setSavingToggle(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`/api/places/${encodeURIComponent(slug)}/save`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSaveStatus(data);
+      }
+    } finally {
+      setSavingToggle(false);
+    }
+  };
 
   const submitReview = async (thumbsUp: boolean) => {
     if (!user || submittingReview) return;
@@ -480,12 +527,30 @@ export default function PlacePage() {
                 <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="currentColor" strokeWidth="1.8" />
                 <path d="M9 9.5l2 2 4-4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>0</span>
+              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>{reviewStatus?.arrivalCount ?? 0}</span>
               <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.75 }}>Visited</span>
             </div>
-            <button style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px', background: '#6B3FD1', border: 'none', borderRadius: '14px', padding: '9px 6px', color: '#fff', cursor: 'pointer' }}>
-              <span style={{ fontSize: '16px', lineHeight: '1' }}>★</span>
-              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>0</span>
+            <button
+              onClick={toggleSave}
+              disabled={savingToggle}
+              style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '3px',
+                background: saveStatus?.saved ? '#6B3FD1' : 'rgba(107,63,209,0.12)',
+                border: saveStatus?.saved ? 'none' : '1px solid rgba(107,63,209,0.3)',
+                borderRadius: '14px',
+                padding: '9px 6px',
+                color: saveStatus?.saved ? '#fff' : '#6B3FD1',
+                cursor: savingToggle ? 'default' : 'pointer',
+                opacity: savingToggle ? 0.7 : 1,
+              }}
+            >
+              <span style={{ fontSize: '16px', lineHeight: '1' }}>{saveStatus?.saved ? '★' : '☆'}</span>
+              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>{saveStatus?.count ?? 0}</span>
               <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.85 }}>Saved</span>
             </button>
             <button style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px', background: 'linear-gradient(135deg, rgba(149,4,139,0.1), rgba(127,83,243,0.1))', border: '1px solid rgba(149,4,139,0.25)', borderRadius: '14px', padding: '9px 6px', color: '#95048B', cursor: 'pointer' }}>

@@ -1,68 +1,114 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/components/AuthProvider';
+import MapView, { type PlaceApiRecord } from '@/components/MapView';
+import { categories } from '@/data/categories';
+
+interface SavedPlace extends PlaceApiRecord {
+  savedAt: number;
+}
+
+function SavedThumbnail({ place }: { place: SavedPlace }) {
+  const [imgError, setImgError] = useState(false);
+  const category = categories.find((c) => c.key === place.category) || categories[0];
+
+  if (place.heroImage && !imgError) {
+    return (
+      <img
+        src={place.heroImage.url}
+        alt={place.title}
+        onError={() => setImgError(true)}
+        style={{ width: '64px', height: '64px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: '64px',
+        height: '64px',
+        borderRadius: '10px',
+        background: category.color,
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" dangerouslySetInnerHTML={{ __html: category.icon }} />
+    </div>
+  );
+}
 
 export default function SavedPage() {
   const router = useRouter();
-  const [isSignedIn, setIsSignedIn] = useState(true);
+  const { user, loading: authLoading } = useAuth();
   const [viewMode, setViewMode] = useState<'list' | 'map'>('map');
   const [searchQuery, setSearchQuery] = useState('');
+  const [places, setPlaces] = useState<SavedPlace[] | null>(null);
+  const [loadingPlaces, setLoadingPlaces] = useState(true);
+  const [removingSlug, setRemovingSlug] = useState<string | null>(null);
 
-  const mockPlaces = [
-    {
-      id: 1,
-      title: 'Dead Horse Bay',
-      subtitle: 'A sea-glass shoreline built on a century of buried trash',
-      address: 'Flatbush Ave & Aviation Rd, Brooklyn, NY',
-      category: 'Hidden Beach',
-      icon: 'beach',
-    },
-    {
-      id: 2,
-      title: 'Brooklyn Heights Promenade',
-      subtitle: 'The skyline view New Yorkers actually go to',
-      address: 'Brooklyn Heights Promenade, Brooklyn, NY',
-      category: 'Scenic Lookout',
-      icon: 'lookout',
-    },
-    {
-      id: 7,
-      title: 'Gantry Plaza State Park',
-      subtitle: 'The best skyline photo you can take without a lens permit',
-      address: '4-09 47th Rd, Long Island City, NY',
-      category: 'Photography Spot',
-      icon: 'photo',
-    },
-  ];
+  const refresh = useCallback(async () => {
+    if (!user) {
+      setPlaces(null);
+      setLoadingPlaces(false);
+      return;
+    }
+    setLoadingPlaces(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch('/api/places/saved', { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setPlaces(res.ok ? data.places : []);
+    } catch {
+      setPlaces([]);
+    } finally {
+      setLoadingPlaces(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    refresh();
+  }, [authLoading, refresh]);
+
+  const handleUnsave = async (slug: string) => {
+    if (!user || removingSlug) return;
+    setRemovingSlug(slug);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch(`/api/places/${encodeURIComponent(slug)}/save`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setPlaces((prev) => (prev ? prev.filter((p) => p.slug !== slug) : prev));
+      }
+    } finally {
+      setRemovingSlug(null);
+    }
+  };
+
+  const isSignedIn = !authLoading && !!user;
+  const isLoading = authLoading || loadingPlaces;
+  const allPlaces = places || [];
 
   const filteredPlaces = searchQuery
-    ? mockPlaces.filter(
+    ? allPlaces.filter(
         (p) =>
           p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.address.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : mockPlaces;
+    : allPlaces;
 
-  const noSaved = isSignedIn && filteredPlaces.length === 0;
-
-  const getCategoryColor = (icon: string) => {
-    const colors: { [key: string]: string } = {
-      beach: '#FF6B6B',
-      lookout: '#6B3FD1',
-      photo: '#FFB84D',
-      historic: '#4ECDC4',
-      waterfall: '#45B7D1',
-      trail: '#96CEB4',
-      market: '#FFEAA7',
-      arch: '#DDA15E',
-      quiet: '#B8860B',
-      street: '#FF8C42',
-    };
-    return colors[icon] || '#6B3FD1';
-  };
+  const noSavedAtAll = isSignedIn && !isLoading && allPlaces.length === 0;
+  const noSearchMatches = isSignedIn && !isLoading && allPlaces.length > 0 && filteredPlaces.length === 0;
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#FFFFFF' }}>
@@ -91,7 +137,7 @@ export default function SavedPage() {
             </div>
 
             {/* Sign-in Prompt */}
-            {!isSignedIn && (
+            {!authLoading && !user && (
               <div style={{
                 background: '#fff',
                 borderRadius: '18px',
@@ -198,14 +244,22 @@ export default function SavedPage() {
           {/* List View */}
           {isSignedIn && viewMode === 'list' && (
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {noSaved ? (
+              {isLoading ? (
+                <div style={{ padding: '40px 10px', textAlign: 'center', fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>
+                  Loading…
+                </div>
+              ) : noSavedAtAll ? (
                 <div style={{ padding: '40px 10px', textAlign: 'center', fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>
                   Nothing saved yet — tap the heart on any place.
+                </div>
+              ) : noSearchMatches ? (
+                <div style={{ padding: '40px 10px', textAlign: 'center', fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>
+                  No saved places match your search.
                 </div>
               ) : (
                 filteredPlaces.map((place) => (
                   <div
-                    key={place.id}
+                    key={place.slug}
                     style={{
                       display: 'flex',
                       gap: '12px',
@@ -215,17 +269,9 @@ export default function SavedPage() {
                       border: '1px solid rgba(10,10,10,0.06)',
                     }}
                   >
-                    <div
-                      style={{
-                        width: '64px',
-                        height: '64px',
-                        borderRadius: '10px',
-                        background: '#E8D5F2',
-                        flexShrink: 0,
-                      }}
-                    />
+                    <SavedThumbnail place={place} />
                     <button
-                      onClick={() => router.push(`/place/${place.id}`)}
+                      onClick={() => router.push(`/place/${place.slug}`)}
                       style={{
                         flex: 1,
                         display: 'flex',
@@ -250,10 +296,13 @@ export default function SavedPage() {
                         </svg>
                         {place.address}
                       </div>
-                      <span style={{ fontSize: '11px', color: '#6B3FD1' }}>{place.category}</span>
+                      <span style={{ fontSize: '11px', color: '#6B3FD1' }}>
+                        {(categories.find((c) => c.key === place.category) || categories[0]).label}
+                      </span>
                     </button>
                     <button
-                      onClick={() => alert('Unsave: ' + place.title)}
+                      onClick={() => handleUnsave(place.slug)}
+                      disabled={removingSlug === place.slug}
                       aria-label="Remove from saved"
                       style={{
                         alignSelf: 'flex-start',
@@ -264,7 +313,8 @@ export default function SavedPage() {
                         border: 'none',
                         fontSize: '20px',
                         color: 'rgba(10,10,10,0.6)',
-                        cursor: 'pointer',
+                        cursor: removingSlug === place.slug ? 'default' : 'pointer',
+                        opacity: removingSlug === place.slug ? 0.6 : 1,
                       }}
                     >
                       ✕
@@ -277,139 +327,14 @@ export default function SavedPage() {
 
           {/* Map View */}
           {isSignedIn && viewMode === 'map' && (
-            <div style={{
-              flex: 1,
-              position: 'relative',
-              background: 'linear-gradient(135deg, #F5F3F0 0%, #F0EBE6 100%)',
-              backgroundImage: 'linear-gradient(135deg, #F5F3F0 0%, #F0EBE6 100%), repeating-linear-gradient(90deg, transparent, transparent 35px, rgba(0,0,0,.02) 35px, rgba(0,0,0,.02) 70px)',
-              margin: '0 16px 24px 16px',
-              borderRadius: '14px',
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              {/* Map pins */}
-              {filteredPlaces.map((place, idx) => (
-                <button
-                  key={place.id}
-                  onClick={() => router.push(`/place/${place.id}`)}
-                  style={{
-                    position: 'absolute',
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '999px',
-                    background: getCategoryColor(place.icon),
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
-                    left: `${20 + idx * 30}px`,
-                    top: `${40 + idx * 25}px`,
-                    padding: 0,
-                  }}
-                >
-                  {place.icon === 'beach' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 13c2 0 2-3 4-3s2 3 4 3 2-3 4-3 2 3 4 3 2-3 4-3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
-                      <path d="M3 15c2 0 2-3 4-3s2 3 4 3 2-3 4-3 2 3 4 3 2-3 4-3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                  {place.icon === 'lookout' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 19l6-10 4 6 3-4 5 8H3z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                  {place.icon === 'photo' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <rect x="3" y="7" width="18" height="13" rx="2" stroke="#fff" strokeWidth="1.8"/>
-                      <path d="M8 7l1.5-2.5h5L16 7" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/>
-                      <circle cx="12" cy="13.5" r="3.5" stroke="#fff" strokeWidth="1.8"/>
-                    </svg>
-                  )}
-                  {place.icon === 'waterfall' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M8 3c0 4-3 4-3 8s3 4 3 8M16 3c0 4-3 4-3 8s3 4 3 8" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                </button>
-              ))}
-
-              {/* Map Controls */}
-              <button
-                aria-label="Toggle satellite view"
-                style={{
-                  position: 'absolute',
-                  bottom: '120px',
-                  right: '16px',
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '999px',
-                  background: '#fff',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3L3 8.5l9 5.5 9-5.5L12 3z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" />
-                  <path d="M3 14l9 5.5 9-5.5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" />
-                </svg>
-              </button>
-
-              <button
-                aria-label="Toggle fullscreen map"
-                style={{
-                  position: 'absolute',
-                  bottom: '70px',
-                  right: '16px',
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '999px',
-                  background: '#fff',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M8 3H4a1 1 0 00-1 1v4M16 3h4a1 1 0 011 1v4M8 21H4a1 1 0 01-1-1v-4M16 21h4a1 1 0 001-1v-4" stroke="#0A0A0A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-
-              <button
-                onClick={() => alert('Recenter map')}
-                aria-label="Recenter map on my location"
-                style={{
-                  position: 'absolute',
-                  bottom: '16px',
-                  right: '16px',
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '999px',
-                  background: '#fff',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
-                }}
-              >
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3" stroke="#4285F4" strokeWidth="1.9" />
-                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#4285F4" strokeWidth="1.9" strokeLinecap="round" />
-                </svg>
-              </button>
+            <div style={{ flex: 1, position: 'relative', margin: '0 16px 24px 16px', borderRadius: '14px', overflow: 'hidden' }}>
+              {isLoading ? (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F3F0', fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>
+                  Loading…
+                </div>
+              ) : (
+                <MapView places={allPlaces} searchQuery={searchQuery} />
+              )}
             </div>
           )}
         </div>

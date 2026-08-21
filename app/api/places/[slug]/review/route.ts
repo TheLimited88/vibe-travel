@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyRequestAuth } from '@/lib/firebaseAdminAuth';
-import { createReviewOnce, getReview, getReviewSummary, hasArrived } from '@/lib/placeReviews';
+import { createReviewOnce, getArrivalCount, getReview, getReviewSummary, hasArrived } from '@/lib/placeReviews';
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
     const { slug } = await params;
-    const summary = await getReviewSummary(slug);
+    const [summary, arrivalCount] = await Promise.all([getReviewSummary(slug), getArrivalCount(slug)]);
 
     const decoded = await verifyRequestAuth(request);
     if (!decoded) {
-      return NextResponse.json({ signedIn: false, hasArrived: false, review: null, summary });
+      return NextResponse.json({ signedIn: false, hasArrived: false, review: null, summary, arrivalCount });
     }
 
     const [arrived, review] = await Promise.all([hasArrived(decoded.uid, slug), getReview(decoded.uid, slug)]);
 
-    return NextResponse.json({ signedIn: true, hasArrived: arrived, review, summary });
+    return NextResponse.json({ signedIn: true, hasArrived: arrived, review, summary, arrivalCount });
   } catch (error) {
     console.error('Get review status error:', error);
     return NextResponse.json({ error: 'Failed to load review status' }, { status: 500 });

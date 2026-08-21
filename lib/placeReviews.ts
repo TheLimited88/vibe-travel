@@ -25,6 +25,16 @@ export async function hasArrived(uid: string, placeSlug: string): Promise<boolea
   return snap.exists;
 }
 
+export async function listArrivalsForUser(uid: string): Promise<PlaceArrival[]> {
+  const snap = await getAdminDb().collection(ARRIVALS_COLLECTION).where('uid', '==', uid).get();
+  return snap.docs.map((d) => d.data() as PlaceArrival);
+}
+
+export async function getArrivalCount(placeSlug: string): Promise<number> {
+  const snap = await getAdminDb().collection(ARRIVALS_COLLECTION).where('placeSlug', '==', placeSlug).count().get();
+  return snap.data().count;
+}
+
 export interface PlaceReview {
   uid: string;
   placeSlug: string;

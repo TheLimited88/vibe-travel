@@ -1,74 +1,100 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/components/AuthProvider';
+import MapView, { type PlaceApiRecord } from '@/components/MapView';
+import { categories } from '@/data/categories';
+
+interface VisitedPlace extends PlaceApiRecord {
+  arrivedAt: number;
+}
+
+function VisitedThumbnail({ place }: { place: VisitedPlace }) {
+  const [imgError, setImgError] = useState(false);
+  const category = categories.find((c) => c.key === place.category) || categories[0];
+
+  if (place.heroImage && !imgError) {
+    return (
+      <img
+        src={place.heroImage.url}
+        alt={place.title}
+        onError={() => setImgError(true)}
+        style={{ width: '64px', height: '64px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
+      />
+    );
+  }
+
+  return (
+    <div
+      style={{
+        width: '64px',
+        height: '64px',
+        borderRadius: '10px',
+        background: category.color,
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" dangerouslySetInnerHTML={{ __html: category.icon }} />
+    </div>
+  );
+}
+
+function formatDate(ts: number): string {
+  return new Date(ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 export default function VisitedPage() {
   const router = useRouter();
-  const [isSignedIn, setIsSignedIn] = useState(true);
+  const { user, loading: authLoading } = useAuth();
   const [viewMode, setViewMode] = useState<'list' | 'map'>('map');
   const [searchQuery, setSearchQuery] = useState('');
+  const [places, setPlaces] = useState<VisitedPlace[] | null>(null);
+  const [loadingPlaces, setLoadingPlaces] = useState(true);
 
-  const mockPlaces = [
-    {
-      id: 2,
-      title: 'Brooklyn Heights Promenade',
-      subtitle: 'The skyline view New Yorkers actually go to',
-      address: 'Brooklyn Heights Promenade, Brooklyn, NY',
-      category: 'Scenic Lookout',
-      icon: 'lookout',
-      firstVisited: 'Jul 12, 2026',
-      archived: false,
-    },
-    {
-      id: 1,
-      title: 'Dead Horse Bay',
-      subtitle: 'A sea-glass shoreline built on a century of buried trash',
-      address: 'Flatbush Ave & Aviation Rd, Brooklyn, NY',
-      category: 'Hidden Beach',
-      icon: 'beach',
-      firstVisited: 'Jun 28, 2026',
-      archived: false,
-    },
-    {
-      id: 8,
-      title: 'The Elevated Acre',
-      subtitle: "FiDi's rooftop park that almost nobody knows exists",
-      address: '55 Water St, New York, NY',
-      category: 'Quiet Escape',
-      icon: 'quiet',
-      firstVisited: 'May 3, 2026',
-      archived: true,
-    },
-  ];
+  const refresh = useCallback(async () => {
+    if (!user) {
+      setPlaces(null);
+      setLoadingPlaces(false);
+      return;
+    }
+    setLoadingPlaces(true);
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch('/api/places/visited', { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      setPlaces(res.ok ? data.places : []);
+    } catch {
+      setPlaces([]);
+    } finally {
+      setLoadingPlaces(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    refresh();
+  }, [authLoading, refresh]);
+
+  const isSignedIn = !authLoading && !!user;
+  const isLoading = authLoading || loadingPlaces;
+  const allPlaces = places || [];
 
   const filteredPlaces = searchQuery
-    ? mockPlaces.filter(
+    ? allPlaces.filter(
         (p) =>
           p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
           p.address.toLowerCase().includes(searchQuery.toLowerCase())
       )
-    : mockPlaces;
+    : allPlaces;
 
-  const noVisited = isSignedIn && filteredPlaces.length === 0;
-
-  const getCategoryColor = (icon: string) => {
-    const colors: { [key: string]: string } = {
-      beach: '#FF6B6B',
-      lookout: '#6B3FD1',
-      photo: '#FFB84D',
-      historic: '#4ECDC4',
-      waterfall: '#45B7D1',
-      trail: '#96CEB4',
-      market: '#FFEAA7',
-      arch: '#DDA15E',
-      quiet: '#B8860B',
-      street: '#FF8C42',
-    };
-    return colors[icon] || '#6B3FD1';
-  };
+  const noVisitedAtAll = isSignedIn && !isLoading && allPlaces.length === 0;
+  const noSearchMatches = isSignedIn && !isLoading && allPlaces.length > 0 && filteredPlaces.length === 0;
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#FFFFFF' }}>
@@ -97,7 +123,7 @@ export default function VisitedPage() {
             </div>
 
             {/* Sign-in Prompt */}
-            {!isSignedIn && (
+            {!authLoading && !user && (
               <div style={{
                 background: '#fff',
                 borderRadius: '18px',
@@ -204,14 +230,22 @@ export default function VisitedPage() {
           {/* List View */}
           {isSignedIn && viewMode === 'list' && (
             <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {noVisited ? (
+              {isLoading ? (
+                <div style={{ padding: '40px 10px', textAlign: 'center', fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>
+                  Loading…
+                </div>
+              ) : noVisitedAtAll ? (
                 <div style={{ padding: '40px 10px', textAlign: 'center', fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>
                   Sign in and enable location to build your visited-places collection automatically.
+                </div>
+              ) : noSearchMatches ? (
+                <div style={{ padding: '40px 10px', textAlign: 'center', fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>
+                  No visited places match your search.
                 </div>
               ) : (
                 filteredPlaces.map((place) => (
                   <div
-                    key={place.id}
+                    key={place.slug}
                     style={{
                       display: 'flex',
                       gap: '12px',
@@ -221,17 +255,9 @@ export default function VisitedPage() {
                       border: '1px solid rgba(10,10,10,0.06)',
                     }}
                   >
-                    <div
-                      style={{
-                        width: '64px',
-                        height: '64px',
-                        borderRadius: '10px',
-                        background: '#E8D5F2',
-                        flexShrink: 0,
-                      }}
-                    />
+                    <VisitedThumbnail place={place} />
                     <button
-                      onClick={() => router.push(`/place/${place.id}`)}
+                      onClick={() => router.push(`/place/${place.slug}`)}
                       style={{
                         flex: 1,
                         display: 'flex',
@@ -256,13 +282,10 @@ export default function VisitedPage() {
                         </svg>
                         {place.address}
                       </div>
-                      <span style={{ fontSize: '11px', color: '#6B3FD1' }}>{place.category}</span>
-                      <span style={{ fontSize: '11.5px', color: 'rgba(10,10,10,0.6)' }}>First visited {place.firstVisited}</span>
-                      {place.archived && (
-                        <span style={{ fontSize: '10.5px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', background: 'rgba(10,10,10,0.06)', padding: '2px 8px', borderRadius: '8px', alignSelf: 'flex-start' }}>
-                          No longer available
-                        </span>
-                      )}
+                      <span style={{ fontSize: '11px', color: '#6B3FD1' }}>
+                        {(categories.find((c) => c.key === place.category) || categories[0]).label}
+                      </span>
+                      <span style={{ fontSize: '11.5px', color: 'rgba(10,10,10,0.6)' }}>First visited {formatDate(place.arrivedAt)}</span>
                     </button>
                   </div>
                 ))
@@ -272,133 +295,14 @@ export default function VisitedPage() {
 
           {/* Map View */}
           {isSignedIn && viewMode === 'map' && (
-            <div style={{
-              flex: 1,
-              position: 'relative',
-              background: 'linear-gradient(135deg, #F5F3F0 0%, #F0EBE6 100%)',
-              backgroundImage: 'linear-gradient(135deg, #F5F3F0 0%, #F0EBE6 100%), repeating-linear-gradient(90deg, transparent, transparent 35px, rgba(0,0,0,.02) 35px, rgba(0,0,0,.02) 70px)',
-              margin: '0 16px 24px 16px',
-              borderRadius: '14px',
-              overflow: 'hidden',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              {/* Map pins */}
-              {filteredPlaces.map((place, idx) => (
-                <button
-                  key={place.id}
-                  onClick={() => router.push(`/place/${place.id}`)}
-                  style={{
-                    position: 'absolute',
-                    width: '44px',
-                    height: '44px',
-                    borderRadius: '999px',
-                    background: getCategoryColor(place.icon),
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
-                    left: `${20 + idx * 30}px`,
-                    top: `${40 + idx * 25}px`,
-                    padding: 0,
-                  }}
-                >
-                  {place.icon === 'beach' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 13c2 0 2-3 4-3s2 3 4 3 2-3 4-3 2 3 4 3 2-3 4-3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
-                      <path d="M3 15c2 0 2-3 4-3s2 3 4 3 2-3 4-3 2 3 4 3 2-3 4-3" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                  {place.icon === 'lookout' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 19l6-10 4 6 3-4 5 8H3z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                  {place.icon === 'quiet' && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                      <path d="M5 19C4 10 10 4 19 5c1 9-5 15-14 14z" stroke="#fff" strokeWidth="1.8" strokeLinejoin="round"/>
-                      <path d="M6 18c4-5 8-8 12-12" stroke="#fff" strokeWidth="1.6" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                </button>
-              ))}
-
-              {/* Map Controls */}
-              <button
-                aria-label="Toggle satellite view"
-                style={{
-                  position: 'absolute',
-                  bottom: '120px',
-                  right: '16px',
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '999px',
-                  background: '#fff',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 3L3 8.5l9 5.5 9-5.5L12 3z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" />
-                  <path d="M3 14l9 5.5 9-5.5" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" />
-                </svg>
-              </button>
-
-              <button
-                aria-label="Toggle fullscreen map"
-                style={{
-                  position: 'absolute',
-                  bottom: '70px',
-                  right: '16px',
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '999px',
-                  background: '#fff',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
-                }}
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                  <path d="M8 3H4a1 1 0 00-1 1v4M16 3h4a1 1 0 011 1v4M8 21H4a1 1 0 01-1-1v-4M16 21h4a1 1 0 001-1v-4" stroke="#0A0A0A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </button>
-
-              <button
-                onClick={() => alert('Recenter map')}
-                aria-label="Recenter map on my location"
-                style={{
-                  position: 'absolute',
-                  bottom: '16px',
-                  right: '16px',
-                  width: '44px',
-                  height: '44px',
-                  borderRadius: '999px',
-                  background: '#fff',
-                  border: 'none',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.16)',
-                }}
-              >
-                <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3" stroke="#4285F4" strokeWidth="1.9" />
-                  <path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="#4285F4" strokeWidth="1.9" strokeLinecap="round" />
-                </svg>
-              </button>
+            <div style={{ flex: 1, position: 'relative', margin: '0 16px 24px 16px', borderRadius: '14px', overflow: 'hidden' }}>
+              {isLoading ? (
+                <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5F3F0', fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>
+                  Loading…
+                </div>
+              ) : (
+                <MapView places={allPlaces} searchQuery={searchQuery} />
+              )}
             </div>
           )}
         </div>
