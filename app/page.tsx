@@ -186,7 +186,7 @@ export default function Home() {
               </div>
               <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 16px', justifyContent: 'flex-start' }}>
                 {popular.map((location) => (
-                  <LocationCard key={location.id} location={location} layout="scroll" showDistance={true} />
+                  <LocationCard key={location.id} location={location} layout="scroll" showDistance={true} flexGrow={false} />
                 ))}
               </div>
             </div>
@@ -198,7 +198,7 @@ export default function Home() {
               </div>
               <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', padding: '0 16px' }}>
                 {trending.map((location) => (
-                  <LocationCard key={location.id} location={location} layout="scroll" />
+                  <LocationCard key={location.id} location={location} layout="scroll" flexGrow={false} />
                 ))}
               </div>
             </div>
