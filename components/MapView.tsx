@@ -45,6 +45,11 @@ export default function MapView({ onMarkerClick, searchQuery = '', places: exter
   const stylesLoaded = useRef(false);
   const isSatellite = useRef(false);
   const filteredPlacesRef = useRef<PlaceApiRecord[]>([]);
+  // Kept in a ref (not a dependency of the map-init effect below) so a
+  // caller passing a fresh inline callback on every render doesn't tear
+  // down and recreate the whole map every time it re-renders.
+  const onMarkerClickRef = useRef(onMarkerClick);
+  onMarkerClickRef.current = onMarkerClick;
 
   const places = externalPlaces ?? fetchedPlaces;
 
@@ -259,7 +264,7 @@ export default function MapView({ onMarkerClick, searchQuery = '', places: exter
             evt.stopPropagation();
             setSelectedImgError(false);
             setSelectedPlace(place);
-            onMarkerClick?.(place.slug);
+            onMarkerClickRef.current?.(place.slug);
           });
 
           const coords = (feature as any).geometry.coordinates as [number, number];
@@ -434,7 +439,7 @@ export default function MapView({ onMarkerClick, searchQuery = '', places: exter
       markersById.current.clear();
       map.current?.remove();
     };
-  }, [places, onMarkerClick]);
+  }, [places]);
 
   // Keep the map's data + view in sync with the live search query, without
   // tearing down and recreating the whole map on every keystroke.

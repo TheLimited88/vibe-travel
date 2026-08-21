@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import Header from '@/components/Header';
 import SearchBar from '@/components/SearchBar';
 import MapView from '@/components/MapView';
@@ -9,9 +9,9 @@ import BottomNav from '@/components/BottomNav';
 export default function MapPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const handleMarkerClick = (placeSlug: string) => {
+  const handleMarkerClick = useCallback((placeSlug: string) => {
     console.log('Marker clicked:', placeSlug);
-  };
+  }, []);
 
   return (
     <div style={{ background: '#F9F8F6', height: '100vh', display: 'flex', justifyContent: 'center' }}>
