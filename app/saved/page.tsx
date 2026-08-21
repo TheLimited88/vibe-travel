@@ -155,8 +155,8 @@ export default function SavedPage() {
                 <button
                   onClick={() => router.push('/auth/signup')}
                   style={{
-                    background: 'linear-gradient(135deg,#95048B,#6B3FD1)',
-                    color: '#fff',
+                    background: '#3EE8A8',
+                    color: '#0A0A0A',
                     border: 'none',
                     borderRadius: '999px',
                     padding: '11px 22px',
