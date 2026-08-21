@@ -196,8 +196,14 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
         const currentSlugs = new Set<string>();
 
         unclustered.forEach((feature) => {
-          const place = (feature as any).properties as PlaceApiRecord;
-          if (!place?.slug) return;
+          // Mapbox's clustering pipeline serializes complex properties
+          // (e.g. stringifies nested objects like heroImage) when features
+          // pass through it — so look the real place object up from our
+          // own React state by slug instead of trusting feature.properties
+          // for anything beyond that one primitive string field.
+          const slug = (feature as any).properties?.slug as string | undefined;
+          const place = slug ? places.find((p) => p.slug === slug) : undefined;
+          if (!place) return;
           currentSlugs.add(place.slug);
           if (markersById.current.has(place.slug)) return;
 
