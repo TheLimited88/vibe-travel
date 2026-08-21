@@ -33,6 +33,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   const [hasPreciseLocation, setHasPreciseLocation] = useState(false);
   const [places, setPlaces] = useState<PlaceApiRecord[] | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<PlaceApiRecord | null>(null);
+  const [selectedImgError, setSelectedImgError] = useState(false);
   const DEFAULT_CENTER: [number, number] = [-73.9857, 40.7484];
   const userCoords = useRef<[number, number]>(DEFAULT_CENTER);
   const stylesLoaded = useRef(false);
@@ -217,6 +218,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
 
           el.addEventListener('click', (evt) => {
             evt.stopPropagation();
+            setSelectedImgError(false);
             setSelectedPlace(place);
             onMarkerClick?.(place.slug);
           });
@@ -451,10 +453,11 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
             zIndex: 20,
           }}
         >
-          {selectedPlace.heroImage ? (
+          {selectedPlace.heroImage && !selectedImgError ? (
             <img
               src={selectedPlace.heroImage.url}
               alt={selectedPlace.title}
+              onError={() => setSelectedImgError(true)}
               style={{ width: '80px', height: '80px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
             />
           ) : (
@@ -483,8 +486,8 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
               style={{
                 marginTop: '4px',
                 alignSelf: 'flex-start',
-                background: 'linear-gradient(135deg,#95048B,#7F53F3)',
-                color: '#fff',
+                background: '#3EE8A8',
+                color: '#0A0A0A',
                 border: 'none',
                 borderRadius: '999px',
                 padding: '7px 16px',
