@@ -46,6 +46,24 @@ function isVideoUrl(url: string): boolean {
   return /\.(mp4|mov|webm)$/i.test(url);
 }
 
+const VIBE_TAG_COLORS = [
+  { bg: '#FFE5E5', text: '#E85D75' },
+  { bg: '#E5F0FF', text: '#4B9AFF' },
+  { bg: '#FFF5E5', text: '#F5A623' },
+  { bg: 'rgba(10,155,113,0.1)', text: '#0A9B71' },
+  { bg: 'rgba(127,83,243,0.1)', text: '#6B3FD1' },
+  { bg: 'rgba(42,168,196,0.1)', text: '#2AA8C4' },
+  { bg: '#FFF9E5', text: '#D9A62B' },
+  { bg: 'rgba(214,69,154,0.1)', text: '#D6459A' },
+];
+
+// Colors are assigned by position within a single place's own vibe list,
+// so tags on the same place never collide (a hash-of-the-tag-name
+// approach can't guarantee that for an arbitrary pair of strings).
+function getVibeTagColor(index: number): { bg: string; text: string } {
+  return VIBE_TAG_COLORS[index % VIBE_TAG_COLORS.length];
+}
+
 export default function PlacePage() {
   const router = useRouter();
   const params = useParams();
@@ -426,11 +444,14 @@ export default function PlacePage() {
             </span>
             {place.vibes.length > 0 && (
               <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {place.vibes.map((vibe) => (
-                  <span key={vibe} style={{ fontSize: '11px', fontWeight: '600', color: '#0A9B71', background: 'rgba(10,155,113,0.1)', borderRadius: '999px', padding: '3px 10px' }}>
-                    {vibe}
-                  </span>
-                ))}
+                {place.vibes.map((vibe, index) => {
+                  const vibeStyle = getVibeTagColor(index);
+                  return (
+                    <span key={vibe} style={{ fontSize: '11px', fontWeight: '600', color: vibeStyle.text, background: vibeStyle.bg, borderRadius: '999px', padding: '3px 10px' }}>
+                      {vibe}
+                    </span>
+                  );
+                })}
               </div>
             )}
             <span style={{ fontSize: '13.5px', color: 'rgba(10,10,10,0.6)' }}>
