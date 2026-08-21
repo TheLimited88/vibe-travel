@@ -29,7 +29,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const markersById = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const [hasPreciseLocation, setHasPreciseLocation] = useState(false);
   const [places, setPlaces] = useState<PlaceApiRecord[] | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<PlaceApiRecord | null>(null);
@@ -84,14 +84,9 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
       bearing: 0,
     });
 
-    (window as any).__debugMapView = { placesCount: places.length, loadFired: false, tokenPrefix: (mapboxgl.accessToken || '').slice(0, 8), tokenLength: (mapboxgl.accessToken || '').length };
-    map.current.on('error', (e: any) => {
-      (window as any).__debugMapView.error = e.error?.message || JSON.stringify(e).slice(0, 300);
-    });
     map.current.on('load', () => {
       if (!map.current) return;
       stylesLoaded.current = true;
-      (window as any).__debugMapView.loadFired = true;
 
       // Radius circles (distance indicators), centered on the user's real
       // location once known — falls back to the default center until then.
@@ -185,42 +180,63 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
         },
       });
 
-      // Create HTML markers for individual places
-      places.forEach((place) => {
-        const category = categories.find(c => c.key === place.category) || categories[0];
+      // Show individual HTML markers only for places Mapbox currently
+      // reports as NOT clustered at this zoom/pan — the ones absorbed into
+      // a numbered cluster circle stay hidden until the cluster breaks
+      // apart. Re-synced on every render so it tracks zoom/pan changes.
+      const syncUnclusteredMarkers = () => {
+        if (!map.current || !map.current.getSource('places')) return;
+        if (!map.current.isSourceLoaded('places')) return;
 
-        // Create marker element
-        const el = document.createElement('div');
-        el.style.width = '48px';
-        el.style.height = '48px';
-        el.style.borderRadius = '50%';
-        el.style.background = category.color;
-        el.style.border = '3px solid white';
-        el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.25)';
-        el.style.display = 'flex';
-        el.style.alignItems = 'center';
-        el.style.justifyContent = 'center';
-        el.style.cursor = 'pointer';
-        el.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="white">${category.icon}</svg>`;
-
-        // Create marker and add to map
-        const marker = new mapboxgl.Marker({ element: el })
-          .setLngLat([place.lng as number, place.lat as number])
-          .addTo(map.current!);
-
-        // Add click handler
-        el.addEventListener('click', (evt) => {
-          evt.stopPropagation();
-          setSelectedPlace(place);
-          onMarkerClick?.(place.slug);
+        const unclustered = map.current.querySourceFeatures('places', {
+          filter: ['!', ['has', 'point_count']],
         });
 
-        markersRef.current.push(marker);
-      });
+        const currentSlugs = new Set<string>();
 
-      (window as any).__debugMapView.markersCreated = markersRef.current.length;
-      (window as any).__debugMapView.zoom = map.current.getZoom();
-      (window as any).__debugMapViewMap = map.current;
+        unclustered.forEach((feature) => {
+          const place = (feature as any).properties as PlaceApiRecord;
+          if (!place?.slug) return;
+          currentSlugs.add(place.slug);
+          if (markersById.current.has(place.slug)) return;
+
+          const category = categories.find(c => c.key === place.category) || categories[0];
+
+          const el = document.createElement('div');
+          el.style.width = '48px';
+          el.style.height = '48px';
+          el.style.borderRadius = '50%';
+          el.style.background = category.color;
+          el.style.border = '3px solid white';
+          el.style.boxShadow = '0 4px 12px rgba(0,0,0,0.25)';
+          el.style.display = 'flex';
+          el.style.alignItems = 'center';
+          el.style.justifyContent = 'center';
+          el.style.cursor = 'pointer';
+          el.innerHTML = `<svg width="28" height="28" viewBox="0 0 24 24" fill="white">${category.icon}</svg>`;
+
+          el.addEventListener('click', (evt) => {
+            evt.stopPropagation();
+            setSelectedPlace(place);
+            onMarkerClick?.(place.slug);
+          });
+
+          const coords = (feature as any).geometry.coordinates as [number, number];
+          const marker = new mapboxgl.Marker({ element: el }).setLngLat(coords).addTo(map.current!);
+          markersById.current.set(place.slug, marker);
+        });
+
+        // Remove markers for places that are now absorbed into a cluster
+        markersById.current.forEach((marker, slug) => {
+          if (!currentSlugs.has(slug)) {
+            marker.remove();
+            markersById.current.delete(slug);
+          }
+        });
+      };
+
+      syncUnclusteredMarkers();
+      map.current!.on('render', syncUnclusteredMarkers);
 
       // Add click handler for clusters to zoom in
       map.current!.on('click', 'clusters', (e: any) => {
@@ -360,7 +376,8 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
     mapContainer.current?.appendChild(style);
 
     return () => {
-      markersRef.current.forEach(marker => marker.remove());
+      markersById.current.forEach(marker => marker.remove());
+      markersById.current.clear();
       map.current?.remove();
     };
   }, [places, onMarkerClick]);
