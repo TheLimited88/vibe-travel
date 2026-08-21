@@ -60,6 +60,7 @@ export default function PlacePage() {
   const [adminPhotoUrl, setAdminPhotoUrl] = useState<string | null>(null);
   const [shareOpen, setShareOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [shareError, setShareError] = useState('');
   const { user } = useAuth();
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -752,9 +753,14 @@ export default function PlacePage() {
             <button
               onClick={async () => {
                 const url = `${window.location.origin}/place/${slug}`;
-                await navigator.clipboard.writeText(url);
-                setLinkCopied(true);
-                setTimeout(() => setLinkCopied(false), 2000);
+                try {
+                  await navigator.clipboard.writeText(url);
+                  setLinkCopied(true);
+                  setTimeout(() => setLinkCopied(false), 2000);
+                } catch {
+                  setShareError('Could not copy — long-press the link to copy it manually');
+                  setTimeout(() => setShareError(''), 3000);
+                }
               }}
               aria-label="Copy link"
               style={{
@@ -782,6 +788,9 @@ export default function PlacePage() {
               )}
             </button>
           </div>
+          {shareError && (
+            <span style={{ fontSize: '11px', color: '#E85D75', textAlign: 'center', marginBottom: '8px' }}>{shareError}</span>
+          )}
           <button
             onClick={() => setShareOpen(false)}
             style={{
