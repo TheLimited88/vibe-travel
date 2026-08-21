@@ -1,26 +1,51 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { categories } from '@/data/categories';
-import { places } from '@/data/places';
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || '';
+
+interface PlaceApiRecord {
+  slug: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  heroImage: { url: string } | null;
+  status: string;
+}
 
 interface MapViewProps {
   onMarkerClick?: (placeSlug: string) => void;
 }
 
 export default function MapView({ onMarkerClick }: MapViewProps) {
+  const router = useRouter();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [hasPreciseLocation, setHasPreciseLocation] = useState(false);
+  const [places, setPlaces] = useState<PlaceApiRecord[] | null>(null);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceApiRecord | null>(null);
   const DEFAULT_CENTER: [number, number] = [-73.9857, 40.7484];
   const userCoords = useRef<[number, number]>(DEFAULT_CENTER);
   const stylesLoaded = useRef(false);
+
+  useEffect(() => {
+    fetch('/api/admin/places')
+      .then((r) => r.json())
+      .then((data) => {
+        const published = (data.places || []).filter((p: PlaceApiRecord) => p.status === 'published' && p.lat != null && p.lng != null);
+        setPlaces(published);
+      })
+      .catch(() => setPlaces([]));
+  }, []);
 
   const recenterRadiusCircles = (lng: number, lat: number) => {
     userCoords.current = [lng, lat];
@@ -47,7 +72,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   });
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || places === null) return;
 
     // Initialize map
     map.current = new mapboxgl.Map({
@@ -108,7 +133,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
           type: 'Feature' as const,
           geometry: {
             type: 'Point' as const,
-            coordinates: [place.coordinates.lng, place.coordinates.lat],
+            coordinates: [place.lng as number, place.lat as number],
           },
           properties: {
             ...place,
@@ -157,8 +182,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
 
       // Create HTML markers for individual places
       places.forEach((place) => {
-        const category = categories.find(c => c.key === place.category);
-        if (!category) return;
+        const category = categories.find(c => c.key === place.category) || categories[0];
 
         // Create marker element
         const el = document.createElement('div');
@@ -176,11 +200,13 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
 
         // Create marker and add to map
         const marker = new mapboxgl.Marker({ element: el })
-          .setLngLat([place.coordinates.lng, place.coordinates.lat])
+          .setLngLat([place.lng as number, place.lat as number])
           .addTo(map.current!);
 
         // Add click handler
-        el.addEventListener('click', () => {
+        el.addEventListener('click', (evt) => {
+          evt.stopPropagation();
+          setSelectedPlace(place);
           onMarkerClick?.(place.slug);
         });
 
@@ -189,9 +215,6 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
 
       // Add click handler for clusters to zoom in
       map.current!.on('click', 'clusters', (e: any) => {
-        const features = map.current!.querySourceFeatures('places', {
-          filter: ['has', 'point_count'],
-        });
         const clusteredSource = map.current!.getSource('places') as mapboxgl.GeoJSONSource;
         const clusterProperties = e.features?.[0]?.properties;
         if (clusterProperties?.cluster_id !== undefined) {
@@ -204,6 +227,9 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
           });
         }
       });
+
+      // Tapping empty map area dismisses the selected-place summary card
+      map.current!.on('click', () => setSelectedPlace(null));
 
       map.current!.getCanvas().style.cursor = ['clusters', 'unclustered-point'].some(layer => {
         return map.current!.getLayer(layer);
@@ -328,7 +354,9 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
       markersRef.current.forEach(marker => marker.remove());
       map.current?.remove();
     };
-  }, [onMarkerClick]);
+  }, [places, onMarkerClick]);
+
+  const selectedCategory = selectedPlace ? categories.find(c => c.key === selectedPlace.category) || categories[0] : null;
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
@@ -378,6 +406,70 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
               transform: 'translate(-50%, -50%)',
             }}
           />
+        </div>
+      )}
+
+      {selectedPlace && selectedCategory && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '12px',
+            right: '12px',
+            bottom: '12px',
+            background: '#fff',
+            borderRadius: '18px',
+            padding: '14px',
+            display: 'flex',
+            gap: '12px',
+            boxShadow: '0 10px 30px rgba(0,0,0,0.16)',
+            zIndex: 20,
+          }}
+        >
+          {selectedPlace.heroImage ? (
+            <img
+              src={selectedPlace.heroImage.url}
+              alt={selectedPlace.title}
+              style={{ width: '80px', height: '80px', borderRadius: '12px', objectFit: 'cover', flexShrink: 0 }}
+            />
+          ) : (
+            <div style={{ width: '80px', height: '80px', borderRadius: '12px', background: selectedCategory.color, flexShrink: 0 }} />
+          )}
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '6px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#0A0A0A' }}>{selectedPlace.title}</div>
+              <button
+                onClick={() => setSelectedPlace(null)}
+                aria-label="Close"
+                style={{ flexShrink: 0, width: '28px', height: '28px', borderRadius: '999px', background: 'rgba(10,10,10,0.05)', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.5)', cursor: 'pointer', fontSize: '14px' }}
+              >
+                ✕
+              </button>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: '#6B3FD1' }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><g dangerouslySetInnerHTML={{ __html: selectedCategory.icon.replace(/#fff/g, '#6B3FD1') }} /></svg>
+              {selectedCategory.label}
+            </div>
+            <div style={{ fontSize: '11px', color: 'rgba(10,10,10,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {selectedPlace.address}
+            </div>
+            <button
+              onClick={() => router.push(`/place/${selectedPlace.slug}`)}
+              style={{
+                marginTop: '4px',
+                alignSelf: 'flex-start',
+                background: 'linear-gradient(135deg,#95048B,#7F53F3)',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '999px',
+                padding: '7px 16px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+              }}
+            >
+              View Place
+            </button>
+          </div>
         </div>
       )}
     </div>
