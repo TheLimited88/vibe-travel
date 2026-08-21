@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { categories } from '@/data/categories';
@@ -17,6 +17,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   const map = useRef<mapboxgl.Map | null>(null);
   const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const [hasPreciseLocation, setHasPreciseLocation] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -275,19 +276,41 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
     controlContainer.appendChild(fullscreenBtn);
     controlContainer.appendChild(geolocateBtn);
 
-    // Initialize geolocate control (used by button, not added to map)
+    // Geolocate control — added to the map (required for it to actually
+    // function) but its default UI button is hidden since we use our own
+    // custom button that calls .trigger() on it instead.
     geolocateControl.current = new mapboxgl.GeolocateControl({
       positionOptions: { enableHighAccuracy: true },
       trackUserLocation: true,
       showUserHeading: true,
-      showAccuracyCircle: false,
+      showAccuracyCircle: true,
     });
+    map.current.addControl(geolocateControl.current);
+    geolocateControl.current.on('geolocate', () => setHasPreciseLocation(true));
+    geolocateControl.current.on('error', () => setHasPreciseLocation(false));
+
+    // Auto-trigger it (no prompt appears if permission is already granted;
+    // silently does nothing if not) so the user's location shows up without
+    // needing to tap the button first.
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'geolocation' }).then((status) => {
+        if (status.state === 'granted') {
+          geolocateControl.current?.trigger();
+        }
+      }).catch(() => {});
+    }
 
     // Add custom controls to map container
     const mapCanvas = mapContainer.current?.querySelector('.mapboxgl-canvas-container');
     if (mapCanvas) {
       mapCanvas.parentElement?.appendChild(controlContainer);
     }
+
+    // Hide Mapbox's own geolocate control button (top-left by default) —
+    // we drive the same control instance from our own custom button.
+    const style = document.createElement('style');
+    style.textContent = '.mapboxgl-ctrl-geolocate { display: none !important; } .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group:has(.mapboxgl-ctrl-geolocate) { display: none !important; }';
+    mapContainer.current?.appendChild(style);
 
     return () => {
       markersRef.current.forEach(marker => marker.remove());
@@ -296,15 +319,55 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   }, [onMarkerClick]);
 
   return (
-    <div
-      ref={mapContainer}
-      style={{
-        width: '100%',
-        height: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-      }}
-    />
+    <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+      <div
+        ref={mapContainer}
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+        }}
+      />
+      {!hasPreciseLocation && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              width: '320px',
+              height: '320px',
+              borderRadius: '999px',
+              border: '1.5px dashed rgba(10,155,113,0.4)',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              width: '120px',
+              height: '120px',
+              borderRadius: '999px',
+              background: 'rgba(127,83,243,0.08)',
+              border: '1px solid rgba(127,83,243,0.25)',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        </div>
+      )}
+    </div>
   );
 }
