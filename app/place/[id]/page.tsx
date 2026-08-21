@@ -61,6 +61,7 @@ export default function PlacePage() {
   const [shareOpen, setShareOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
   const [shareError, setShareError] = useState('');
+  const [fullscreenMediaOpen, setFullscreenMediaOpen] = useState(false);
   const { user } = useAuth();
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -126,7 +127,7 @@ export default function PlacePage() {
   };
 
   const category = categories.find((c) => c.key === place?.category) || categories[0];
-  const media = place ? [place.heroImage, ...place.galleryImages].filter((m): m is PlaceMedia => !!m) : [];
+  const media = place ? [place.heroImage, ...place.galleryImages].filter((m): m is PlaceMedia => !!m).slice(0, 6) : [];
 
   const summary = reviewStatus?.summary || { reviewCount: 0, upCount: 0, downCount: 0, vibeTagCounts: {} };
   const verdictIsUp = summary.upCount >= summary.downCount;
@@ -255,6 +256,7 @@ export default function PlacePage() {
         {/* Fullscreen Button */}
         <button
           aria-label="View fullscreen"
+          onClick={() => setFullscreenMediaOpen(true)}
           style={{
             position: 'absolute',
             top: '74px',
@@ -693,6 +695,85 @@ export default function PlacePage() {
         </div>
       </div>
     </div>
+
+    {fullscreenMediaOpen && media.length > 0 && (
+      <div style={{ position: 'fixed', inset: 0, background: '#000', zIndex: 90, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        {isVideoUrl(media[currentImageIndex].url) ? (
+          <video
+            key={media[currentImageIndex].url}
+            src={media[currentImageIndex].url}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+          />
+        ) : (
+          <img
+            key={media[currentImageIndex].url}
+            src={media[currentImageIndex].url}
+            alt={place.title}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
+        )}
+
+        {media.length > 1 && (
+          <div style={{ position: 'absolute', top: '16px', left: '16px', right: '64px', display: 'flex', gap: '5px', zIndex: 5 }}>
+            {media.map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  flex: 1,
+                  height: '2px',
+                  background: i <= currentImageIndex ? '#FFFFFF' : 'rgba(255,255,255,0.4)',
+                  borderRadius: '1px',
+                }}
+              />
+            ))}
+          </div>
+        )}
+
+        <button
+          onClick={() => setFullscreenMediaOpen(false)}
+          aria-label="Close fullscreen"
+          style={{
+            position: 'absolute',
+            top: '16px',
+            right: '16px',
+            width: '44px',
+            height: '44px',
+            borderRadius: '999px',
+            background: 'rgba(255,255,255,0.15)',
+            border: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10,
+            cursor: 'pointer',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M5 5l14 14M19 5L5 19" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </button>
+
+        {media.length > 1 && (
+          <>
+            <button
+              onClick={() => setCurrentImageIndex((i) => (i > 0 ? i - 1 : media.length - 1))}
+              aria-label="Previous photo"
+              style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: '35%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', zIndex: 3 }}
+            />
+            <button
+              onClick={() => setCurrentImageIndex((i) => (i < media.length - 1 ? i + 1 : 0))}
+              aria-label="Next photo"
+              style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: '65%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', zIndex: 3 }}
+            />
+          </>
+        )}
+      </div>
+    )}
 
     {shareOpen && (
       <div
