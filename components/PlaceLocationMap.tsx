@@ -18,6 +18,8 @@ export default function PlaceLocationMap({ lat, lng, markerColor = '#7F53F3', ma
   const map = useRef<mapboxgl.Map | null>(null);
   const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
   const [hasPreciseLocation, setHasPreciseLocation] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const isSatellite = useRef(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -79,9 +81,8 @@ export default function PlaceLocationMap({ lat, lng, markerColor = '#7F53F3', ma
       'Toggle map layers',
       '<svg width="15" height="15" viewBox="0 0 18 18" fill="none"><path d="M9 2L15.5 5.5L9 9L2.5 5.5L9 2Z" stroke="#0A0A0A" stroke-width="1.275" stroke-linejoin="round"/><path d="M9 7L15.5 10.5L9 14L2.5 10.5L9 7Z" stroke="#0A0A0A" stroke-width="1.275" stroke-linejoin="round" fill="#0A0A0A" fill-opacity="0.08"/><path d="M2.5 10.5L9 14L15.5 10.5L9 7L2.5 10.5Z" stroke="#0A0A0A" stroke-width="1.275" stroke-linejoin="round" fill="#0A0A0A" fill-opacity="0.04"/></svg>',
       () => {
-        const currentStyle = map.current?.getStyle().name;
-        const newStyle = currentStyle === 'Streets' ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/streets-v12';
-        map.current?.setStyle(newStyle);
+        isSatellite.current = !isSatellite.current;
+        map.current?.setStyle(isSatellite.current ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/streets-v12');
       }
     );
 
@@ -89,11 +90,11 @@ export default function PlaceLocationMap({ lat, lng, markerColor = '#7F53F3', ma
       'Toggle fullscreen',
       '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="1.8"><path d="M3 7V3h4M21 7V3h-4M3 17v4h4M21 17v4h-4"/></svg>',
       () => {
-        if (!document.fullscreenElement) {
-          mapContainer.current?.requestFullscreen().catch(() => {});
-        } else {
-          document.exitFullscreen();
-        }
+        // CSS-driven "fullscreen" instead of the native Fullscreen API —
+        // that API fills the real screen at natural width, breaking out
+        // of the app's mobile-frame layout. This stays capped at 375px.
+        setIsFullscreen((f) => !f);
+        setTimeout(() => map.current?.resize(), 50);
       }
     );
 
@@ -134,13 +135,28 @@ export default function PlaceLocationMap({ lat, lng, markerColor = '#7F53F3', ma
     style.textContent = '.mapboxgl-ctrl-geolocate { display: none !important; } .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group:has(.mapboxgl-ctrl-geolocate) { display: none !important; }';
     mapContainer.current?.appendChild(style);
 
+    const onEscKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false);
+        setTimeout(() => map.current?.resize(), 50);
+      }
+    };
+    document.addEventListener('keydown', onEscKey);
+
     return () => {
+      document.removeEventListener('keydown', onEscKey);
       map.current?.remove();
     };
   }, [lat, lng, markerColor, markerIcon]);
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+    <div
+      style={
+        isFullscreen
+          ? { position: 'fixed', inset: 0, zIndex: 9999, width: '100%', maxWidth: '375px', height: '100vh', margin: '0 auto', background: '#F9F8F6' }
+          : { width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }
+      }
+    >
       <div ref={mapContainer} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }} />
       {!hasPreciseLocation && (
         <div

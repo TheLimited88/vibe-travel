@@ -31,6 +31,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
   const markersById = useRef<Map<string, mapboxgl.Marker>>(new Map());
   const [hasPreciseLocation, setHasPreciseLocation] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [places, setPlaces] = useState<PlaceApiRecord[] | null>(null);
   const [selectedPlace, setSelectedPlace] = useState<PlaceApiRecord | null>(null);
   const [selectedImgError, setSelectedImgError] = useState(false);
@@ -321,11 +322,14 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
     fullscreenBtn.title = 'Toggle fullscreen';
     fullscreenBtn.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" stroke-width="1.8"><path d="M3 7V3h4M21 7V3h-4M3 17v4h4M21 17v4h-4"/></svg>';
     fullscreenBtn.addEventListener('click', () => {
-      if (!document.fullscreenElement) {
-        mapContainer.current?.requestFullscreen().catch(() => {});
-      } else {
-        document.exitFullscreen();
-      }
+      // A CSS-driven "fullscreen" instead of the native Fullscreen API —
+      // the native API makes the element fill the real screen at its
+      // natural width, which breaks out of the app's mobile-frame layout
+      // and renders as a full desktop-width map. This stays capped at the
+      // same 375px mobile width, just expanded to fill the viewport height
+      // and sit above the rest of the page.
+      setIsFullscreen((f) => !f);
+      setTimeout(() => map.current?.resize(), 50);
     });
 
     // Geolocate/Compass control button
@@ -390,7 +394,16 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
     style.textContent = '.mapboxgl-ctrl-geolocate { display: none !important; } .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group:has(.mapboxgl-ctrl-geolocate) { display: none !important; }';
     mapContainer.current?.appendChild(style);
 
+    const onEscKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false);
+        setTimeout(() => map.current?.resize(), 50);
+      }
+    };
+    document.addEventListener('keydown', onEscKey);
+
     return () => {
+      document.removeEventListener('keydown', onEscKey);
       markersById.current.forEach(marker => marker.remove());
       markersById.current.clear();
       map.current?.remove();
@@ -400,7 +413,13 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   const selectedCategory = selectedPlace ? categories.find(c => c.key === selectedPlace.category) || categories[0] : null;
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+    <div
+      style={
+        isFullscreen
+          ? { position: 'fixed', inset: 0, zIndex: 9999, width: '100%', maxWidth: '375px', height: '100vh', margin: '0 auto', background: '#F9F8F6' }
+          : { width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }
+      }
+    >
       <div
         ref={mapContainer}
         style={{
