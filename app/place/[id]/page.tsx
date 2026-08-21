@@ -406,7 +406,7 @@ export default function PlacePage() {
             viewBox="0 0 24 24"
             fill="none"
             style={{
-              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+              transform: isExpanded ? 'rotate(0deg)' : 'rotate(180deg)',
               transition: 'transform 0.2s',
             }}
           >
