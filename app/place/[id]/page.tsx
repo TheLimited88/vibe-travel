@@ -58,6 +58,8 @@ export default function PlacePage() {
   const [vibeVoteExpanded, setVibeVoteExpanded] = useState(false);
   const [selectedVibes, setSelectedVibes] = useState<string[]>([]);
   const [adminPhotoUrl, setAdminPhotoUrl] = useState<string | null>(null);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const { user } = useAuth();
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus | null>(null);
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -276,6 +278,7 @@ export default function PlacePage() {
         {/* Share Button */}
         <button
           aria-label="Share"
+          onClick={() => setShareOpen(true)}
           style={{
             position: 'absolute',
             top: '74px',
@@ -689,6 +692,114 @@ export default function PlacePage() {
         </div>
       </div>
     </div>
+
+    {shareOpen && (
+      <div
+        onClick={() => setShareOpen(false)}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(10,10,10,0.4)',
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'flex-end',
+          justifyContent: 'center',
+        }}
+      >
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            width: '100%',
+            maxWidth: '375px',
+            background: '#fff',
+            borderRadius: '20px 20px 0 0',
+            padding: '10px 16px 22px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '2px',
+          }}
+        >
+          <div style={{ width: '36px', height: '4px', background: 'rgba(10,10,10,0.15)', borderRadius: '999px', margin: '2px auto 12px' }} />
+          <div
+            style={{
+              textAlign: 'center',
+              fontSize: '13.5px',
+              fontWeight: '700',
+              color: '#0A0A0A',
+              paddingBottom: '10px',
+              borderBottom: '1px solid rgba(10,10,10,0.08)',
+              marginBottom: '14px',
+            }}
+          >
+            Share this Place
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <div
+              style={{
+                flex: 1,
+                background: 'rgba(10,10,10,0.05)',
+                borderRadius: '12px',
+                padding: '12px 14px',
+                fontSize: '13px',
+                color: 'rgba(10,10,10,0.75)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {typeof window !== 'undefined' ? `${window.location.origin}/place/${slug}` : ''}
+            </div>
+            <button
+              onClick={async () => {
+                const url = `${window.location.origin}/place/${slug}`;
+                await navigator.clipboard.writeText(url);
+                setLinkCopied(true);
+                setTimeout(() => setLinkCopied(false), 2000);
+              }}
+              aria-label="Copy link"
+              style={{
+                width: '44px',
+                height: '44px',
+                flexShrink: 0,
+                borderRadius: '12px',
+                background: linkCopied ? '#3EE8A8' : '#7F53F3',
+                border: 'none',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+              }}
+            >
+              {linkCopied ? (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path d="M5 12.5l4.5 4.5L19 7.5" stroke="#0A0A0A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ) : (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <rect x="8" y="8" width="12" height="12" rx="2.5" stroke="#fff" strokeWidth="1.8" />
+                  <path d="M5.5 15.5h-1a2 2 0 01-2-2v-9a2 2 0 012-2h9a2 2 0 012 2v1" stroke="#fff" strokeWidth="1.8" />
+                </svg>
+              )}
+            </button>
+          </div>
+          <button
+            onClick={() => setShareOpen(false)}
+            style={{
+              background: 'rgba(10,10,10,0.05)',
+              border: 'none',
+              borderRadius: '12px',
+              padding: '13px',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: 'rgba(10,10,10,0.6)',
+              cursor: 'pointer',
+            }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
+    )}
     </div>
   );
 }
