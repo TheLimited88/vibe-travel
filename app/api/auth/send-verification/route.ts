@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         personalizations: [{ to: [{ email }] }],
-        from: { email: process.env.SENDGRID_FROM_EMAIL },
+        from: { email: process.env.SENDGRID_FROM_EMAIL, name: 'Vibe Travel' },
         subject: 'Verify Your Email',
         content: [
           { type: 'text/plain', value: `Verify your email by visiting: ${verifyLink}` },
