@@ -237,6 +237,15 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
 
       syncUnclusteredMarkers();
       map.current!.on('render', syncUnclusteredMarkers);
+      (window as any).__debugMapView2 = {
+        check: () => ({
+          isSourceLoaded: map.current?.isSourceLoaded('places'),
+          zoom: map.current?.getZoom(),
+          unclustered: map.current?.querySourceFeatures('places', { filter: ['!', ['has', 'point_count']] }).length,
+          clustered: map.current?.querySourceFeatures('places', { filter: ['has', 'point_count'] as any }).length,
+          markersActive: markersById.current.size,
+        }),
+      };
 
       // Add click handler for clusters to zoom in
       map.current!.on('click', 'clusters', (e: any) => {
