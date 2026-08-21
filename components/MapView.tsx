@@ -37,6 +37,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   const DEFAULT_CENTER: [number, number] = [-73.9857, 40.7484];
   const userCoords = useRef<[number, number]>(DEFAULT_CENTER);
   const stylesLoaded = useRef(false);
+  const isSatellite = useRef(false);
 
   useEffect(() => {
     fetch('/api/admin/places')
@@ -85,7 +86,12 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
       bearing: 0,
     });
 
-    map.current.on('load', () => {
+    // Re-run on every 'style.load' (fires on initial load AND after every
+    // setStyle() call, e.g. toggling satellite/streets) — setStyle swaps
+    // the whole style, wiping any sources/layers we'd added, so they need
+    // to be re-created each time or the satellite toggle would silently
+    // strip out the radius circles, clusters, and markers.
+    const setupLayers = () => {
       if (!map.current) return;
       stylesLoaded.current = true;
 
@@ -267,7 +273,9 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
       map.current!.getCanvas().style.cursor = ['clusters', 'unclustered-point'].some(layer => {
         return map.current!.getLayer(layer);
       }) ? 'pointer' : '';
-    });
+    };
+
+    map.current.on('style.load', setupLayers);
 
     // Create custom control container
     const controlContainer = document.createElement('div');
@@ -294,9 +302,8 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
     layersBtn.title = 'Toggle map layers';
     layersBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M9 2L15.5 5.5L9 9L2.5 5.5L9 2Z" stroke="#0A0A0A" stroke-width="1.275" stroke-linejoin="round"/><path d="M9 7L15.5 10.5L9 14L2.5 10.5L9 7Z" stroke="#0A0A0A" stroke-width="1.275" stroke-linejoin="round" fill="#0A0A0A" fill-opacity="0.08"/><path d="M2.5 10.5L9 14L15.5 10.5L9 7L2.5 10.5Z" stroke="#0A0A0A" stroke-width="1.275" stroke-linejoin="round" fill="#0A0A0A" fill-opacity="0.04"/></svg>';
     layersBtn.addEventListener('click', () => {
-      const currentStyle = map.current?.getStyle().name;
-      const newStyle = currentStyle === 'Streets' ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/streets-v12';
-      map.current?.setStyle(newStyle);
+      isSatellite.current = !isSatellite.current;
+      map.current?.setStyle(isSatellite.current ? 'mapbox://styles/mapbox/satellite-v9' : 'mapbox://styles/mapbox/streets-v12');
     });
 
     // Fullscreen control button
