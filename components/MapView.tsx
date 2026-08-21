@@ -84,7 +84,10 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
       bearing: 0,
     });
 
-    (window as any).__debugMapView = { placesCount: places.length, loadFired: false };
+    (window as any).__debugMapView = { placesCount: places.length, loadFired: false, tokenPrefix: (mapboxgl.accessToken || '').slice(0, 8), tokenLength: (mapboxgl.accessToken || '').length };
+    map.current.on('error', (e: any) => {
+      (window as any).__debugMapView.error = e.error?.message || JSON.stringify(e).slice(0, 300);
+    });
     map.current.on('load', () => {
       if (!map.current) return;
       stylesLoaded.current = true;
