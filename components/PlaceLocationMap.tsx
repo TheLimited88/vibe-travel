@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 
@@ -17,6 +17,7 @@ export default function PlaceLocationMap({ lat, lng, markerColor = '#7F53F3', ma
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const geolocateControl = useRef<mapboxgl.GeolocateControl | null>(null);
+  const [hasPreciseLocation, setHasPreciseLocation] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -110,18 +111,75 @@ export default function PlaceLocationMap({ lat, lng, markerColor = '#7F53F3', ma
       positionOptions: { enableHighAccuracy: true },
       trackUserLocation: true,
       showUserHeading: true,
-      showAccuracyCircle: false,
+      showAccuracyCircle: true,
     });
+    map.current.addControl(geolocateControl.current);
+    geolocateControl.current.on('geolocate', () => setHasPreciseLocation(true));
+    geolocateControl.current.on('error', () => setHasPreciseLocation(false));
+
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'geolocation' }).then((status) => {
+        if (status.state === 'granted') {
+          geolocateControl.current?.trigger();
+        }
+      }).catch(() => {});
+    }
 
     const mapCanvas = mapContainer.current?.querySelector('.mapboxgl-canvas-container');
     if (mapCanvas) {
       mapCanvas.parentElement?.appendChild(controlContainer);
     }
 
+    const style = document.createElement('style');
+    style.textContent = '.mapboxgl-ctrl-geolocate { display: none !important; } .mapboxgl-ctrl-top-right .mapboxgl-ctrl-group:has(.mapboxgl-ctrl-geolocate) { display: none !important; }';
+    mapContainer.current?.appendChild(style);
+
     return () => {
       map.current?.remove();
     };
   }, [lat, lng, markerColor, markerIcon]);
 
-  return <div ref={mapContainer} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }} />;
+  return (
+    <div style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}>
+      <div ref={mapContainer} style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }} />
+      {!hasPreciseLocation && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            zIndex: 1,
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              width: '140px',
+              height: '140px',
+              borderRadius: '999px',
+              border: '1.5px dashed rgba(10,155,113,0.4)',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+          <div
+            style={{
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              width: '60px',
+              height: '60px',
+              borderRadius: '999px',
+              background: 'rgba(127,83,243,0.08)',
+              border: '1px solid rgba(127,83,243,0.25)',
+              transform: 'translate(-50%, -50%)',
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
 }
