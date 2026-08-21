@@ -44,40 +44,38 @@ export async function POST(request: NextRequest) {
     const verifyLink = `${request.nextUrl.origin}/auth/verify-email?token=${token}`;
 
     // Send email via SendGrid
+    // Styles are inlined on every element rather than in a <style> block —
+    // Gmail and other clients unreliably apply class-based CSS from <head>,
+    // which was making the button text render invisible.
     const emailHtml = `
           <!DOCTYPE html>
           <html>
             <head>
               <meta charset="utf-8">
-              <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; color: #1a1a1a; line-height: 1.6; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                h1 { font-size: 24px; font-weight: 700; margin: 0 0 20px 0; color: #1a1a1a; }
-                p { font-size: 14px; margin: 0 0 16px 0; color: #1a1a1a; }
-                .button { display: inline-block; background-color: #0052CC; color: white; padding: 12px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; margin: 24px 0; }
-                .footer { font-size: 13px; color: #666; margin-top: 32px; }
-                .divider { height: 1px; background-color: #e0e0e0; margin: 24px 0; }
-              </style>
             </head>
-            <body>
-              <div class="container">
-                <h1>Verify Your Email</h1>
+            <body style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;color:#1a1a1a;line-height:1.6;">
+              <div style="max-width:600px;margin:0 auto;padding:20px;">
+                <h1 style="font-size:24px;font-weight:700;margin:0 0 20px 0;color:#1a1a1a;">Verify Your Email</h1>
 
-                <p>Hello,</p>
+                <p style="font-size:14px;margin:0 0 16px 0;color:#1a1a1a;">Hello,</p>
 
-                <p>Please confirm your email address by clicking the button below. This link will take you to Vibe Travel so we can mark your account as verified.</p>
+                <p style="font-size:14px;margin:0 0 16px 0;color:#1a1a1a;">Please confirm your email address by clicking the button below. This link will take you to Vibe Travel so we can mark your account as verified.</p>
 
-                <center>
-                  <a href="${verifyLink}" class="button">Verify Email Address</a>
-                </center>
+                <table role="presentation" border="0" cellspacing="0" cellpadding="0" style="margin:24px auto;">
+                  <tr>
+                    <td style="border-radius:6px;background-color:#0052CC;">
+                      <a href="${verifyLink}" style="display:inline-block;padding:12px 32px;font-weight:600;font-size:14px;color:#ffffff;text-decoration:none;border-radius:6px;">Verify Email Address</a>
+                    </td>
+                  </tr>
+                </table>
 
-                <p>If you didn't ask to verify this address, you can ignore this email.</p>
+                <p style="font-size:14px;margin:0 0 16px 0;color:#1a1a1a;">If you didn't ask to verify this address, you can ignore this email.</p>
 
-                <div class="divider"></div>
+                <div style="height:1px;background-color:#e0e0e0;margin:24px 0;"></div>
 
-                <div class="footer">
-                  <p>Thanks,<br>Vibe Travel team</p>
-                  <p style="margin-top: 16px; color: #999; font-size: 12px;">This verification link expires in 60 minutes.</p>
+                <div style="font-size:13px;color:#666;margin-top:32px;">
+                  <p style="font-size:13px;margin:0 0 16px 0;color:#666;">Thanks,<br>Vibe Travel team</p>
+                  <p style="margin-top:16px;color:#999;font-size:12px;">This verification link expires in 60 minutes.</p>
                 </div>
               </div>
             </body>
