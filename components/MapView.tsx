@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -22,9 +22,10 @@ interface PlaceApiRecord {
 
 interface MapViewProps {
   onMarkerClick?: (placeSlug: string) => void;
+  searchQuery?: string;
 }
 
-export default function MapView({ onMarkerClick }: MapViewProps) {
+export default function MapView({ onMarkerClick, searchQuery = '' }: MapViewProps) {
   const router = useRouter();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
@@ -39,6 +40,22 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
   const userCoords = useRef<[number, number]>(DEFAULT_CENTER);
   const stylesLoaded = useRef(false);
   const isSatellite = useRef(false);
+  const filteredPlacesRef = useRef<PlaceApiRecord[]>([]);
+
+  const filteredPlaces = useMemo(() => {
+    if (!places) return null;
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return places;
+    return places.filter((p) =>
+      p.title.toLowerCase().includes(q) ||
+      p.subtitle.toLowerCase().includes(q) ||
+      p.address.toLowerCase().includes(q)
+    );
+  }, [places, searchQuery]);
+
+  // Kept in sync during render (not an effect) so it's always current by
+  // the time any effect below runs, regardless of effect ordering.
+  filteredPlacesRef.current = filteredPlaces || [];
 
   useEffect(() => {
     fetch('/api/admin/places')
@@ -134,10 +151,12 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
         },
       });
 
-      // Create GeoJSON for clustering
+      // Create GeoJSON for clustering — uses whatever's currently filtered
+      // (ref is kept fresh during render, so this reflects any active
+      // search even if this setup only just now ran on first load).
       const placesGeoJSON = {
         type: 'FeatureCollection' as const,
-        features: places.map(place => ({
+        features: filteredPlacesRef.current.map(place => ({
           type: 'Feature' as const,
           geometry: {
             type: 'Point' as const,
@@ -209,7 +228,7 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
           // own React state by slug instead of trusting feature.properties
           // for anything beyond that one primitive string field.
           const slug = (feature as any).properties?.slug as string | undefined;
-          const place = slug ? places.find((p) => p.slug === slug) : undefined;
+          const place = slug ? filteredPlacesRef.current.find((p) => p.slug === slug) : undefined;
           if (!place) return;
           currentSlugs.add(place.slug);
           if (markersById.current.has(place.slug)) return;
@@ -409,6 +428,36 @@ export default function MapView({ onMarkerClick }: MapViewProps) {
       map.current?.remove();
     };
   }, [places, onMarkerClick]);
+
+  // Keep the map's data + view in sync with the live search query, without
+  // tearing down and recreating the whole map on every keystroke.
+  useEffect(() => {
+    if (!map.current || !stylesLoaded.current || !filteredPlaces) return;
+    const source = map.current.getSource('places') as mapboxgl.GeoJSONSource | undefined;
+    if (!source) return;
+
+    const geojson = {
+      type: 'FeatureCollection' as const,
+      features: filteredPlaces.map((place) => ({
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: [place.lng as number, place.lat as number] },
+        properties: { ...place },
+      })),
+    };
+    source.setData(geojson as any);
+
+    const q = searchQuery.trim();
+    if (!q) return;
+
+    const withCoords = filteredPlaces.filter((p) => p.lat != null && p.lng != null);
+    if (withCoords.length === 1) {
+      map.current.flyTo({ center: [withCoords[0].lng as number, withCoords[0].lat as number], zoom: 15, essential: true });
+    } else if (withCoords.length > 1) {
+      const bounds = new mapboxgl.LngLatBounds();
+      withCoords.forEach((p) => bounds.extend([p.lng as number, p.lat as number]));
+      map.current.fitBounds(bounds, { padding: 60, maxZoom: 15 });
+    }
+  }, [filteredPlaces, searchQuery]);
 
   const selectedCategory = selectedPlace ? categories.find(c => c.key === selectedPlace.category) || categories[0] : null;
 

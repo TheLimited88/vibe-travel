@@ -36,7 +36,7 @@ export default function MapPage() {
         </div>
 
         <div style={{ flex: 1, position: 'relative', overflow: 'hidden', paddingBottom: '72px' }}>
-          <MapView onMarkerClick={handleMarkerClick} />
+          <MapView onMarkerClick={handleMarkerClick} searchQuery={searchQuery} />
         </div>
 
         <BottomNav />
