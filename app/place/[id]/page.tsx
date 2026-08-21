@@ -369,7 +369,7 @@ export default function PlacePage() {
           left: '0',
           right: '0',
           bottom: '0',
-          zIndex: 2,
+          zIndex: 15,
           background: '#fff',
           borderRadius: '24px 24px 0 0',
           boxShadow: '0 -8px 30px rgba(0,0,0,0.18)',
