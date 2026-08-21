@@ -72,8 +72,7 @@ export default function PlaceDirections({ place, onArrived }: PlaceDirectionsPro
   };
 
   const handleOpenAppleMaps = () => {
-    const q = encodeURIComponent(place.address || place.name);
-    openNavApp(`https://maps.apple.com/?daddr=${place.lat},${place.lng}&q=${q}`);
+    openNavApp(`https://maps.apple.com/?daddr=${place.lat},${place.lng}`);
   };
 
   const handleOpenGoogleMaps = () => {
