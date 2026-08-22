@@ -288,18 +288,6 @@ export default function BeforeExploreModal({ onResolved }: BeforeExploreModalPro
         >
           Continue
         </button>
-        {!allResolved && (
-          <p
-            style={{
-              textAlign: 'center',
-              fontSize: '12px',
-              color: 'rgba(10, 10, 10, 0.45)',
-              margin: 0,
-            }}
-          >
-            Choose an option for each row to continue.
-          </p>
-        )}
       </div>
     </div>
 
