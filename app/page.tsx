@@ -8,7 +8,7 @@ import LocationCard from '@/components/LocationCard';
 import LocationPill from '@/components/LocationPill';
 import BottomNav from '@/components/BottomNav';
 import BeforeExploreModal from '@/components/BeforeExploreModal';
-import TermsPoliciesModal from '@/components/TermsPoliciesModal';
+import LegalUpdateBanner from '@/components/LegalUpdateBanner';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { useAuth } from '@/components/AuthProvider';
 import { useExploringCity } from '@/components/ExploringCityProvider';
@@ -189,7 +189,7 @@ export default function Home() {
   return (
     <div style={{ background: '#F9F8F6', height: '100vh', display: 'flex', justifyContent: 'center' }}>
       <BeforeExploreModal />
-      <TermsPoliciesModal />
+      <LegalUpdateBanner />
       <PWAInstallPrompt />
       <div
         style={{
