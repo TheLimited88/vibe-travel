@@ -8,6 +8,7 @@ import BottomNav from '@/components/BottomNav';
 import { useExploringCity } from '@/components/ExploringCityProvider';
 import { categories } from '@/data/categories';
 import { haversineMi } from '@/lib/geo';
+import { geolocationOptions } from '@/lib/pwaDisplayMode';
 
 interface PlaceApiRecord {
   slug: string;
@@ -51,7 +52,8 @@ export default function SearchPage() {
     if (sortBy === 'closest' && !userCoords && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => {}
+        () => {},
+        geolocationOptions()
       );
     }
   }, [sortBy, userCoords]);

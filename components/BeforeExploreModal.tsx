@@ -3,6 +3,7 @@
 
 import { useState, useEffect, ReactNode, CSSProperties } from 'react';
 import { useAuth } from '@/components/AuthProvider';
+import { geolocationOptions } from '@/lib/pwaDisplayMode';
 
 interface PermissionItem {
   id: string;
@@ -94,7 +95,7 @@ export default function BeforeExploreModal({ onResolved }: BeforeExploreModalPro
 
   const handleAllow = (permissionId: string) => {
     if (permissionId === 'location') {
-      navigator.geolocation.getCurrentPosition(() => {}, () => {});
+      navigator.geolocation.getCurrentPosition(() => {}, () => {}, geolocationOptions());
     } else if (permissionId === 'notifications') {
       if ('Notification' in window && Notification.permission === 'default') {
         Notification.requestPermission();

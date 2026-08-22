@@ -14,6 +14,7 @@ import { useAuth } from '@/components/AuthProvider';
 import { useExploringCity } from '@/components/ExploringCityProvider';
 import { useDistanceUnit } from '@/components/DistanceUnitProvider';
 import { haversineMi } from '@/lib/geo';
+import { geolocationOptions } from '@/lib/pwaDisplayMode';
 import type { Location } from '@/types';
 
 interface PlaceApiRecord {
@@ -94,7 +95,8 @@ export default function Home() {
     const fetchPosition = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-        () => {}
+        () => {},
+        geolocationOptions()
       );
     };
 
@@ -132,7 +134,8 @@ export default function Home() {
     } else if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         () => setLocationPermission('granted'),
-        () => setLocationPermission('denied')
+        () => setLocationPermission('denied'),
+        geolocationOptions()
       );
     } else {
       showPermissionToast('Location is not supported on this device');
