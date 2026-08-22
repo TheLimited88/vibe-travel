@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   signOut,
@@ -122,6 +122,16 @@ export default function AccountPage() {
   const { user, loading } = useAuth();
   const isSignedIn = !!user;
   const { unit: distanceUnit, setUnit: setDistanceUnit } = useDistanceUnit();
+  const [distanceUnitChanged, setDistanceUnitChanged] = useState(false);
+  const distanceUnitFlashTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleDistanceUnitChange = (unit: 'mi' | 'km') => {
+    if (unit === distanceUnit) return;
+    setDistanceUnit(unit);
+    setDistanceUnitChanged(true);
+    if (distanceUnitFlashTimer.current) clearTimeout(distanceUnitFlashTimer.current);
+    distanceUnitFlashTimer.current = setTimeout(() => setDistanceUnitChanged(false), 1200);
+  };
 
   const [providerIds, setProviderIds] = useState<string[]>([]);
   const [newPlacesNearby, setNewPlacesNearby] = useState(false);
@@ -511,11 +521,17 @@ export default function AccountPage() {
                     </span>
                   </button>
                 )}
-                <div style={{ ...rowStyle, borderBottom: 'none' }}>
+                <div style={{
+                  ...rowStyle,
+                  borderBottom: 'none',
+                  borderRadius: '0 0 18px 18px',
+                  background: distanceUnitChanged ? 'rgba(62,232,168,0.18)' : 'transparent',
+                  transition: 'background 0.4s ease',
+                }}>
                   <span style={{ fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>Distance unit</span>
                   <div style={{ display: 'flex', background: 'rgba(10,10,10,0.05)', borderRadius: '999px', padding: '3px' }}>
                     <button
-                      onClick={() => setDistanceUnit('mi')}
+                      onClick={() => handleDistanceUnitChange('mi')}
                       style={{
                         background: distanceUnit === 'mi' ? '#fff' : 'transparent',
                         boxShadow: distanceUnit === 'mi' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
@@ -531,7 +547,7 @@ export default function AccountPage() {
                       mi
                     </button>
                     <button
-                      onClick={() => setDistanceUnit('km')}
+                      onClick={() => handleDistanceUnitChange('km')}
                       style={{
                         background: distanceUnit === 'km' ? '#fff' : 'transparent',
                         boxShadow: distanceUnit === 'km' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
