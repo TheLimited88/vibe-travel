@@ -54,6 +54,8 @@ export default function Home() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
   const [permissionToast, setPermissionToast] = useState('');
   const [permissionsGateResolved, setPermissionsGateResolved] = useState(false);
+  const [legalGateResolved, setLegalGateResolved] = useState(false);
+  const [platformSettled, setPlatformSettled] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { user } = useAuth();
   const { isRemoteCity, activeCity } = useExploringCity();
@@ -83,6 +85,14 @@ export default function Home() {
         status.onchange = () => setLocationPermission(status.state);
       }).catch(() => {});
     }
+  }, []);
+
+  // Gives the PWA install pitch some settled time on the page before it can
+  // appear, rather than showing it the instant permissions/legal are clear —
+  // it shouldn't feel like a third pop-up stacked right on the first two.
+  useEffect(() => {
+    const timer = setTimeout(() => setPlatformSettled(true), 45000);
+    return () => clearTimeout(timer);
   }, []);
 
   // Only fetch position silently when permission is already granted — never
@@ -193,8 +203,8 @@ export default function Home() {
   return (
     <div style={{ background: '#F9F8F6', height: '100vh', display: 'flex', justifyContent: 'center' }}>
       <BeforeExploreModal onResolved={() => setPermissionsGateResolved(true)} />
-      {permissionsGateResolved && <LegalUpdateBanner />}
-      <PWAInstallPrompt />
+      {permissionsGateResolved && <LegalUpdateBanner onResolved={() => setLegalGateResolved(true)} />}
+      <PWAInstallPrompt eligible={permissionsGateResolved && legalGateResolved && platformSettled} />
       <div
         style={{
           position: 'fixed',

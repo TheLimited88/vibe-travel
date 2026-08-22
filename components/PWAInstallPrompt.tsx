@@ -2,45 +2,52 @@
 
 import { useState, useEffect } from 'react';
 
-export default function PWAInstallPrompt() {
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => void;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+interface PWAInstallPromptProps {
+  // Only actually show once the caller says it's a good moment — e.g. after
+  // onboarding permissions and any legal-update banner are out of the way,
+  // plus a bit of settled time on the platform, so this doesn't stack right
+  // on top of the other two.
+  eligible: boolean;
+}
+
+export default function PWAInstallPrompt({ eligible }: PWAInstallPromptProps) {
   const [show, setShow] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [dismissedOrInstalled, setDismissedOrInstalled] = useState(false);
 
   useEffect(() => {
-    // Check if already installed or dismissed
     const dismissed = localStorage.getItem('pwa_install_dismissed');
     const installed = localStorage.getItem('pwa_installed');
-
     if (dismissed || installed) {
+      setDismissedOrInstalled(true);
       return;
     }
 
-    // Listen for beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: any) => {
+    // The browser decides on its own timing whether/when this fires at all —
+    // notably, Safari (iOS and desktop) never fires it; there, the only
+    // install path is the manual "Add to Home Screen" walkthrough already
+    // covered by BeforeExploreModal's onboarding step.
+    const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
 
-    // Check if ToS/PP was just accepted
-    const tosppAccepted = localStorage.getItem('tospp_accepted');
-    if (tosppAccepted) {
-      const acceptedData = JSON.parse(tosppAccepted);
-      const timeSinceAccepted = Date.now() - new Date(acceptedData.timestamp).getTime();
-
-      // Show PWA prompt 30 seconds after ToS/PP acceptance
-      if (timeSinceAccepted < 35000) {
-        setTimeout(() => {
-          setShow(true);
-        }, 30000 - timeSinceAccepted);
-      }
-    }
-
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
+
+  useEffect(() => {
+    if (eligible && deferredPrompt && !dismissedOrInstalled) {
+      setShow(true);
+    }
+  }, [eligible, deferredPrompt, dismissedOrInstalled]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;

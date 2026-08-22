@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/components/AuthProvider';
 
@@ -9,27 +9,49 @@ interface Outdated {
   privacy: boolean;
 }
 
-export default function LegalUpdateBanner() {
-  const { user } = useAuth();
+interface LegalUpdateBannerProps {
+  // Fired once this banner has finished deciding what to do — either it has
+  // nothing to show (not signed in, or nothing outdated), or the user just
+  // finished it. Lets callers sequence something else (e.g. the PWA install
+  // prompt) to only appear once this is out of the way.
+  onResolved?: () => void;
+}
+
+export default function LegalUpdateBanner({ onResolved }: LegalUpdateBannerProps) {
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [outdated, setOutdated] = useState<Outdated | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const resolvedRef = useRef(false);
+
+  const resolve = () => {
+    if (resolvedRef.current) return;
+    resolvedRef.current = true;
+    onResolved?.();
+  };
 
   useEffect(() => {
-    if (!user) return;
+    if (loading) return;
+    if (!user) {
+      resolve();
+      return;
+    }
     let cancelled = false;
     user.getIdToken().then((token) => {
       fetch('/api/account/policy-status', { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => r.json())
         .then((data) => {
-          if (!cancelled && data.outdated) setOutdated(data.outdated);
+          if (cancelled) return;
+          if (data.outdated) setOutdated(data.outdated);
+          if (!data.outdated?.terms && !data.outdated?.privacy) resolve();
         })
-        .catch(() => {});
+        .catch(() => resolve());
     });
     return () => {
       cancelled = true;
     };
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user]);
 
   const showBanner = !!user && !dismissed && !!outdated && (outdated.terms || outdated.privacy);
   if (!showBanner || !outdated) return null;
@@ -42,20 +64,18 @@ export default function LegalUpdateBanner() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ pages }),
     }).catch(() => {});
-    // PWAInstallPrompt watches this flag to time its own prompt shortly
-    // after a terms/privacy acceptance — keep setting it here so that
-    // still works now that the old TermsPoliciesModal is gone.
-    localStorage.setItem('tospp_accepted', JSON.stringify({ accepted: true, timestamp: new Date().toISOString() }));
   };
 
   const handleContinue = () => {
     setDismissed(true);
     acceptOutdated();
+    resolve();
   };
 
   const handleReview = () => {
     setDismissed(true);
     acceptOutdated();
+    resolve();
     router.push(outdated.privacy && !outdated.terms ? '/legal/privacy' : '/legal/terms');
   };
 
