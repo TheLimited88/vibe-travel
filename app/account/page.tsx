@@ -149,10 +149,8 @@ export default function AccountPage() {
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [changeNewPassword, setChangeNewPassword] = useState('');
-  const [changeConfirmPassword, setChangeConfirmPassword] = useState('');
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showChangeNewPassword, setShowChangeNewPassword] = useState(false);
-  const [showChangeConfirmPassword, setShowChangeConfirmPassword] = useState(false);
   const [changePasswordError, setChangePasswordError] = useState('');
   const [savingChangePassword, setSavingChangePassword] = useState(false);
   const [toast, setToast] = useState('');
@@ -304,11 +302,9 @@ export default function AccountPage() {
     setChangePasswordOpen(false);
     setCurrentPassword('');
     setChangeNewPassword('');
-    setChangeConfirmPassword('');
     setChangePasswordError('');
     setShowCurrentPassword(false);
     setShowChangeNewPassword(false);
-    setShowChangeConfirmPassword(false);
   };
 
   const handleChangePassword = async () => {
@@ -319,10 +315,6 @@ export default function AccountPage() {
     }
     if (!passwordMeetsRules(changeNewPassword)) {
       setChangePasswordError('New password does not meet the requirements.');
-      return;
-    }
-    if (changeNewPassword !== changeConfirmPassword) {
-      setChangePasswordError("Passwords don't match.");
       return;
     }
     setSavingChangePassword(true);
@@ -865,30 +857,7 @@ export default function AccountPage() {
                   </button>
                 </div>
               </label>
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.55)' }}>Confirm new password</span>
-                <div style={{ position: 'relative', display: 'flex' }}>
-                  <input
-                    type={showChangeConfirmPassword ? 'text' : 'password'}
-                    value={changeConfirmPassword}
-                    onChange={(e) => { setChangeConfirmPassword(e.target.value); setChangePasswordError(''); }}
-                    placeholder="••••••••"
-                    style={pwInputStyle}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowChangeConfirmPassword((v) => !v)}
-                    aria-label="Toggle password visibility"
-                    style={{ position: 'absolute', right: '6px', top: 0, bottom: 0, background: 'none', border: 'none', padding: 0, width: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(10,10,10,0.45)', cursor: 'pointer' }}
-                  >
-                    <EyeIcon open={showChangeConfirmPassword} />
-                  </button>
-                </div>
-              </label>
               <PasswordRulesChecklist password={changeNewPassword} />
-              {!!changeConfirmPassword && changeNewPassword !== changeConfirmPassword && (
-                <div style={{ fontSize: '12px', color: '#D14545' }}>Passwords don&apos;t match.</div>
-              )}
               {changePasswordError && <div style={{ fontSize: '12px', color: '#D14545' }}>{changePasswordError}</div>}
               <button
                 onClick={handleChangePassword}
