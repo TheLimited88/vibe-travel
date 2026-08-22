@@ -5,7 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { geofenceService, Place, DirectionSession } from '@/lib/geofenceService';
-import { useFirebaseMessaging } from './useFirebaseMessaging';
+import { useAuth } from '@/components/AuthProvider';
 
 export interface GeofenceStatus {
   isMonitoring: boolean;
@@ -25,7 +25,7 @@ export function useGeofence() {
     lastUpdate: null,
   });
 
-  const { fcmToken } = useFirebaseMessaging();
+  const { user } = useAuth();
 
   /**
    * Start monitoring for a Place
@@ -91,13 +91,17 @@ export function useGeofence() {
   }, []);
 
   /**
-   * Update geofence service with FCM token
+   * Keep the geofence service's auth token current so it can identify
+   * itself to the notification endpoint (which re-checks this user's own
+   * opt-in and sends to this user's own stored device token).
    */
   useEffect(() => {
-    if (fcmToken) {
-      geofenceService.setFcmTokens([fcmToken]);
+    if (!user) {
+      geofenceService.setAuthToken(null);
+      return;
     }
-  }, [fcmToken]);
+    user.getIdToken().then((token) => geofenceService.setAuthToken(token));
+  }, [user]);
 
   /**
    * Poll for status updates

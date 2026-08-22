@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
     const prefs = await getNotificationPrefs(decoded.uid);
     return NextResponse.json({
       notifyNewPlaces: prefs?.notifyNewPlaces ?? false,
+      notifyGeofenceArrival: prefs?.notifyGeofenceArrival ?? false,
       hasToken: !!prefs?.fcmToken,
     });
   } catch (error) {
@@ -28,8 +29,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const updates: { notifyNewPlaces?: boolean; fcmToken?: string | null } = {};
+    const updates: { notifyNewPlaces?: boolean; notifyGeofenceArrival?: boolean; fcmToken?: string | null } = {};
     if (typeof body.notifyNewPlaces === 'boolean') updates.notifyNewPlaces = body.notifyNewPlaces;
+    if (typeof body.notifyGeofenceArrival === 'boolean') updates.notifyGeofenceArrival = body.notifyGeofenceArrival;
     if (typeof body.fcmToken === 'string' || body.fcmToken === null) updates.fcmToken = body.fcmToken;
 
     await setNotificationPrefs(decoded.uid, updates);

@@ -43,7 +43,7 @@ export class GeofenceService {
   private locationWatch: number | null = null;
   private lastLocationUpdate: LocationUpdate | null = null;
   private leftGeofenceAt: number | null = null;
-  private fcmTokens: string[] = [];
+  private authToken: string | null = null;
 
   /**
    * Start monitoring location for a specific Place
@@ -109,7 +109,7 @@ export class GeofenceService {
     const trigger = this.checkNotificationTrigger(update);
 
     if (trigger.shouldNotify) {
-      this.triggerNotification(this.fcmTokens);
+      this.triggerNotification();
     }
 
     // Check if user left geofence
@@ -281,35 +281,28 @@ export class GeofenceService {
   /**
    * Trigger push notification via Firebase
    */
-  triggerNotification(fcmTokens?: string[]) {
+  triggerNotification() {
     if (!this.directionSession) return;
 
     this.directionSession.notificationSentAt = Date.now();
 
     // Send to backend for Firebase Cloud Messaging
-    this.sendNotificationViaFirebase(fcmTokens);
+    this.sendNotificationViaFirebase();
   }
 
   /**
-   * Send notification via Firebase Cloud Messaging
+   * Send notification via Firebase Cloud Messaging. The server re-checks
+   * this user's own opt-in and sends to this user's own stored token — it
+   * never trusts a token supplied by the client as a send target, so this
+   * just needs to identify the caller (auth token) and which place.
    */
-  private sendNotificationViaFirebase(fcmTokens?: string[]) {
-    if (!this.directionSession || !this.lastLocationUpdate) return;
-
-    const payload = {
-      placeId: this.directionSession.placeId,
-      placeName: this.directionSession.placeName,
-      userLat: this.lastLocationUpdate.lat,
-      userLng: this.lastLocationUpdate.lng,
-      accuracy: this.lastLocationUpdate.accuracy,
-      timestamp: Date.now(),
-      fcmTokens: fcmTokens || [],
-    };
+  private sendNotificationViaFirebase() {
+    if (!this.directionSession || !this.authToken) return;
 
     fetch('/api/events/geofence-notification', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${this.authToken}` },
+      body: JSON.stringify({ placeId: this.directionSession.placeId, placeName: this.directionSession.placeName }),
     })
       .then((response) => {
         if (response.ok) {
@@ -384,10 +377,12 @@ export class GeofenceService {
   }
 
   /**
-   * Set FCM tokens for notification delivery
+   * Set the caller's own auth token, so the notification endpoint can
+   * identify who to send to (and re-check their own opt-in) rather than
+   * trusting a token supplied by the client as a send target.
    */
-  setFcmTokens(tokens: string[]) {
-    this.fcmTokens = tokens;
+  setAuthToken(token: string | null) {
+    this.authToken = token;
   }
 
   /**

@@ -17,6 +17,7 @@ export default function AccountPage() {
   const [newPlacesNearby, setNewPlacesNearby] = useState(false);
   const [savingNewPlaces, setSavingNewPlaces] = useState(false);
   const [geofencePrompts, setGeofencePrompts] = useState(false);
+  const [savingGeofencePrompts, setSavingGeofencePrompts] = useState(false);
 
   const userInfo = {
     name: user?.displayName || 'there',
@@ -28,46 +29,62 @@ export default function AccountPage() {
     user.getIdToken().then((token) => {
       fetch('/api/account/notification-prefs', { headers: { Authorization: `Bearer ${token}` } })
         .then((r) => r.json())
-        .then((data) => setNewPlacesNearby(!!data.notifyNewPlaces))
+        .then((data) => {
+          setNewPlacesNearby(!!data.notifyNewPlaces);
+          setGeofencePrompts(!!data.notifyGeofenceArrival);
+        })
         .catch(() => {});
     });
   }, [user]);
 
+  const toggleNotificationPref = async (
+    prefKey: 'notifyNewPlaces' | 'notifyGeofenceArrival',
+    current: boolean,
+    apply: (next: boolean) => void
+  ) => {
+    if (!user) return;
+    const next = !current;
+    if (next) {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'denied') return;
+      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') return;
+      }
+      const fcmToken = await requestFcmToken();
+      const token = await user.getIdToken();
+      await fetch('/api/account/notification-prefs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ [prefKey]: true, fcmToken }),
+      });
+    } else {
+      const token = await user.getIdToken();
+      await fetch('/api/account/notification-prefs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ [prefKey]: false }),
+      });
+    }
+    apply(next);
+  };
+
   const handleToggleNewPlaces = async () => {
-    if (!user || savingNewPlaces) return;
-    const next = !newPlacesNearby;
+    if (savingNewPlaces) return;
     setSavingNewPlaces(true);
     try {
-      if (next) {
-        if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
-          setSavingNewPlaces(false);
-          return;
-        }
-        if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
-          const permission = await Notification.requestPermission();
-          if (permission !== 'granted') {
-            setSavingNewPlaces(false);
-            return;
-          }
-        }
-        const fcmToken = await requestFcmToken();
-        const token = await user.getIdToken();
-        await fetch('/api/account/notification-prefs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ notifyNewPlaces: true, fcmToken }),
-        });
-      } else {
-        const token = await user.getIdToken();
-        await fetch('/api/account/notification-prefs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-          body: JSON.stringify({ notifyNewPlaces: false }),
-        });
-      }
-      setNewPlacesNearby(next);
+      await toggleNotificationPref('notifyNewPlaces', newPlacesNearby, setNewPlacesNearby);
     } finally {
       setSavingNewPlaces(false);
+    }
+  };
+
+  const handleToggleGeofencePrompts = async () => {
+    if (savingGeofencePrompts) return;
+    setSavingGeofencePrompts(true);
+    try {
+      await toggleNotificationPref('notifyGeofenceArrival', geofencePrompts, setGeofencePrompts);
+    } finally {
+      setSavingGeofencePrompts(false);
     }
   };
 
@@ -225,14 +242,16 @@ export default function AccountPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(10,10,10,0.06)' }}>
                   <span style={{ fontSize: '14px', color: '#0A0A0A' }}>Geofence arrival prompts</span>
                   <button
-                    onClick={() => setGeofencePrompts(!geofencePrompts)}
+                    onClick={handleToggleGeofencePrompts}
+                    disabled={savingGeofencePrompts}
                     style={{
                       background: geofencePrompts ? '#6B3FD1' : 'rgba(10,10,10,0.2)',
                       border: 'none',
                       borderRadius: '999px',
                       width: '44px',
                       height: '24px',
-                      cursor: 'pointer',
+                      cursor: savingGeofencePrompts ? 'default' : 'pointer',
+                      opacity: savingGeofencePrompts ? 0.6 : 1,
                       position: 'relative',
                     }}
                   >

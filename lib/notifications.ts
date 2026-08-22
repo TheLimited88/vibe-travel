@@ -13,6 +13,7 @@ const NEARBY_RADIUS_MI = 0.75;
 export interface NotificationPrefs {
   uid: string;
   notifyNewPlaces: boolean;
+  notifyGeofenceArrival: boolean;
   fcmToken: string | null;
   updatedAt: number;
 }
@@ -24,12 +25,35 @@ export async function getNotificationPrefs(uid: string): Promise<NotificationPre
 
 export async function setNotificationPrefs(
   uid: string,
-  updates: Partial<Pick<NotificationPrefs, 'notifyNewPlaces' | 'fcmToken'>>
+  updates: Partial<Pick<NotificationPrefs, 'notifyNewPlaces' | 'notifyGeofenceArrival' | 'fcmToken'>>
 ): Promise<void> {
   await getAdminDb()
     .collection(PREFS_COLLECTION)
     .doc(uid)
     .set({ uid, ...updates, updatedAt: Date.now() }, { merge: true });
+}
+
+/**
+ * Sends a "you've arrived" push to this user's own registered device —
+ * called once the client (geofenceService's continuous location watch, or
+ * PlaceDirections' one-shot check on returning to the tab) has already
+ * decided a real arrival happened. This only re-checks the user's own
+ * opt-in and owns the actual send; it never takes a token from the caller.
+ */
+export async function sendArrivalPush(uid: string, placeName: string): Promise<{ sent: boolean }> {
+  const prefs = await getNotificationPrefs(uid);
+  if (!prefs?.notifyGeofenceArrival || !prefs.fcmToken) return { sent: false };
+
+  const result = await sendPushToToken(prefs.fcmToken, {
+    title: "You've arrived!",
+    body: `You're at ${placeName}`,
+  });
+
+  if (!result.success && result.deadToken) {
+    await getAdminDb().collection(PREFS_COLLECTION).doc(uid).set({ fcmToken: null }, { merge: true });
+  }
+
+  return { sent: result.success };
 }
 
 function sentDocId(uid: string, placeSlug: string): string {
@@ -94,13 +118,13 @@ export async function checkNearbyNewPlaces(uid: string, lat: number, lng: number
 
 async function sendPushToToken(
   token: string,
-  message: { title: string; body: string; placeSlug: string }
+  message: { title: string; body: string; placeSlug?: string }
 ): Promise<{ success: boolean; deadToken: boolean }> {
   try {
     await getMessaging(getAdminApp()).send({
       token,
       notification: { title: message.title, body: message.body },
-      data: { placeSlug: message.placeSlug },
+      ...(message.placeSlug ? { data: { placeSlug: message.placeSlug } } : {}),
     });
     return { success: true, deadToken: false };
   } catch (error) {

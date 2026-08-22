@@ -33,6 +33,19 @@ export default function PlaceDirections({ place, onArrived }: PlaceDirectionsPro
   isMonitoringRef.current = status.isMonitoring;
   const userRef = useRef(user);
   userRef.current = user;
+  const notifyGeofenceArrivalRef = useRef(false);
+
+  useEffect(() => {
+    if (!user) return;
+    user.getIdToken().then((token) => {
+      fetch('/api/account/notification-prefs', { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => r.json())
+        .then((data) => {
+          notifyGeofenceArrivalRef.current = !!data.notifyGeofenceArrival;
+        })
+        .catch(() => {});
+    });
+  }, [user]);
 
   useEffect(() => {
     const onVisibilityChange = () => {
@@ -44,6 +57,10 @@ export default function PlaceDirections({ place, onArrived }: PlaceDirectionsPro
         setArrivalToast(`You've arrived at ${place.name}`);
         if (toastTimer.current) clearTimeout(toastTimer.current);
         toastTimer.current = setTimeout(() => setArrivalToast(''), 2200);
+
+        if (notifyGeofenceArrivalRef.current && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          new Notification("You've arrived!", { body: `You're at ${place.name}`, icon: '/favicon.ico' });
+        }
 
         const currentUser = userRef.current;
         if (currentUser) {
