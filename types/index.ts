@@ -38,7 +38,7 @@ export interface Location {
   id: string;
   name: string;
   category: string;
-  distance: number;
+  distance: number | null;
   visits: number;
   image: string;
   subtitle?: string;

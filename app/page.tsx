@@ -11,6 +11,7 @@ import BeforeExploreModal from '@/components/BeforeExploreModal';
 import TermsPoliciesModal from '@/components/TermsPoliciesModal';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { useExploringCity } from '@/components/ExploringCityProvider';
+import { haversineMi } from '@/lib/geo';
 import type { Location } from '@/types';
 
 interface PlaceApiRecord {
@@ -32,7 +33,7 @@ function placeToLocation(place: PlaceApiRecord): Location {
     id: place.slug,
     name: place.title,
     category: place.category,
-    distance: 0,
+    distance: null,
     visits: place.visits ?? 0,
     likes: 0,
     image: place.heroImage?.url || '',
@@ -49,6 +50,7 @@ export default function Home() {
   const [locationPermission, setLocationPermission] = useState<PermissionState | 'unsupported'>('unsupported');
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
   const [permissionToast, setPermissionToast] = useState('');
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { isRemoteCity, activeCity } = useExploringCity();
 
   useEffect(() => {
@@ -72,6 +74,18 @@ export default function Home() {
       }).catch(() => {});
     }
   }, []);
+
+  // Only fetch position silently when permission is already granted — never
+  // trigger a fresh browser prompt from here, that's the onboarding modal's
+  // and the footer toggle's job.
+  useEffect(() => {
+    if (locationPermission === 'granted' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {}
+      );
+    }
+  }, [locationPermission]);
 
   const showPermissionToast = (msg: string) => {
     setPermissionToast(msg);
@@ -115,12 +129,29 @@ export default function Home() {
   // real data for.
   const cityLocations = isRemoteCity ? [] : locations;
 
-  const filteredLocations = cityLocations.filter((location) => {
+  const locationsWithDistance = cityLocations.map((location) => ({
+    ...location,
+    distance:
+      userCoords && location.lat != null && location.lng != null
+        ? Math.round(haversineMi(userCoords.lat, userCoords.lng, location.lat, location.lng) * 10) / 10
+        : null,
+  }));
+
+  const filteredLocations = locationsWithDistance.filter((location) => {
     return selectedCategory === 'all' || location.category === selectedCategory;
   });
 
-  const nearYou = filteredLocations.slice(0, 1);
-  const popular = filteredLocations.slice(0, 2);
+  // Closest-first when we have real distances; otherwise leave the fetch
+  // order alone rather than pretending we know which is nearest.
+  const byDistance = [...filteredLocations].sort((a, b) => {
+    if (a.distance == null && b.distance == null) return 0;
+    if (a.distance == null) return 1;
+    if (b.distance == null) return -1;
+    return a.distance - b.distance;
+  });
+
+  const nearYou = byDistance.slice(0, 1);
+  const popular = byDistance.slice(0, 2);
   const trending = isRemoteCity ? [] : filteredLocations.slice(0, 4);
   const noTiles = filteredLocations.length === 0;
 

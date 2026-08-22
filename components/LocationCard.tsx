@@ -101,9 +101,9 @@ export default function LocationCard({ location, layout, showDistance = false, s
           </div>
           <div style={{ fontSize: '10.5px', color: showDistance ? '#7F53F3' : 'rgba(10, 10, 10, 0.6)', fontWeight: showDistance ? 600 : 400 }}>
             {showDistance && showVisits
-              ? `${location.visits} visits · ${location.distance} mi`
+              ? `${location.visits} visits${location.distance != null ? ` · ${location.distance} mi` : ''}`
               : showDistance
-                ? `${location.distance} mi away`
+                ? (location.distance != null ? `${location.distance} mi away` : 'Enable location for distance')
                 : `${location.visits} visits`}
           </div>
         </div>
@@ -174,7 +174,7 @@ export default function LocationCard({ location, layout, showDistance = false, s
               margin: 0,
             }}
           >
-            {location.distance} mi away
+            {location.distance != null ? `${location.distance} mi away` : 'Enable location for distance'}
           </p>
         </div>
       </div>
@@ -257,7 +257,10 @@ export default function LocationCard({ location, layout, showDistance = false, s
         >
           {showDistance ? (
             <>
-              {location.visits} visits · <span style={{ color: 'var(--color-accent)' }}>{location.distance} mi</span>
+              {location.visits} visits
+              {location.distance != null && (
+                <> · <span style={{ color: 'var(--color-accent)' }}>{location.distance} mi</span></>
+              )}
             </>
           ) : (
             `${location.visits} visits`
