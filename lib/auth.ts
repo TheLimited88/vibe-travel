@@ -2,10 +2,12 @@ import { db, auth } from './firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import {
   signInWithPopup,
+  linkWithPopup,
   setPersistence,
   browserSessionPersistence,
   browserLocalPersistence,
   type AuthProvider,
+  type User,
   type UserCredential,
 } from 'firebase/auth';
 
@@ -26,6 +28,24 @@ export async function signInWithPopupRetry(provider: AuthProvider): Promise<User
     await setPersistence(auth, browserLocalPersistence);
     if (err instanceof Error && err.message.includes('Database is closing/hidden')) {
       return await signInWithPopup(auth, provider);
+    }
+    throw err;
+  }
+}
+
+// Same "Database is closing/hidden" workaround as signInWithPopupRetry above —
+// linkWithPopup goes through the same popup/pending-event machinery, so it's
+// exposed to the identical bug.
+export async function linkWithPopupRetry(user: User, provider: AuthProvider): Promise<UserCredential> {
+  await setPersistence(auth, browserSessionPersistence);
+  try {
+    const result = await linkWithPopup(user, provider);
+    await setPersistence(auth, browserLocalPersistence);
+    return result;
+  } catch (err) {
+    await setPersistence(auth, browserLocalPersistence);
+    if (err instanceof Error && err.message.includes('Database is closing/hidden')) {
+      return await linkWithPopup(user, provider);
     }
     throw err;
   }
