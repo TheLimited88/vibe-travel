@@ -152,6 +152,10 @@ export default function AccountPage() {
   const [deleteAccountConfirmOpen, setDeleteAccountConfirmOpen] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [deleteAccountError, setDeleteAccountError] = useState('');
+  const [deleteCountdownActive, setDeleteCountdownActive] = useState(false);
+  const [deleteBarFilled, setDeleteBarFilled] = useState(false);
+  const deleteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const DELETE_COUNTDOWN_MS = 5000;
 
   // Add email & password (nested inside the sign-in sheet)
   const [addPasswordOpen, setAddPasswordOpen] = useState(false);
@@ -185,6 +189,12 @@ export default function AccountPage() {
   useEffect(() => {
     setProviderIds(user?.providerData.map((p) => p.providerId) || []);
   }, [user]);
+
+  useEffect(() => {
+    return () => {
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     setAlreadyInstalled(isInstalledPwa());
@@ -464,6 +474,28 @@ export default function AccountPage() {
     }
   };
 
+  // Tapping "Delete" doesn't delete immediately — it starts a countdown
+  // (visualized as a filling progress bar) that gives a last chance to back
+  // out. Only once it completes uninterrupted does the real deletion fire.
+  const startDeleteCountdown = () => {
+    setDeleteCountdownActive(true);
+    setDeleteBarFilled(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setDeleteBarFilled(true)));
+    deleteTimerRef.current = setTimeout(() => {
+      handleConfirmDeleteAccount();
+    }, DELETE_COUNTDOWN_MS);
+  };
+
+  const cancelDelete = () => {
+    if (deleteTimerRef.current) {
+      clearTimeout(deleteTimerRef.current);
+      deleteTimerRef.current = null;
+    }
+    setDeleteCountdownActive(false);
+    setDeleteBarFilled(false);
+    setDeleteAccountConfirmOpen(false);
+  };
+
   return (
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#F4F2F8' }}>
       <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative' }}>
@@ -735,7 +767,7 @@ export default function AccountPage() {
                   Sign out
                 </button>
                 <button
-                  onClick={() => { setDeleteAccountConfirmOpen(true); setDeleteAccountError(''); }}
+                  onClick={() => { setDeleteAccountConfirmOpen(true); setDeleteAccountError(''); setDeleteCountdownActive(false); setDeleteBarFilled(false); }}
                   style={{
                     width: '100%',
                     padding: '12px 0',
@@ -782,41 +814,60 @@ export default function AccountPage() {
                 This can&apos;t be undone. Your reviews stay attached to their places as &quot;Former user.&quot;
               </div>
               {deleteAccountError && <div style={{ fontSize: '12px', color: '#D14545' }}>{deleteAccountError}</div>}
+              {deleteCountdownActive && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ width: '100%', height: '6px', borderRadius: '999px', background: 'rgba(10,10,10,0.08)', overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        height: '100%',
+                        width: deleteBarFilled ? '100%' : '0%',
+                        background: '#D14545',
+                        borderRadius: '999px',
+                        transition: deleteBarFilled ? `width ${DELETE_COUNTDOWN_MS}ms linear` : 'none',
+                      }}
+                    />
+                  </div>
+                  <div style={{ fontSize: '11.5px', color: 'rgba(10,10,10,0.5)' }}>
+                    Deleting your account — tap Cancel to stop.
+                  </div>
+                </div>
+              )}
               <div style={{ display: 'flex', gap: '8px' }}>
                 <button
-                  onClick={() => setDeleteAccountConfirmOpen(false)}
+                  onClick={cancelDelete}
                   disabled={deletingAccount}
                   style={{
                     flex: 1,
-                    background: 'rgba(10,10,10,0.06)',
-                    border: 'none',
-                    borderRadius: '10px',
-                    padding: '11px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    color: '#0A0A0A',
-                    cursor: deletingAccount ? 'default' : 'pointer',
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDeleteAccount}
-                  disabled={deletingAccount}
-                  style={{
-                    flex: 1,
-                    background: '#0A0A0A',
-                    color: '#fff',
+                    background: '#3EE8A8',
                     border: 'none',
                     borderRadius: '10px',
                     padding: '11px',
                     fontSize: '13px',
                     fontWeight: '700',
+                    color: '#0A0A0A',
                     cursor: deletingAccount ? 'default' : 'pointer',
                     opacity: deletingAccount ? 0.6 : 1,
                   }}
                 >
-                  {deletingAccount ? 'Deleting…' : 'Delete'}
+                  Cancel
+                </button>
+                <button
+                  onClick={startDeleteCountdown}
+                  disabled={deleteCountdownActive || deletingAccount}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(10,10,10,0.06)',
+                    color: '#D14545',
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '11px',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    cursor: deleteCountdownActive || deletingAccount ? 'default' : 'pointer',
+                    opacity: deleteCountdownActive || deletingAccount ? 0.6 : 1,
+                  }}
+                >
+                  {deleteCountdownActive || deletingAccount ? 'Deleting…' : 'Delete'}
                 </button>
               </div>
             </div>
