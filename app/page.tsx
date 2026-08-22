@@ -10,6 +10,7 @@ import BottomNav from '@/components/BottomNav';
 import BeforeExploreModal from '@/components/BeforeExploreModal';
 import LegalUpdateBanner from '@/components/LegalUpdateBanner';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import IosHomeScreenPrompt from '@/components/IosHomeScreenPrompt';
 import { useAuth } from '@/components/AuthProvider';
 import { useExploringCity } from '@/components/ExploringCityProvider';
 import { useDistanceUnit } from '@/components/DistanceUnitProvider';
@@ -199,12 +200,14 @@ export default function Home() {
   const popular = byDistance.slice(0, 2);
   const trending = isRemoteCity ? [] : filteredLocations.slice(0, 4);
   const noTiles = filteredLocations.length === 0;
+  const installPromptEligible = permissionsGateResolved && legalGateResolved && platformSettled;
 
   return (
     <div style={{ background: '#F9F8F6', height: '100vh', display: 'flex', justifyContent: 'center' }}>
       <BeforeExploreModal onResolved={() => setPermissionsGateResolved(true)} />
       {permissionsGateResolved && <LegalUpdateBanner onResolved={() => setLegalGateResolved(true)} />}
-      <PWAInstallPrompt eligible={permissionsGateResolved && legalGateResolved && platformSettled} />
+      <PWAInstallPrompt eligible={installPromptEligible} />
+      <IosHomeScreenPrompt eligible={installPromptEligible} />
       <div
         style={{
           position: 'fixed',
