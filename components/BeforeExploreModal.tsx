@@ -41,7 +41,7 @@ export default function BeforeExploreModal({ onResolved }: BeforeExploreModalPro
     {
       id: 'location',
       title: 'Share your location',
-      description: 'Powers distance sort, the map, and geofence visit detection.',
+      description: "Help Vibe show you what's worth exploring around you.",
       denyLabel: 'Not now',
       allowLabel: 'Allow',
       icon: (
@@ -53,8 +53,8 @@ export default function BeforeExploreModal({ onResolved }: BeforeExploreModalPro
     },
     {
       id: 'notifications',
-      title: 'Turn on notifications',
-      description: "We'll ping you the moment you arrive somewhere interesting.",
+      title: 'Turn On Notifications',
+      description: "Get timely alerts when you're near an interesting place or something worth exploring.",
       denyLabel: 'Not now',
       allowLabel: 'Allow',
       icon: (
