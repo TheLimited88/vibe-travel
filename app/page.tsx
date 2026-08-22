@@ -10,6 +10,7 @@ import BottomNav from '@/components/BottomNav';
 import BeforeExploreModal from '@/components/BeforeExploreModal';
 import TermsPoliciesModal from '@/components/TermsPoliciesModal';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
+import { useAuth } from '@/components/AuthProvider';
 import { useExploringCity } from '@/components/ExploringCityProvider';
 import { useDistanceUnit } from '@/components/DistanceUnitProvider';
 import { haversineMi } from '@/lib/geo';
@@ -52,6 +53,7 @@ export default function Home() {
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
   const [permissionToast, setPermissionToast] = useState('');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const { user } = useAuth();
   const { isRemoteCity, activeCity } = useExploringCity();
   const { unit } = useDistanceUnit();
   // Fixed radius labels (not a measured distance) — keep the mi side at its
@@ -83,15 +85,38 @@ export default function Home() {
 
   // Only fetch position silently when permission is already granted — never
   // trigger a fresh browser prompt from here, that's the onboarding modal's
-  // and the footer toggle's job.
+  // and the footer toggle's job. Re-checked every few minutes while Home
+  // stays mounted so a user who's walking is still caught, not just at load.
   useEffect(() => {
-    if (locationPermission === 'granted' && 'geolocation' in navigator) {
+    if (locationPermission !== 'granted' || !('geolocation' in navigator)) return;
+
+    const fetchPosition = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
         () => {}
       );
-    }
+    };
+
+    fetchPosition();
+    const interval = setInterval(fetchPosition, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [locationPermission]);
+
+  // Real-time-proximity gate for "New Places nearby" pushes — the server
+  // does the actual eligibility check (new within 7 days, already has a
+  // visit + a rating, and dedupes per user+place); this just supplies this
+  // user's current position whenever we have both a signed-in user and a
+  // fresh fix on where they are.
+  useEffect(() => {
+    if (!user || !userCoords) return;
+    user.getIdToken().then((token) => {
+      fetch('/api/places/nearby-alerts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ lat: userCoords.lat, lng: userCoords.lng }),
+      }).catch(() => {});
+    });
+  }, [user, userCoords]);
 
   const showPermissionToast = (msg: string) => {
     setPermissionToast(msg);

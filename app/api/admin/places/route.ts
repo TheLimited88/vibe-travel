@@ -1,7 +1,6 @@
 import { createPlace, listPlaces, getPlace, updatePlace, deletePlace, slugify } from '@/lib/places';
 import { getArrivalCount, getReviewSummary } from '@/lib/placeReviews';
 import { getSaveCount } from '@/lib/savedPlaces';
-import { notifyNewPlaceNearby } from '@/lib/notifications';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -71,14 +70,6 @@ export async function POST(request: Request) {
       slug: body.slug ? slugify(body.slug) : undefined,
     });
 
-    if (record.status === 'published') {
-      try {
-        await notifyNewPlaceNearby(record);
-      } catch (error) {
-        console.error('Notify new place error:', error);
-      }
-    }
-
     return Response.json({ success: true, place: record });
   } catch (error) {
     console.error('Create place error:', error);
@@ -95,21 +86,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const before = await getPlace(slug);
     await updatePlace(slug, body);
-
-    const wasPublished = before?.status === 'published';
-    const nowPublished = body.status === 'published' || (body.status === undefined && wasPublished);
-    if (!wasPublished && nowPublished) {
-      const updated = await getPlace(slug);
-      if (updated) {
-        try {
-          await notifyNewPlaceNearby(updated);
-        } catch (error) {
-          console.error('Notify new place error:', error);
-        }
-      }
-    }
 
     return Response.json({ success: true });
   } catch (error) {
