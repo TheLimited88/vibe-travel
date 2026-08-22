@@ -146,6 +146,11 @@ export default function AccountPage() {
   const [confirmingUnlink, setConfirmingUnlink] = useState<string | null>(null);
   const [unlinkError, setUnlinkError] = useState('');
 
+  // Delete account
+  const [deleteAccountConfirmOpen, setDeleteAccountConfirmOpen] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState('');
+
   // Add email & password (nested inside the sign-in sheet)
   const [addPasswordOpen, setAddPasswordOpen] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -420,6 +425,25 @@ export default function AccountPage() {
     router.push('/');
   };
 
+  const handleConfirmDeleteAccount = async () => {
+    if (!user) return;
+    setDeletingAccount(true);
+    setDeleteAccountError('');
+    try {
+      const token = await user.getIdToken();
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Delete failed');
+      await signOut(auth);
+      router.push('/');
+    } catch {
+      setDeleteAccountError('Could not delete your account. Please try again.');
+      setDeletingAccount(false);
+    }
+  };
+
   return (
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#F4F2F8' }}>
       <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh', position: 'relative' }}>
@@ -671,6 +695,7 @@ export default function AccountPage() {
                   Sign out
                 </button>
                 <button
+                  onClick={() => { setDeleteAccountConfirmOpen(true); setDeleteAccountError(''); }}
                   style={{
                     width: '100%',
                     padding: '12px 0',
@@ -689,6 +714,74 @@ export default function AccountPage() {
             </div>
           )}
         </div>
+
+        {/* Delete Account Confirm Modal */}
+        {deleteAccountConfirmOpen && (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(10,10,10,0.45)',
+            zIndex: 90,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+          }}>
+            <div style={{
+              background: '#fff',
+              borderRadius: '20px',
+              padding: '22px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px',
+              width: '100%',
+              maxWidth: '327px',
+            }}>
+              <div style={{ fontSize: '15px', fontWeight: '800', color: '#0A0A0A' }}>Delete your account?</div>
+              <div style={{ fontSize: '13px', color: 'rgba(10,10,10,0.6)', lineHeight: '1.5' }}>
+                This can&apos;t be undone. Your reviews stay attached to their places as &quot;Former user.&quot;
+              </div>
+              {deleteAccountError && <div style={{ fontSize: '12px', color: '#D14545' }}>{deleteAccountError}</div>}
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setDeleteAccountConfirmOpen(false)}
+                  disabled={deletingAccount}
+                  style={{
+                    flex: 1,
+                    background: 'rgba(10,10,10,0.06)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '11px',
+                    fontSize: '13px',
+                    fontWeight: '600',
+                    color: '#0A0A0A',
+                    cursor: deletingAccount ? 'default' : 'pointer',
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDeleteAccount}
+                  disabled={deletingAccount}
+                  style={{
+                    flex: 1,
+                    background: '#0A0A0A',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '10px',
+                    padding: '11px',
+                    fontSize: '13px',
+                    fontWeight: '700',
+                    cursor: deletingAccount ? 'default' : 'pointer',
+                    opacity: deletingAccount ? 0.6 : 1,
+                  }}
+                >
+                  {deletingAccount ? 'Deleting…' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Sign-in Method Sheet */}
         {signInSheetOpen && (
