@@ -18,6 +18,8 @@ import { linkWithPopupRetry } from '@/lib/auth';
 import { useAuth } from '@/components/AuthProvider';
 import { useDistanceUnit } from '@/components/DistanceUnitProvider';
 import { requestFcmToken } from '@/lib/messaging';
+import { isInstalledPwa, isIosSafari } from '@/lib/pwaDisplayMode';
+import AddToHomeScreenGuide from '@/components/AddToHomeScreenGuide';
 
 interface SignInMethod {
   id: 'email' | 'google' | 'apple';
@@ -170,6 +172,11 @@ export default function AccountPage() {
   const [savingChangePassword, setSavingChangePassword] = useState(false);
   const [toast, setToast] = useState('');
 
+  // Add to Home Screen
+  const [addToHomeGuideOpen, setAddToHomeGuideOpen] = useState(false);
+  const [addToHomeGuideDevice, setAddToHomeGuideDevice] = useState<'ios' | 'android'>('ios');
+  const [alreadyInstalled, setAlreadyInstalled] = useState(true);
+
   const userInfo = {
     name: user?.displayName || 'there',
     email: user?.email || '',
@@ -178,6 +185,19 @@ export default function AccountPage() {
   useEffect(() => {
     setProviderIds(user?.providerData.map((p) => p.providerId) || []);
   }, [user]);
+
+  useEffect(() => {
+    setAlreadyInstalled(isInstalledPwa());
+    setAddToHomeGuideDevice(isIosSafari() ? 'ios' : 'android');
+  }, []);
+
+  const finishAddToHomeGuide = () => {
+    setAddToHomeGuideOpen(false);
+    if (isIosSafari()) {
+      localStorage.setItem('ios_add_home_done', 'true');
+    }
+    showToast('Installing Vibe Travel…');
+  };
 
   // Linking/unlinking mutate the existing Firebase user object in place —
   // onAuthStateChanged doesn't re-fire for that (the signed-in user hasn't
@@ -594,6 +614,26 @@ export default function AccountPage() {
                 </div>
               </div>
 
+              {/* Add to Home Screen */}
+              {!alreadyInstalled && (
+                <button
+                  onClick={() => setAddToHomeGuideOpen(true)}
+                  style={{ ...cardStyle, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '12px', width: '100%', background: '#fff', font: 'inherit', textAlign: 'left', cursor: 'pointer' }}
+                >
+                  <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'rgba(127,83,243,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <rect x="7" y="2" width="10" height="20" rx="2" stroke="#7F53F3" strokeWidth="1.8" />
+                      <path d="M11 18h2" stroke="#7F53F3" strokeWidth="1.8" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                  <span style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontSize: '13.5px', fontWeight: '700', color: '#0A0A0A' }}>Add to Home Screen</span>
+                    <span style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)' }}>Your next great place is one tap away.</span>
+                  </span>
+                  <span style={{ color: 'rgba(10,10,10,0.3)' }}>›</span>
+                </button>
+              )}
+
               {/* Notifications Card */}
               <div style={cardStyle}>
                 <div style={{ padding: '14px 16px 4px', fontSize: '11px', fontWeight: '700', color: 'rgba(10,10,10,0.6)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
@@ -986,6 +1026,28 @@ export default function AccountPage() {
                 Cancel
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Add to Home Screen Guide */}
+        {addToHomeGuideOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(10,10,10,0.45)',
+              zIndex: 1010,
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+            }}
+          >
+            <AddToHomeScreenGuide
+              device={addToHomeGuideDevice}
+              onDeviceChange={setAddToHomeGuideDevice}
+              onDone={finishAddToHomeGuide}
+              onClose={() => setAddToHomeGuideOpen(false)}
+            />
           </div>
         )}
 
