@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { isInstalledPwa } from '@/lib/pwaDisplayMode';
+import { recordVisit, setDismissedNow, isReadyToReshow } from '@/lib/installPromptDismissal';
 import AddToHomeScreenGuide from '@/components/AddToHomeScreenGuide';
+
+const DISMISS_KEY = 'ios_add_home_dismissed';
+const BLOCK_KEY = 'ios_add_home_blocked';
+const DONE_KEY = 'ios_add_home_done';
 
 interface IosHomeScreenPromptProps {
   // Only actually show once the caller says it's a good moment — same
@@ -28,11 +33,15 @@ export default function IosHomeScreenPrompt({ eligible }: IosHomeScreenPromptPro
   const [applicable, setApplicable] = useState(false);
   const [show, setShow] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [visitCount, setVisitCount] = useState(0);
 
   useEffect(() => {
-    const dismissed = localStorage.getItem('ios_add_home_dismissed');
-    const done = localStorage.getItem('ios_add_home_done');
-    if (dismissed || done || isInstalledPwa() || !isIosSafari()) return;
+    const visits = recordVisit();
+    setVisitCount(visits);
+
+    const blocked = localStorage.getItem(BLOCK_KEY);
+    const done = localStorage.getItem(DONE_KEY);
+    if (blocked || done || isInstalledPwa() || !isIosSafari() || !isReadyToReshow(DISMISS_KEY, visits)) return;
     setApplicable(true);
   }, []);
 
@@ -40,15 +49,20 @@ export default function IosHomeScreenPrompt({ eligible }: IosHomeScreenPromptPro
     if (eligible && applicable) setShow(true);
   }, [eligible, applicable]);
 
-  const handleDismiss = () => {
-    localStorage.setItem('ios_add_home_dismissed', JSON.stringify({ dismissed: true, timestamp: new Date().toISOString() }));
+  const handleMaybeLater = () => {
+    setDismissedNow(DISMISS_KEY, visitCount);
+    setShow(false);
+  };
+
+  const handleDontShowAgain = () => {
+    localStorage.setItem(BLOCK_KEY, 'true');
     setShow(false);
   };
 
   const handleShowMe = () => setGuideOpen(true);
 
   const handleGuideDone = () => {
-    localStorage.setItem('ios_add_home_done', 'true');
+    localStorage.setItem(DONE_KEY, 'true');
     setGuideOpen(false);
     setShow(false);
   };
@@ -79,24 +93,24 @@ export default function IosHomeScreenPrompt({ eligible }: IosHomeScreenPromptPro
         >
           <div style={{ fontSize: '14px', fontWeight: '800', color: '#0A0A0A' }}>Add Vibe Travel to your Home Screen</div>
           <div style={{ fontSize: '12px', color: 'rgba(10,10,10,0.65)', lineHeight: '1.5' }}>
-            Get one-tap access and instant alerts when you arrive somewhere new. Takes about 10 seconds to set up.
+            Your next great Place is one tap away.
           </div>
           <div style={{ display: 'flex', gap: '8px' }}>
             <button
-              onClick={handleDismiss}
+              onClick={handleMaybeLater}
               style={{
                 flex: 1,
-                background: 'rgba(10,10,10,0.06)',
+                background: '#fff',
                 color: '#0A0A0A',
-                border: 'none',
-                borderRadius: '12px',
+                border: '1.5px solid rgba(10,10,10,0.15)',
+                borderRadius: '999px',
                 padding: '10px',
                 fontSize: '13px',
                 fontWeight: '700',
                 cursor: 'pointer',
               }}
             >
-              Not now
+              Maybe later
             </button>
             <button
               onClick={handleShowMe}
@@ -105,7 +119,7 @@ export default function IosHomeScreenPrompt({ eligible }: IosHomeScreenPromptPro
                 background: '#3EE8A8',
                 color: '#0A0A0A',
                 border: 'none',
-                borderRadius: '12px',
+                borderRadius: '999px',
                 padding: '10px',
                 fontSize: '13px',
                 fontWeight: '700',
@@ -115,6 +129,12 @@ export default function IosHomeScreenPrompt({ eligible }: IosHomeScreenPromptPro
               Show me how
             </button>
           </div>
+          <button
+            onClick={handleDontShowAgain}
+            style={{ background: 'none', border: 'none', fontSize: '12px', color: 'rgba(10,10,10,0.5)', cursor: 'pointer' }}
+          >
+            Don&apos;t show again
+          </button>
         </div>
       )}
 
