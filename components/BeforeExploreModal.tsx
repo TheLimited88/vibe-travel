@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect, ReactNode, CSSProperties } from 'react';
+import { useAuth } from '@/components/AuthProvider';
 
 interface PermissionItem {
   id: string;
@@ -10,7 +11,16 @@ interface PermissionItem {
   icon: ReactNode;
 }
 
-export default function BeforeExploreModal() {
+interface BeforeExploreModalProps {
+  // Fired once this modal has finished deciding what to do — either it has
+  // nothing to show (signed-in user, or already seen), or the user just
+  // finished it. Lets callers sequence something else (e.g. the legal
+  // update banner) to only appear after this is out of the way.
+  onResolved?: () => void;
+}
+
+export default function BeforeExploreModal({ onResolved }: BeforeExploreModalProps) {
+  const { user, loading } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [choices, setChoices] = useState<Record<string, 'allow' | 'deny'>>({});
   const [installGuideOpen, setInstallGuideOpen] = useState(false);
@@ -54,23 +64,29 @@ export default function BeforeExploreModal() {
   ];
 
   useEffect(() => {
-    // Check if user is logged in
-    const userToken = localStorage.getItem('user_token');
-    const userSession = localStorage.getItem('user_session');
-    const isLoggedIn = !!userToken || !!userSession;
-
-    // Only show for non-authenticated users (new users)
-    if (!isLoggedIn) {
-      const hasSeenModal = localStorage.getItem('beforeExploreModalSeen');
-      if (!hasSeenModal) {
-        setIsOpen(true);
-      }
-    }
-
     if (/android/i.test(navigator.userAgent)) {
       setInstallGuideDevice('android');
     }
   }, []);
+
+  useEffect(() => {
+    // Wait for Firebase to actually resolve sign-in state before deciding —
+    // otherwise a signed-in user would briefly look signed-out on load.
+    if (loading) return;
+
+    // Only show for non-authenticated users (new/guest visitors); a signed-in
+    // user has already been through this.
+    if (!user) {
+      const hasSeenModal = localStorage.getItem('beforeExploreModalSeen');
+      if (!hasSeenModal) {
+        setIsOpen(true);
+        return;
+      }
+    }
+
+    onResolved?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user]);
 
   const handleDeny = (permissionId: string) => {
     setChoices(prev => ({ ...prev, [permissionId]: 'deny' }));
@@ -103,6 +119,7 @@ export default function BeforeExploreModal() {
     if (!allResolved) return;
     localStorage.setItem('beforeExploreModalSeen', 'true');
     setIsOpen(false);
+    onResolved?.();
   };
 
   if (!isOpen) return null;

@@ -52,6 +52,7 @@ export default function Home() {
   const [locationPermission, setLocationPermission] = useState<PermissionState | 'unsupported'>('unsupported');
   const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('unsupported');
   const [permissionToast, setPermissionToast] = useState('');
+  const [permissionsGateResolved, setPermissionsGateResolved] = useState(false);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { user } = useAuth();
   const { isRemoteCity, activeCity } = useExploringCity();
@@ -188,8 +189,8 @@ export default function Home() {
 
   return (
     <div style={{ background: '#F9F8F6', height: '100vh', display: 'flex', justifyContent: 'center' }}>
-      <BeforeExploreModal />
-      <LegalUpdateBanner />
+      <BeforeExploreModal onResolved={() => setPermissionsGateResolved(true)} />
+      {permissionsGateResolved && <LegalUpdateBanner />}
       <PWAInstallPrompt />
       <div
         style={{

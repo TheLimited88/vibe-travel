@@ -42,6 +42,10 @@ export default function LegalUpdateBanner() {
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ pages }),
     }).catch(() => {});
+    // PWAInstallPrompt watches this flag to time its own prompt shortly
+    // after a terms/privacy acceptance — keep setting it here so that
+    // still works now that the old TermsPoliciesModal is gone.
+    localStorage.setItem('tospp_accepted', JSON.stringify({ accepted: true, timestamp: new Date().toISOString() }));
   };
 
   const handleContinue = () => {
