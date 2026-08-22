@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { isInstalledPwa } from '@/lib/pwaDisplayMode';
+import { isInstalledPwa, isIosSafari } from '@/lib/pwaDisplayMode';
 import { recordVisit, setDismissedNow, isReadyToReshow } from '@/lib/installPromptDismissal';
 import AddToHomeScreenGuide from '@/components/AddToHomeScreenGuide';
 
@@ -14,15 +14,6 @@ interface IosHomeScreenPromptProps {
   // sequencing as the Android install prompt: permissions, then any legal
   // update, then a settled period on the platform.
   eligible: boolean;
-}
-
-function isIosSafari(): boolean {
-  if (typeof navigator === 'undefined') return false;
-  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) return true;
-  // iPadOS 13+ reports itself as "Macintosh" in Safari by default — the
-  // classic touch-points + platform check is the standard way to still
-  // catch it.
-  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 }
 
 // Safari never fires beforeinstallprompt (see PWAInstallPrompt), so on iOS

@@ -23,3 +23,14 @@ export function geolocationOptions(): PositionOptions {
     maximumAge: 0,
   };
 }
+
+// Safari never fires beforeinstallprompt, so the only way onto the home
+// screen there is the manual Share -> Add to Home Screen flow.
+export function isIosSafari(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  if (/iPad|iPhone|iPod/.test(navigator.userAgent)) return true;
+  // iPadOS 13+ reports itself as "Macintosh" in Safari by default — the
+  // classic touch-points + platform check is the standard way to still
+  // catch it.
+  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+}
