@@ -521,20 +521,18 @@ export default function AccountPage() {
                     </span>
                   </button>
                 )}
-                <div style={{
-                  ...rowStyle,
-                  borderBottom: 'none',
-                  borderRadius: '0 0 18px 18px',
-                  background: distanceUnitChanged ? 'rgba(62,232,168,0.18)' : 'transparent',
-                  transition: 'background 0.4s ease',
-                }}>
+                <div style={{ ...rowStyle, borderBottom: 'none' }}>
                   <span style={{ fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>Distance unit</span>
                   <div style={{ display: 'flex', background: 'rgba(10,10,10,0.05)', borderRadius: '999px', padding: '3px' }}>
                     <button
                       onClick={() => handleDistanceUnitChange('mi')}
                       style={{
                         background: distanceUnit === 'mi' ? '#fff' : 'transparent',
-                        boxShadow: distanceUnit === 'mi' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+                        boxShadow: distanceUnit === 'mi'
+                          ? distanceUnitChanged
+                            ? '0 1px 3px rgba(0,0,0,0.15), 0 0 0 2px #6B3FD1'
+                            : '0 1px 3px rgba(0,0,0,0.15)'
+                          : 'none',
                         border: 'none',
                         borderRadius: '999px',
                         padding: '6px 14px',
@@ -542,6 +540,7 @@ export default function AccountPage() {
                         fontWeight: distanceUnit === 'mi' ? '700' : '500',
                         color: '#0A0A0A',
                         cursor: 'pointer',
+                        transition: 'box-shadow 0.4s ease',
                       }}
                     >
                       mi
@@ -550,7 +549,11 @@ export default function AccountPage() {
                       onClick={() => handleDistanceUnitChange('km')}
                       style={{
                         background: distanceUnit === 'km' ? '#fff' : 'transparent',
-                        boxShadow: distanceUnit === 'km' ? '0 1px 3px rgba(0,0,0,0.15)' : 'none',
+                        boxShadow: distanceUnit === 'km'
+                          ? distanceUnitChanged
+                            ? '0 1px 3px rgba(0,0,0,0.15), 0 0 0 2px #6B3FD1'
+                            : '0 1px 3px rgba(0,0,0,0.15)'
+                          : 'none',
                         border: 'none',
                         borderRadius: '999px',
                         padding: '6px 14px',
@@ -558,6 +561,7 @@ export default function AccountPage() {
                         fontWeight: distanceUnit === 'km' ? '700' : '500',
                         color: '#0A0A0A',
                         cursor: 'pointer',
+                        transition: 'box-shadow 0.4s ease',
                       }}
                     >
                       km
