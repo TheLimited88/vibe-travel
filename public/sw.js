@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vibe-travel-v4';
+const CACHE_NAME = 'vibe-travel-v5';
 const ASSETS_TO_CACHE = [
   '/manifest.json',
   '/favicon.ico',
@@ -73,5 +73,45 @@ self.addEventListener('fetch', (event) => {
       .catch(() => {
         return caches.match(event.request).then((cached) => cached || caches.match('/'));
       })
+  );
+});
+
+// Firebase Cloud Messaging delivers over the standard Web Push protocol, so
+// this is handled as a plain 'push' event rather than registering a second,
+// separate firebase-messaging-sw.js — this app already registers this one
+// service worker at the root scope, and a second registration at the same
+// scope causes the two to fight over which controls the page.
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+
+  let payload;
+  try {
+    payload = event.data.json();
+  } catch {
+    return;
+  }
+
+  const notification = payload.notification || {};
+  const title = notification.title || 'Vibe Travel';
+  const options = {
+    body: notification.body || '',
+    icon: '/favicon.ico',
+    data: payload.data || {},
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const slug = event.notification.data && event.notification.data.placeSlug;
+  const url = slug ? `/place/${slug}` : '/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.endsWith(url) && 'focus' in client) return client.focus();
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(url);
+    })
   );
 });

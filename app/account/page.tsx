@@ -1,24 +1,74 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/components/AuthProvider';
 import { useDistanceUnit } from '@/components/DistanceUnitProvider';
+import { requestFcmToken } from '@/lib/messaging';
 
 export default function AccountPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const isSignedIn = !!user;
   const { unit: distanceUnit, setUnit: setDistanceUnit } = useDistanceUnit();
-  const [newPlacesNearby, setNewPlacesNearby] = useState(true);
+  const [newPlacesNearby, setNewPlacesNearby] = useState(false);
+  const [savingNewPlaces, setSavingNewPlaces] = useState(false);
   const [geofencePrompts, setGeofencePrompts] = useState(false);
 
   const userInfo = {
     name: user?.displayName || 'there',
     email: user?.email || '',
+  };
+
+  useEffect(() => {
+    if (!user) return;
+    user.getIdToken().then((token) => {
+      fetch('/api/account/notification-prefs', { headers: { Authorization: `Bearer ${token}` } })
+        .then((r) => r.json())
+        .then((data) => setNewPlacesNearby(!!data.notifyNewPlaces))
+        .catch(() => {});
+    });
+  }, [user]);
+
+  const handleToggleNewPlaces = async () => {
+    if (!user || savingNewPlaces) return;
+    const next = !newPlacesNearby;
+    setSavingNewPlaces(true);
+    try {
+      if (next) {
+        if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+          setSavingNewPlaces(false);
+          return;
+        }
+        if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') {
+            setSavingNewPlaces(false);
+            return;
+          }
+        }
+        const fcmToken = await requestFcmToken();
+        const token = await user.getIdToken();
+        await fetch('/api/account/notification-prefs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ notifyNewPlaces: true, fcmToken }),
+        });
+      } else {
+        const token = await user.getIdToken();
+        await fetch('/api/account/notification-prefs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ notifyNewPlaces: false }),
+        });
+      }
+      setNewPlacesNearby(next);
+    } finally {
+      setSavingNewPlaces(false);
+    }
   };
 
   const handleSignOut = async () => {
@@ -147,14 +197,16 @@ export default function AccountPage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(10,10,10,0.06)' }}>
                   <span style={{ fontSize: '14px', color: '#0A0A0A' }}>New Places nearby</span>
                   <button
-                    onClick={() => setNewPlacesNearby(!newPlacesNearby)}
+                    onClick={handleToggleNewPlaces}
+                    disabled={savingNewPlaces}
                     style={{
                       background: newPlacesNearby ? '#6B3FD1' : 'rgba(10,10,10,0.2)',
                       border: 'none',
                       borderRadius: '999px',
                       width: '44px',
                       height: '24px',
-                      cursor: 'pointer',
+                      cursor: savingNewPlaces ? 'default' : 'pointer',
+                      opacity: savingNewPlaces ? 0.6 : 1,
                       position: 'relative',
                     }}
                   >
