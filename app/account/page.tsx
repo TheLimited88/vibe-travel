@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { signOut, linkWithCredential, unlink, EmailAuthProvider } from 'firebase/auth';
+import { signOut, linkWithCredential, unlink, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/components/AuthProvider';
 import { useDistanceUnit } from '@/components/DistanceUnitProvider';
@@ -25,6 +25,13 @@ export default function AccountPage() {
   const [savingPassword, setSavingPassword] = useState(false);
   const [confirmingUnlink, setConfirmingUnlink] = useState<string | null>(null);
   const [unlinkError, setUnlinkError] = useState('');
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [changeNewPassword, setChangeNewPassword] = useState('');
+  const [changeConfirmPassword, setChangeConfirmPassword] = useState('');
+  const [changePasswordError, setChangePasswordError] = useState('');
+  const [changePasswordSuccess, setChangePasswordSuccess] = useState(false);
+  const [savingChangePassword, setSavingChangePassword] = useState(false);
 
   const userInfo = {
     name: user?.displayName || 'there',
@@ -85,6 +92,44 @@ export default function AccountPage() {
           ? 'For security, please sign out and back in, then try again.'
           : 'Could not remove this sign-in method. Please try again.'
       );
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!user || !user.email) return;
+    if (changeNewPassword.length < 8) {
+      setChangePasswordError('New password must be at least 8 characters');
+      return;
+    }
+    if (changeNewPassword !== changeConfirmPassword) {
+      setChangePasswordError('New passwords do not match');
+      return;
+    }
+    setSavingChangePassword(true);
+    setChangePasswordError('');
+    try {
+      // Re-authenticate with the current password first — Firebase requires
+      // a recent login to change a password, and this doubles as proof the
+      // person doing it actually knows the current one.
+      await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, currentPassword));
+      await updatePassword(user, changeNewPassword);
+      setChangePasswordOpen(false);
+      setCurrentPassword('');
+      setChangeNewPassword('');
+      setChangeConfirmPassword('');
+      setChangePasswordSuccess(true);
+      setTimeout(() => setChangePasswordSuccess(false), 3000);
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+        setChangePasswordError('Current password is incorrect');
+      } else if (code === 'auth/too-many-requests') {
+        setChangePasswordError('Too many attempts. Please try again later.');
+      } else {
+        setChangePasswordError('Could not change password. Please try again.');
+      }
+    } finally {
+      setSavingChangePassword(false);
     }
   };
 
@@ -278,6 +323,67 @@ export default function AccountPage() {
                         </button>
                         <button
                           onClick={() => { setAddPasswordOpen(false); setPasswordError(''); setNewPassword(''); setConfirmPassword(''); }}
+                          style={{ background: 'none', border: 'none', color: 'rgba(10,10,10,0.5)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {hasPasswordProvider && !changePasswordOpen && (
+                    <button
+                      onClick={() => { setChangePasswordOpen(true); setChangePasswordError(''); }}
+                      style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, color: '#6B3FD1', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                      Change password
+                    </button>
+                  )}
+
+                  {changePasswordSuccess && (
+                    <span style={{ fontSize: '12.5px', color: '#0A9B71', fontWeight: '600' }}>Password updated</span>
+                  )}
+
+                  {changePasswordOpen && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '2px' }}>
+                      <input
+                        type="password"
+                        placeholder="Current password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }}
+                      />
+                      <input
+                        type="password"
+                        placeholder="New password"
+                        value={changeNewPassword}
+                        onChange={(e) => setChangeNewPassword(e.target.value)}
+                        style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }}
+                      />
+                      <input
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={changeConfirmPassword}
+                        onChange={(e) => setChangeConfirmPassword(e.target.value)}
+                        style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }}
+                      />
+                      {changePasswordError && <span style={{ fontSize: '12px', color: '#D14545' }}>{changePasswordError}</span>}
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={handleChangePassword}
+                          disabled={savingChangePassword}
+                          style={{ background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '10px', padding: '9px 16px', fontSize: '13px', fontWeight: '700', cursor: savingChangePassword ? 'default' : 'pointer', opacity: savingChangePassword ? 0.6 : 1 }}
+                        >
+                          {savingChangePassword ? 'Saving…' : 'Update password'}
+                        </button>
+                        <button
+                          onClick={() => {
+                            setChangePasswordOpen(false);
+                            setChangePasswordError('');
+                            setCurrentPassword('');
+                            setChangeNewPassword('');
+                            setChangeConfirmPassword('');
+                          }}
                           style={{ background: 'none', border: 'none', color: 'rgba(10,10,10,0.5)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
                         >
                           Cancel
