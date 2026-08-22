@@ -11,6 +11,7 @@ import BeforeExploreModal from '@/components/BeforeExploreModal';
 import TermsPoliciesModal from '@/components/TermsPoliciesModal';
 import PWAInstallPrompt from '@/components/PWAInstallPrompt';
 import { useExploringCity } from '@/components/ExploringCityProvider';
+import { useDistanceUnit } from '@/components/DistanceUnitProvider';
 import { haversineMi } from '@/lib/geo';
 import type { Location } from '@/types';
 
@@ -52,6 +53,7 @@ export default function Home() {
   const [permissionToast, setPermissionToast] = useState('');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { isRemoteCity, activeCity } = useExploringCity();
+  const { formatDistance } = useDistanceUnit();
 
   useEffect(() => {
     fetch('/api/admin/places?includeStats=1')
@@ -133,7 +135,7 @@ export default function Home() {
     ...location,
     distance:
       userCoords && location.lat != null && location.lng != null
-        ? Math.round(haversineMi(userCoords.lat, userCoords.lng, location.lat, location.lng) * 10) / 10
+        ? haversineMi(userCoords.lat, userCoords.lng, location.lat, location.lng)
         : null,
   }));
 
@@ -228,7 +230,7 @@ export default function Home() {
                   </h2>
                   {!isRemoteCity && (
                     <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#6B3FD1', background: 'rgba(127, 83, 243, 0.1)', padding: '3px 8px', borderRadius: '8px', display: 'inline-block' }}>
-                      {'< 0.75 mi'}
+                      {`< ${formatDistance(0.75)}`}
                     </span>
                   )}
                 </div>
@@ -249,7 +251,7 @@ export default function Home() {
                   </h2>
                   {!isRemoteCity && (
                     <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#0A9B71', background: 'rgba(10, 155, 113, 0.1)', padding: '3px 8px', borderRadius: '8px', display: 'inline-block' }}>
-                      {'< 2 mi'}
+                      {`< ${formatDistance(2)}`}
                     </span>
                   )}
                 </div>

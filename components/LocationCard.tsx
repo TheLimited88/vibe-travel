@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { Location } from '@/types';
+import { useDistanceUnit } from '@/components/DistanceUnitProvider';
 
 interface LocationCardProps {
   location: Location;
@@ -13,6 +14,7 @@ interface LocationCardProps {
 
 export default function LocationCard({ location, layout, showDistance = false, showVisits = false, flexGrow = true }: LocationCardProps) {
   const router = useRouter();
+  const { formatDistance } = useDistanceUnit();
   const goToPlace = () => router.push(`/place/${location.id}`);
 
   if (layout === 'scroll') {
@@ -101,9 +103,9 @@ export default function LocationCard({ location, layout, showDistance = false, s
           </div>
           <div style={{ fontSize: '10.5px', color: showDistance ? '#7F53F3' : 'rgba(10, 10, 10, 0.6)', fontWeight: showDistance ? 600 : 400 }}>
             {showDistance && showVisits
-              ? `${location.visits} visits${location.distance != null ? ` · ${location.distance} mi` : ''}`
+              ? `${location.visits} visits${location.distance != null ? ` · ${formatDistance(location.distance)}` : ''}`
               : showDistance
-                ? (location.distance != null ? `${location.distance} mi away` : 'Enable location for distance')
+                ? (location.distance != null ? `${formatDistance(location.distance)} away` : 'Enable location for distance')
                 : `${location.visits} visits`}
           </div>
         </div>
@@ -174,7 +176,7 @@ export default function LocationCard({ location, layout, showDistance = false, s
               margin: 0,
             }}
           >
-            {location.distance != null ? `${location.distance} mi away` : 'Enable location for distance'}
+            {location.distance != null ? `${formatDistance(location.distance)} away` : 'Enable location for distance'}
           </p>
         </div>
       </div>
@@ -259,7 +261,7 @@ export default function LocationCard({ location, layout, showDistance = false, s
             <>
               {location.visits} visits
               {location.distance != null && (
-                <> · <span style={{ color: 'var(--color-accent)' }}>{location.distance} mi</span></>
+                <> · <span style={{ color: 'var(--color-accent)' }}>{formatDistance(location.distance)}</span></>
               )}
             </>
           ) : (

@@ -6,12 +6,13 @@ import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/components/AuthProvider';
+import { useDistanceUnit } from '@/components/DistanceUnitProvider';
 
 export default function AccountPage() {
   const router = useRouter();
   const { user, loading } = useAuth();
   const isSignedIn = !!user;
-  const [distanceUnit, setDistanceUnit] = useState('mi');
+  const { unit: distanceUnit, setUnit: setDistanceUnit } = useDistanceUnit();
   const [newPlacesNearby, setNewPlacesNearby] = useState(true);
   const [geofencePrompts, setGeofencePrompts] = useState(false);
 
