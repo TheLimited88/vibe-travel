@@ -591,7 +591,9 @@ export default function PlacePage() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M7 22V11M2 13v7a2 2 0 002 2h12.5a2 2 0 002-1.6l1.5-7A2 2 0 0018 11h-5V6a2.5 2.5 0 00-5 0v1.5L5 11H4a2 2 0 00-2 2z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
               </svg>
-              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>—</span>
+              <span style={{ fontSize: '14px', fontWeight: '800', lineHeight: '1' }}>
+                {summary.reviewCount > 0 ? `${Math.round((100 * summary.upCount) / summary.reviewCount)}%` : '—'}
+              </span>
               <span style={{ fontSize: '9.5px', fontWeight: '600', letterSpacing: '0.3px', textTransform: 'uppercase', opacity: 0.85 }}>Worth it</span>
             </button>
           </div>

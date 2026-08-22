@@ -1,78 +1,104 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import CategoryChips from '@/components/CategoryChips';
+import LocationPill from '@/components/LocationPill';
+import BottomNav from '@/components/BottomNav';
+import { useExploringCity } from '@/components/ExploringCityProvider';
+import { categories } from '@/data/categories';
+
+interface PlaceApiRecord {
+  slug: string;
+  title: string;
+  subtitle: string;
+  category: string;
+  vibes: string[];
+  address: string;
+  lat: number | null;
+  lng: number | null;
+  heroImage: { url: string } | null;
+  status: string;
+  visits?: number;
+  saves?: number;
+}
+
+const RECENT_SEARCHES = ['Coffee', 'Rooftop bar', 'Murals', 'Vintage shop'];
+
+type SortMode = 'relevant' | 'closest' | 'saved' | 'visited';
+
+function haversineMi(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 3958.8;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 export default function SearchPage() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState('relevant');
+  const { isRemoteCity } = useExploringCity();
+  const [places, setPlaces] = useState<PlaceApiRecord[]>([]);
+  const [query, setQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sortBy, setSortBy] = useState<SortMode>('relevant');
+  const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
-  const mockPlaces = [
-    {
-      id: 1,
-      title: 'Dead Horse Bay',
-      subtitle: 'A sea-glass shoreline built on a century of buried trash',
-      address: 'Flatbush Ave & Aviation Rd, Brooklyn, NY',
-      category: 'Hidden Beach',
-    },
-    {
-      id: 2,
-      title: 'Brooklyn Heights Promenade',
-      subtitle: 'The skyline view New Yorkers actually go to',
-      address: 'Brooklyn Heights Promenade, Brooklyn, NY',
-      category: 'Scenic Lookout',
-    },
-    {
-      id: 3,
-      title: "Merchant's House Museum",
-      subtitle: "A merchant family's home, untouched since 1835",
-      address: '29 E 4th St, New York, NY',
-      category: 'Historic Building',
-    },
-    {
-      id: 4,
-      title: 'The Ravine Cascades',
-      subtitle: "Central Park's waterfall, hidden in plain sight",
-      address: 'The Loch, Central Park, New York, NY',
-      category: 'Waterfall',
-    },
-    {
-      id: 5,
-      title: 'The Bushwick Collective',
-      subtitle: 'Open-air murals across a dozen industrial blocks',
-      address: 'Troutman St & St Nicholas Ave, Brooklyn, NY',
-      category: 'Street Art',
-    },
-    {
-      id: 6,
-      title: 'Moore Street Market',
-      subtitle: "Bushwick's oldest Latin market, since 1941",
-      address: '110 Moore St, Brooklyn, NY',
-      category: 'Local Market',
-    },
-    {
-      id: 7,
-      title: 'Gantry Plaza State Park',
-      subtitle: 'The best skyline photo you can take without a lens permit',
-      address: '4-09 47th Rd, Long Island City, NY',
-      category: 'Photography Spot',
-    },
-  ];
+  useEffect(() => {
+    fetch('/api/admin/places?includeStats=1')
+      .then((r) => r.json())
+      .then((data) => {
+        const published = (data.places || []).filter((p: PlaceApiRecord) => p.status === 'published');
+        setPlaces(published);
+      })
+      .catch(() => setPlaces([]));
+  }, []);
 
-  const hasQuery = searchQuery.trim().length > 0;
-  const searchResults = hasQuery
-    ? mockPlaces.filter(
+  useEffect(() => {
+    if (sortBy === 'closest' && !userCoords && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+        () => {}
+      );
+    }
+  }, [sortBy, userCoords]);
+
+  const q = query.trim().toLowerCase();
+  const searchActive = q.length > 0 || selectedCategory !== 'all';
+
+  // All real places are New York — a remote city is an honest empty state.
+  const cityPlaces = isRemoteCity ? [] : places;
+
+  let matches = searchActive
+    ? cityPlaces.filter(
         (p) =>
-          p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.subtitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.address.toLowerCase().includes(searchQuery.toLowerCase())
+          (selectedCategory === 'all' || p.category === selectedCategory) &&
+          (!q ||
+            p.title.toLowerCase().includes(q) ||
+            p.subtitle.toLowerCase().includes(q) ||
+            p.address.toLowerCase().includes(q) ||
+            (p.vibes || []).some((v) => v.toLowerCase().includes(q)))
       )
     : [];
-  const noResults = hasQuery && searchResults.length === 0;
 
-  const sortButtons = [
+  if (sortBy === 'closest' && userCoords) {
+    matches = [...matches].sort((a, b) => {
+      const da = a.lat != null && a.lng != null ? haversineMi(userCoords.lat, userCoords.lng, a.lat, a.lng) : Infinity;
+      const db = b.lat != null && b.lng != null ? haversineMi(userCoords.lat, userCoords.lng, b.lat, b.lng) : Infinity;
+      return da - db;
+    });
+  } else if (sortBy === 'saved') {
+    matches = [...matches].sort((a, b) => (b.saves ?? 0) - (a.saves ?? 0));
+  } else if (sortBy === 'visited') {
+    matches = [...matches].sort((a, b) => (b.visits ?? 0) - (a.visits ?? 0));
+  }
+
+  const searchResults = matches.slice(0, 20);
+  const noResults = searchActive && searchResults.length === 0;
+
+  const sortButtons: { label: string; key: SortMode }[] = [
     { label: 'Most Relevant', key: 'relevant' },
     { label: 'Closest', key: 'closest' },
     { label: 'Most Saved', key: 'saved' },
@@ -82,24 +108,21 @@ export default function SearchPage() {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', background: '#FFFFFF' }}>
       <div style={{ width: '100%', maxWidth: '375px', display: 'flex', flexDirection: 'column', height: '100vh' }}>
-        {/* Main Content */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           {/* Sticky Header */}
           <div style={{ padding: '58px 16px 12px', display: 'flex', flexDirection: 'column', gap: '10px', position: 'sticky', top: '0', background: 'oklch(98% 0.003 90)', zIndex: 5 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <img src="/vibe-travel-logo-v2-cropped.png" alt="Vibe Travel" style={{ height: '28px', width: 'auto', objectFit: 'contain', alignSelf: 'flex-start' }} />
+              <span style={{ fontSize: '11px', fontWeight: 500, color: '#9F6BE8', paddingLeft: '3px', marginTop: '1px', display: 'block', letterSpacing: '1.05px', whiteSpace: 'nowrap' }}>
+                Find your kind of place
+              </span>
+            </div>
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
               <button
                 onClick={() => router.back()}
                 aria-label="Back"
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  padding: '4px',
-                  margin: '0',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  flexShrink: 0,
-                }}
+                style={{ background: 'none', border: 'none', padding: '4px', margin: '0', cursor: 'pointer', display: 'flex', alignItems: 'center', flexShrink: 0 }}
               >
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                   <path d="M15 18l-6-6 6-6" stroke="#0A0A0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -111,42 +134,21 @@ export default function SearchPage() {
                   <path d="M21 21l-4.3-4.3" stroke="rgba(10,10,10,0.5)" strokeWidth="2" strokeLinecap="round" />
                 </svg>
                 <input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Title, subtitle, or address"
-                  style={{
-                    border: 'none',
-                    outline: 'none',
-                    flex: 1,
-                    fontSize: '14px',
-                    background: 'transparent',
-                    color: '#0A0A0A',
-                    fontFamily: "'Inter',sans-serif",
-                  }}
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  aria-label="Title, address, or vibe"
+                  placeholder="Search for places, vibes or cities"
+                  style={{ border: 'none', outline: 'none', flex: 1, fontSize: '14px', background: 'transparent', color: '#0A0A0A', fontFamily: "'Inter',sans-serif" }}
                 />
               </div>
-              <button
-                onClick={() => setSearchQuery('')}
-                style={{
-                  fontSize: '13px',
-                  fontWeight: '600',
-                  color: '#6B3FD1',
-                  background: 'none',
-                  border: 'none',
-                  font: 'inherit',
-                  textAlign: 'left',
-                  padding: '0',
-                  margin: '0',
-                  cursor: 'pointer',
-                }}
-              >
-                Cancel
-              </button>
             </div>
+
+            <LocationPill />
+
+            <CategoryChips selectedCategory={selectedCategory} onSelectCategory={setSelectedCategory} />
           </div>
 
-          {/* Sort Tabs and Results */}
-          {hasQuery && (
+          {searchActive ? (
             <>
               {/* Sort Buttons */}
               <div style={{ padding: '2px 16px 14px', display: 'flex', gap: '8px', overflowX: 'auto', background: 'oklch(98% 0.003 90)' }}>
@@ -155,13 +157,13 @@ export default function SearchPage() {
                     key={btn.key}
                     onClick={() => setSortBy(btn.key)}
                     style={{
-                      background: sortBy === btn.key ? '#3EE8A8' : '#fff',
-                      color: sortBy === btn.key ? '#0A0A0A' : 'rgba(10,10,10,0.6)',
-                      border: sortBy === btn.key ? 'none' : '1px solid rgba(10,10,10,0.08)',
+                      background: sortBy === btn.key ? 'rgba(62,232,168,0.15)' : '#fff',
+                      color: '#0A0A0A',
+                      border: sortBy === btn.key ? '1px solid #3EE8A8' : '1px solid rgba(10,10,10,0.12)',
                       borderRadius: '999px',
-                      padding: '7px 14px',
+                      padding: '7px 12px',
                       fontSize: '12.5px',
-                      fontWeight: sortBy === btn.key ? '600' : '400',
+                      fontWeight: 600,
                       cursor: 'pointer',
                       whiteSpace: 'nowrap',
                       flexShrink: 0,
@@ -180,66 +182,78 @@ export default function SearchPage() {
                   </div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    {searchResults.map((place, idx) => (
-                      <button
-                        key={place.id}
-                        onClick={() => router.push(`/place/${place.id}`)}
-                        style={{
-                          display: 'flex',
-                          gap: '12px',
-                          padding: '12px 0',
-                          borderWidth: '0 0 1px 0',
-                          borderStyle: 'solid',
-                          borderColor: 'rgba(10,10,10,0.07)',
-                          width: '100%',
-                          background: 'none',
-                          font: 'inherit',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        <div
+                    {searchResults.map((place) => {
+                      const category = categories.find((c) => c.key === place.category) || categories[0];
+                      return (
+                        <button
+                          key={place.slug}
+                          onClick={() => router.push(`/place/${place.slug}`)}
                           style={{
-                            width: '64px',
-                            height: '64px',
-                            borderRadius: '10px',
-                            background: '#E8D5F2',
-                            flexShrink: 0,
+                            display: 'flex',
+                            gap: '12px',
+                            padding: '12px 0',
+                            borderWidth: '0 0 1px 0',
+                            borderStyle: 'solid',
+                            borderColor: 'rgba(10,10,10,0.07)',
+                            width: '100%',
+                            background: 'none',
+                            font: 'inherit',
+                            textAlign: 'left',
+                            cursor: 'pointer',
                           }}
-                        />
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
-                          <span style={{ fontSize: '14px', fontWeight: '700', color: '#0A0A0A' }}>{place.title}</span>
-                          <span style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            {place.subtitle}
-                          </span>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: 'rgba(10,10,10,0.5)' }}>
-                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
-                              <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#2E7FE8" strokeWidth="2" />
-                              <circle cx="12" cy="9.5" r="2.3" stroke="#2E7FE8" strokeWidth="2" />
-                            </svg>
-                            {place.address}
+                        >
+                          {place.heroImage ? (
+                            <img
+                              src={place.heroImage.url}
+                              alt={place.title}
+                              style={{ width: '72px', height: '72px', borderRadius: '10px', objectFit: 'cover', flexShrink: 0 }}
+                            />
+                          ) : (
+                            <div style={{ width: '72px', height: '72px', borderRadius: '10px', background: category.color, flexShrink: 0 }} />
+                          )}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', minWidth: 0 }}>
+                            <span style={{ fontSize: '14px', fontWeight: '700', color: '#0A0A0A' }}>{place.title}</span>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: category.color }}>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" dangerouslySetInnerHTML={{ __html: category.icon.replace(/#fff/g, category.color) }} />
+                              {category.label}
+                            </span>
+                            {place.vibes && place.vibes.length > 0 && (
+                              <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
+                                {place.vibes.map((v) => (
+                                  <span key={v} style={{ fontSize: '10px', fontWeight: 600, color: '#0A9B71', background: 'rgba(10,155,113,0.1)', borderRadius: '999px', padding: '2px 8px', whiteSpace: 'nowrap' }}>
+                                    {v}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <span style={{ fontSize: '12px', color: 'rgba(10,10,10,0.6)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {place.subtitle}
+                            </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11.5px', color: 'rgba(10,10,10,0.5)' }}>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+                                <path d="M12 22s7-7.4 7-12.5C19 5.4 15.9 2 12 2S5 5.4 5 9.5C5 14.6 12 22 12 22z" stroke="#2E7FE8" strokeWidth="2" />
+                                <circle cx="12" cy="9.5" r="2.3" stroke="#2E7FE8" strokeWidth="2" />
+                              </svg>
+                              {place.address}
+                            </div>
                           </div>
-                          <span style={{ fontSize: '11px', color: '#6B3FD1' }}>{place.category}</span>
-                        </div>
-                      </button>
-                    ))}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
               </div>
             </>
-          )}
-
-          {/* Recent Searches */}
-          {!hasQuery && (
+          ) : (
             <div style={{ padding: '8px 16px', display: 'flex', flexDirection: 'column', gap: '10px', flex: 1, overflowY: 'auto', background: 'oklch(98% 0.003 90)' }}>
               <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', textTransform: 'uppercase' }}>
                 Recent searches
               </span>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                {['park', 'beach', 'museum', 'lookout'].map((term) => (
+                {RECENT_SEARCHES.map((term) => (
                   <button
                     key={term}
-                    onClick={() => setSearchQuery(term)}
+                    onClick={() => setQuery(term)}
                     style={{
                       background: '#fff',
                       border: '1px solid rgba(10,10,10,0.08)',
@@ -258,45 +272,7 @@ export default function SearchPage() {
           )}
         </div>
 
-        {/* Bottom Navigation */}
-        <div
-          style={{
-            background: '#FFFFFF',
-            borderTop: '1px solid rgba(0,0,0,0.08)',
-            display: 'flex',
-            justifyContent: 'space-around',
-            width: '100%',
-            paddingBottom: '8px',
-          }}
-        >
-          <Link href="/" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
-            <div style={{ fontSize: '23px', lineHeight: '1' }}>⌂</div>
-            <span>Home</span>
-          </Link>
-
-          <Link href="/search" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: '#6B3FD1', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
-            <div style={{ fontSize: '23px', lineHeight: '1' }}>⌕</div>
-            <span>Search</span>
-          </Link>
-
-          <Link href="/saved" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
-            <div style={{ fontSize: '23px', lineHeight: '1' }}>♥</div>
-            <span>Saved</span>
-          </Link>
-
-          <Link href="/visited" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
-            <div style={{ fontSize: '23px', lineHeight: '1' }}>✓</div>
-            <span>Visited</span>
-          </Link>
-
-          <Link href="/account" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px', fontSize: '9px', fontWeight: '600', color: 'rgba(10,10,10,0.6)', cursor: 'pointer', textDecoration: 'none', paddingTop: '8px' }}>
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" style={{ lineHeight: '1' }}>
-              <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="1.8"/>
-              <path d="M4 20c1.5-4 4.5-6 8-6s6.5 2 8 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-            <span>Account</span>
-          </Link>
-        </div>
+        <BottomNav />
       </div>
     </div>
   );

@@ -7,10 +7,11 @@ interface LocationCardProps {
   location: Location;
   layout: 'list' | 'grid' | 'scroll';
   showDistance?: boolean;
+  showVisits?: boolean;
   flexGrow?: boolean;
 }
 
-export default function LocationCard({ location, layout, showDistance = false, flexGrow = true }: LocationCardProps) {
+export default function LocationCard({ location, layout, showDistance = false, showVisits = false, flexGrow = true }: LocationCardProps) {
   const router = useRouter();
   const goToPlace = () => router.push(`/place/${location.id}`);
 
@@ -99,7 +100,11 @@ export default function LocationCard({ location, layout, showDistance = false, f
             {location.name}
           </div>
           <div style={{ fontSize: '10.5px', color: showDistance ? '#7F53F3' : 'rgba(10, 10, 10, 0.6)', fontWeight: showDistance ? 600 : 400 }}>
-            {showDistance ? `${location.distance} mi away` : `${location.visits} visits`}
+            {showDistance && showVisits
+              ? `${location.visits} visits · ${location.distance} mi`
+              : showDistance
+                ? `${location.distance} mi away`
+                : `${location.visits} visits`}
           </div>
         </div>
       </button>

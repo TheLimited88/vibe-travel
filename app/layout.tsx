@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ExploringCityProvider } from "@/components/ExploringCityProvider";
+import CityPickerSheet from "@/components/CityPickerSheet";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -43,7 +45,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link href="https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.css" rel="stylesheet" />
       </head>
       <body style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <ExploringCityProvider>
+            {children}
+            <CityPickerSheet />
+          </ExploringCityProvider>
+        </AuthProvider>
         <ServiceWorkerRegistration />
         <Script src="https://api.mapbox.com/mapbox-gl/v3.1.0/mapbox-gl.js" strategy="beforeInteractive" />
       </body>

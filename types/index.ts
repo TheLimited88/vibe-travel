@@ -46,4 +46,5 @@ export interface Location {
   likes?: number;
   lat?: number;
   lng?: number;
+  worthPct?: number | null;
 }

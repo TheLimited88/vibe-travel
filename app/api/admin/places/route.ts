@@ -1,4 +1,6 @@
 import { createPlace, listPlaces, getPlace, updatePlace, deletePlace, slugify } from '@/lib/places';
+import { getArrivalCount, getReviewSummary } from '@/lib/placeReviews';
+import { getSaveCount } from '@/lib/savedPlaces';
 
 export const dynamic = 'force-dynamic';
 export const fetchCache = 'force-no-store';
@@ -18,7 +20,24 @@ export async function GET(request: Request) {
     }
 
     const places = await listPlaces();
-    return Response.json({ success: true, places });
+
+    if (!searchParams.has('includeStats')) {
+      return Response.json({ success: true, places });
+    }
+
+    const withStats = await Promise.all(
+      places.map(async (place) => {
+        const [visits, summary, saves] = await Promise.all([
+          getArrivalCount(place.slug),
+          getReviewSummary(place.slug),
+          getSaveCount(place.slug),
+        ]);
+        const worthPct = summary.reviewCount > 0 ? Math.round((100 * summary.upCount) / summary.reviewCount) : null;
+        return { ...place, visits, worthPct, saves };
+      })
+    );
+
+    return Response.json({ success: true, places: withStats });
   } catch (error) {
     console.error('List places error:', error);
     return Response.json({ error: 'Failed to load places' }, { status: 500 });
