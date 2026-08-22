@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { signOut } from 'firebase/auth';
+import { signOut, linkWithCredential, unlink, EmailAuthProvider } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { useAuth } from '@/components/AuthProvider';
 import { useDistanceUnit } from '@/components/DistanceUnitProvider';
@@ -18,10 +18,74 @@ export default function AccountPage() {
   const [savingNewPlaces, setSavingNewPlaces] = useState(false);
   const [geofencePrompts, setGeofencePrompts] = useState(false);
   const [savingGeofencePrompts, setSavingGeofencePrompts] = useState(false);
+  const [addPasswordOpen, setAddPasswordOpen] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [confirmingUnlink, setConfirmingUnlink] = useState<string | null>(null);
+  const [unlinkError, setUnlinkError] = useState('');
 
   const userInfo = {
     name: user?.displayName || 'there',
     email: user?.email || '',
+  };
+
+  const providerIds = user?.providerData.map((p) => p.providerId) || [];
+  const hasPasswordProvider = providerIds.includes('password');
+
+  const providerLabel = (id: string): string => {
+    if (id === 'google.com') return 'Google';
+    if (id === 'apple.com') return 'Apple';
+    if (id === 'password') return 'Email & Password';
+    return id;
+  };
+
+  const handleAddPassword = async () => {
+    if (!user || !user.email) return;
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+    setSavingPassword(true);
+    setPasswordError('');
+    try {
+      await linkWithCredential(user, EmailAuthProvider.credential(user.email, newPassword));
+      setAddPasswordOpen(false);
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      if (code === 'auth/requires-recent-login') {
+        setPasswordError('For security, please sign out and back in, then try again.');
+      } else if (code === 'auth/email-already-in-use' || code === 'auth/credential-already-in-use') {
+        setPasswordError('This email already has a password on another account.');
+      } else {
+        setPasswordError('Could not add a password. Please try again.');
+      }
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
+  const handleUnlinkProvider = async (providerId: string) => {
+    if (!user) return;
+    setUnlinkError('');
+    try {
+      await unlink(user, providerId);
+      setConfirmingUnlink(null);
+    } catch (error) {
+      const code = (error as { code?: string }).code;
+      setUnlinkError(
+        code === 'auth/requires-recent-login'
+          ? 'For security, please sign out and back in, then try again.'
+          : 'Could not remove this sign-in method. Please try again.'
+      );
+    }
   };
 
   useEffect(() => {
@@ -169,6 +233,93 @@ export default function AccountPage() {
                   <span style={{ fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>Email</span>
                   <span style={{ fontSize: '14px', fontWeight: '600', color: '#0A0A0A' }}>{userInfo.email}</span>
                 </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '12px 0', borderBottom: '1px solid rgba(10,10,10,0.06)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>Sign-in method</span>
+                    <span style={{ fontSize: '14px', fontWeight: '600', color: '#0A0A0A' }}>
+                      {providerIds.map(providerLabel).join(', ') || 'Email & Password'}
+                    </span>
+                  </div>
+
+                  {!hasPasswordProvider && !addPasswordOpen && (
+                    <button
+                      onClick={() => { setAddPasswordOpen(true); setPasswordError(''); }}
+                      style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, color: '#6B3FD1', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+                    >
+                      + Add email &amp; password sign-in
+                    </button>
+                  )}
+
+                  {addPasswordOpen && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '2px' }}>
+                      <input
+                        type="password"
+                        placeholder="New password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }}
+                      />
+                      <input
+                        type="password"
+                        placeholder="Confirm password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        style={{ border: '1px solid rgba(10,10,10,0.12)', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontFamily: 'inherit', color: '#0A0A0A' }}
+                      />
+                      {passwordError && <span style={{ fontSize: '12px', color: '#D14545' }}>{passwordError}</span>}
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          onClick={handleAddPassword}
+                          disabled={savingPassword}
+                          style={{ background: '#3EE8A8', color: '#0A0A0A', border: 'none', borderRadius: '10px', padding: '9px 16px', fontSize: '13px', fontWeight: '700', cursor: savingPassword ? 'default' : 'pointer', opacity: savingPassword ? 0.6 : 1 }}
+                        >
+                          {savingPassword ? 'Saving…' : 'Save password'}
+                        </button>
+                        <button
+                          onClick={() => { setAddPasswordOpen(false); setPasswordError(''); setNewPassword(''); setConfirmPassword(''); }}
+                          style={{ background: 'none', border: 'none', color: 'rgba(10,10,10,0.5)', fontSize: '13px', fontWeight: '600', cursor: 'pointer' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {providerIds.length > 1 &&
+                    providerIds
+                      .filter((p) => p !== 'password')
+                      .map((p) => (
+                        <div key={p}>
+                          {confirmingUnlink === p ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span style={{ fontSize: '12.5px', color: 'rgba(10,10,10,0.6)' }}>Remove {providerLabel(p)} sign-in?</span>
+                              <button
+                                onClick={() => handleUnlinkProvider(p)}
+                                style={{ background: 'none', border: 'none', padding: 0, color: '#D14545', fontSize: '12.5px', fontWeight: '700', cursor: 'pointer' }}
+                              >
+                                Yes, remove
+                              </button>
+                              <button
+                                onClick={() => { setConfirmingUnlink(null); setUnlinkError(''); }}
+                                style={{ background: 'none', border: 'none', padding: 0, color: 'rgba(10,10,10,0.5)', fontSize: '12.5px', fontWeight: '600', cursor: 'pointer' }}
+                              >
+                                Cancel
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => { setConfirmingUnlink(p); setUnlinkError(''); }}
+                              style={{ alignSelf: 'flex-start', background: 'none', border: 'none', padding: 0, color: 'rgba(10,10,10,0.5)', fontSize: '12.5px', cursor: 'pointer' }}
+                            >
+                              Remove {providerLabel(p)} sign-in
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                  {unlinkError && <span style={{ fontSize: '12px', color: '#D14545' }}>{unlinkError}</span>}
+                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid rgba(10,10,10,0.06)' }}>
                   <span style={{ fontSize: '14px', color: 'rgba(10,10,10,0.6)' }}>Distance unit</span>
                   <div style={{ display: 'flex', gap: '8px' }}>
