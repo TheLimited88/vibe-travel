@@ -53,7 +53,11 @@ export default function Home() {
   const [permissionToast, setPermissionToast] = useState('');
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const { isRemoteCity, activeCity } = useExploringCity();
-  const { formatDistance } = useDistanceUnit();
+  const { unit } = useDistanceUnit();
+  // Fixed radius labels (not a measured distance) — keep the mi side at its
+  // exact designed precision instead of routing it through formatDistance's
+  // 1-decimal rounding, which turns "0.75 mi" into a misleading "0.8 mi".
+  const radiusLabel = (mi: number) => (unit === 'mi' ? `${mi} mi` : `${Math.round(mi * 1.60934 * 10) / 10} km`);
 
   useEffect(() => {
     fetch('/api/admin/places?includeStats=1')
@@ -230,7 +234,7 @@ export default function Home() {
                   </h2>
                   {!isRemoteCity && (
                     <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#6B3FD1', background: 'rgba(127, 83, 243, 0.1)', padding: '3px 8px', borderRadius: '8px', display: 'inline-block' }}>
-                      {`< ${formatDistance(0.75)}`}
+                      {`< ${radiusLabel(0.75)}`}
                     </span>
                   )}
                 </div>
@@ -251,7 +255,7 @@ export default function Home() {
                   </h2>
                   {!isRemoteCity && (
                     <span style={{ fontSize: '10.5px', fontWeight: 700, color: '#0A9B71', background: 'rgba(10, 155, 113, 0.1)', padding: '3px 8px', borderRadius: '8px', display: 'inline-block' }}>
-                      {`< ${formatDistance(2)}`}
+                      {`< ${radiusLabel(2)}`}
                     </span>
                   )}
                 </div>
